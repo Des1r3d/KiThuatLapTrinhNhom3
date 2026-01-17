@@ -1,0 +1,1 @@
+print("con chó cắn con mèo")
