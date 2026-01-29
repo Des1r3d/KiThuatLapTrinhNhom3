@@ -1,28 +1,25 @@
-##1. Sơ đồ cấu trúc thư mục (Project Structure)
 PharmacyManager/
+├── main.py                # Entry point: Khởi chạy ứng dụng chính
+├── config.py              # Cấu hình hệ thống (Đường dẫn file, hằng số, Stylesheet)
+├── requirements.txt       # Danh sách các thư viện cần cài đặt (PyQt6, pandas,...)
+├── README.md              # Tài liệu hướng dẫn dự án
 │
-├── main.py                 # File chạy chính (Entry point)
-├── config.py               # Các cấu hình chung (Đường dẫn file, màu sắc UI...)
+├── data/                  # Quản lý cơ sở dữ liệu
+│   └── database.json      # File lưu trữ thông tin thuốc, tồn kho, giao dịch
 │
-├── data/                   # Nơi chứa dữ liệu
-│   └── database.json       # File JSON lưu trữ thông tin
-│
-├── src/                    # Mã nguồn chính
+├── src/                   # Mã nguồn chính của ứng dụng
 │   ├── __init__.py
-│   ├── ui/                 # Chuyên về giao diện (PyQt6)
-│   │   ├── main_window.py  
-│   │   ├── dashboard_ui.py # Code/File thiết kế Dashboard
-│   │   └── resources/      # Icon, hình ảnh, stylesheet (qss)
+│   ├── ui/                # Giao diện người dùng (PyQt6)
+│   │   ├── main_window.py # Giao diện chính của app
+│   │   ├── dashboard.py   # Widget hiển thị Dashboard & Biểu đồ
+│   │   └── resources/     # Chứa Icons, Hình ảnh, CSS (.qss)
 │   │
-│   ├── logic/              # Xử lý nghiệp vụ (Nối logic với UI)
-│   │   ├── inventory.py    # Xử lý tồn kho, vị trí kệ
-│   │   ├── pricing.py      # Kiểm tra lỗi nhập giá
-│   │   └── expiry.py       # Kiểm tra hạn sử dụng
+│   ├── logic/             # Xử lý nghiệp vụ (Business Logic)
+│   │   ├── inventory.py   # Quản lý nhập/xuất, vị trí kệ (Shelf/Bin)
+│   │   ├── pricing.py     # Kiểm tra giá, tính toán doanh thu
+│   │   └── expiry.py      # Thuật toán lọc & cảnh báo hạn sử dụng
 │   │
-│   ├── utils/              # Các công cụ hỗ trợ
-│   │   ├── data_handler.py # Đọc/Ghi file JSON bằng Pandas
-│   │   └── plotter.py      # Vẽ biểu đồ Matplotlib
-│   └── ...
-│
-├── requirements.txt        # Danh sách thư viện (PyQt6, pandas, matplotlib)
-└── README.md               # Hướng dẫn sử dụng
+│   └── utils/             # Các module bổ trợ (Helper functions)
+│       ├── data_handler.py # Đọc/Ghi dữ liệu JSON bằng Pandas
+│       └── plotter.py      # Cấu hình vẽ biểu đồ Matplotlib để nhúng vào UI
+└── ...
