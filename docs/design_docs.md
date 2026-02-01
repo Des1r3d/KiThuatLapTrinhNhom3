@@ -36,6 +36,31 @@ graph TD
     JSON_Store --> Files[(JSON Files)]
 ```
 
+**Visualization (Structure Chart):**
+```text
+                                 +-------------------+
+                                 |  Main Application |
+                                 +---------+---------+
+                                           |
+               +---------------------------+---------------------------+
+               |                           |                           |
+       +-------v-------+           +-------v--------+          +-------v-------+
+       |    UI Layer   |           | Business Logic |          |  Data Layer   |
+       |    (PyQt6)    |           |                |          |               |
+       +-------+-------+           +-------+--------+          +-------+-------+
+               |                           |                           |
+    +----------+---------+      +----------+----------+       +--------+--------+
+    | - Dashboard        |      | - Inventory Manager |       | - JSON Storage  |
+    | - Inventory View   |      | - Search Engine     |       | - Data Models   |
+    | - Global Search    |      | - Alert System      |       |                 |
+    | - Reports          |      |                     |       |                 |
+    +--------------------+      +---------------------+       +--------+--------+
+                                                                       |
+                                                                +------v------+
+                                                                | JSON Files  |
+                                                                +-------------+
+```
+
 ## 3. Thiết kế Dữ liệu & Class Diagram
 
 ### Data Models
@@ -87,6 +112,27 @@ classDiagram
     InventoryManager "1" *-- "many" Medicine
 ```
 
+**Visualization (Class Diagram - Simplified):**
+```text
++------------------+        +-----------------------+
+|    Medicine      |        |   InventoryManager    |
++------------------+        +-----------------------+
+| - id             |<-------+ - medicines: List     |
+| - name           | 1    * | + load/save_data()    |
+| - quantity       |        | + add_medicine()      |
+| - expiry_date    |        | + check_expiry()      |
+| + is_expired()   |        +-----------+-----------+
++------------------+                    |
+                                        | uses
+                                        v
+                            +-----------------------+
+                            |    StorageEngine      |
+                            +-----------------------+
+                            | + read_json()         |
+                            | + write_json()        |
+                            +-----------------------+
+```
+
 ## 4. Các luồng xử lý chính (Flowcharts)
 
 ### 4.1. Import/Thêm thuốc mới
@@ -101,6 +147,16 @@ flowchart LR
     UI_Update --> End([Kết thúc])
 ```
 
+**Visualization (Import Flow):**
+```text
+[Start] --> [Form Input] --> <Valid?> --No--> [Show Error]
+                                |
+                               Yes
+                                |
+                                v
+                          [Create Object] --> [Save JSON] --> [Update GUI] --> [End]
+```
+
 ### 4.2. Tìm kiếm toàn cục (Ctrl+K)
 ```mermaid
 flowchart TD
@@ -111,6 +167,16 @@ flowchart TD
     Results --> Select[Chọn thuốc]
     Select --> Detail[Xem chi tiết/Vị trí]
     Detail --> End([Kết thúc])
+```
+
+**Visualization (Search Flow):**
+```text
+[Ctrl+K] --> [Search Modal] --> [Type Query] --> <Fuzzy Match?> --No--> (Wait)
+                                                       |
+                                                   Yes (>80%)
+                                                       |
+                                                       v
+[End] <-- [View Detail] <-- [Select Item] <-- [Show Results]
 ```
 
 ## 5. Chiến lược UI/UX
