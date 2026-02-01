@@ -1,85 +1,85 @@
-# Development Tickets
+# Danh sách Tickets Phát triển
 
-## Phase 1: Foundation & Core Logic
+## Giai đoạn 1: Nền tảng & Logic Cốt lõi (Foundation & Core Logic)
 
-### T-101: Project Setup & Repository Initialization
--   **Description:** Initialize the Python project structure.
--   **Tasks:**
-    -   Create virtual environment.
-    -   Install dependencies: `PyQt6`, `pandas`, `thefuzz`, `matplotlib`.
-    -   Set up folder structure: `src/`, `data/`, `tests/`, `assets/`.
-    -   Create `README.md` and `.gitignore`.
+### T-101: Thiết lập Project & Khởi tạo Repository
+-   **Mô tả:** Khởi tạo cấu trúc dự án Python.
+-   **Công việc:**
+    -   Tạo môi trường ảo (virtual environment).
+    -   Cài đặt thư viện: `PyQt6`, `pandas`, `thefuzz`, `matplotlib`.
+    -   Tạo cấu trúc thư mục: `src/`, `data/`, `tests/`, `assets/`.
+    -   Tạo file `README.md` và `.gitignore`.
 
-### T-102: Implement Data Models (Dataclasses)
--   **Description:** Define the core data structures using Python `dataclasses`.
+### T-102: Triển khai Data Models (Dataclasses)
+-   **Mô tả:** Định nghĩa các cấu trúc dữ liệu chính sử dụng Python `dataclasses`.
 -   **Files:** `src/models.py`
--   **Requirements:**
-    -   `Medicine` class: `id`, `name`, `qty`, `expiry`, `shelf_id`.
-    -   `Shelf` class.
-    -   Include helper methods: `to_dict()`, `from_dict()`.
+-   **Yêu cầu:**
+    -   Class `Medicine`: `id`, `name`, `qty` (số lượng), `expiry` (hạn dùng), `shelf_id` (vị trí).
+    -   Class `Shelf`: quản lý kệ.
+    -   Bao gồm các hàm hỗ trợ: `to_dict()`, `from_dict()`.
 
-### T-103: Storage Engine (JSON I/O)
--   **Description:** Create a robust generic JSON handler.
+### T-103: Storage Engine (Xử lý JSON)
+-   **Mô tả:** Tạo bộ xử lý đọc/ghi JSON dùng chung.
 -   **Files:** `src/storage.py`
--   **Requirements:**
-    -   Atomic writes (write to temp then rename) to prevent corruption.
-    -   Error handling for missing/corrupt files.
-    -   Unit tests for load/save operations.
+-   **Yêu cầu:**
+    -   Atomic writes (ghi vào file tạm rồi đổi tên) để tránh lỗi file.
+    -   Xử lý lỗi khi file thiếu hoặc hỏng.
+    -   Viết Unit tests cho các thao tác load/save.
 
-## Phase 2: Business Logic
+## Giai đoạn 2: Logic Nghiệp vụ (Business Logic)
 
-### T-201: Inventory Manager Logic
--   **Description:** Implement the controller for inventory operations.
+### T-201: Inventory Manager
+-   **Mô tả:** Controller quản lý các hoạt động nhập xuất kho.
 -   **Files:** `src/inventory_manager.py`
--   **Requirements:**
-    -   `add_item()`, `remove_item()`, `update_item()`.
-    -   Validations (e.g., negative quantity not allowed).
-    -   Auto-generate IDs if not provided.
+-   **Yêu cầu:**
+    -   Các hàm: `add_item()`, `remove_item()`, `update_item()`.
+    -   Validate dữ liệu (ví dụ: không cho phép số lượng âm).
+    -   Tự động sinh ID nếu chưa có.
 
-### T-202: Expiry & Stock Alert System
--   **Description:** Logic to filter items needing attention.
--   **Requirements:**
-    -   `get_expiring_soon(days=30)`: Returns list of items.
-    -   `get_low_stock(threshold=5)`: Returns list of low stock items.
+### T-202: Hệ thống cảnh báo Hết hạn & Tồn kho
+-   **Mô tả:** Logic lọc các thuốc cần chú ý.
+-   **Yêu cầu:**
+    -   `get_expiring_soon(days=30)`: Trả về danh sách thuốc sắp hết hạn.
+    -   `get_low_stock(threshold=5)`: Trả về danh sách thuốc sắp hết.
 
 ### T-203: Fuzzy Search Engine
--   **Description:** Implement search functionality using `thefuzz` or `process` from `rapidfuzz`.
--   **Requirements:**
-    -   Cache/Index the medicine names for speed.
-    -   Return top 5 matches with scores.
+-   **Mô tả:** Chức năng tìm kiếm mờ sử dụng `thefuzz` hoặc `rapidfuzz`.
+-   **Yêu cầu:**
+    -   Cache/Index tên thuốc để tìm kiếm nhanh.
+    -   Trả về top 5 kết quả phù hợp nhất kèm điểm số (score).
 
-## Phase 3: UI Implementation (PyQt6)
+## Giai đoạn 3: Triển khai Giao diện (UI Implementation - PyQt6)
 
 ### T-301: Main Window Layout & Navigation
--   **Description:** Create the shell of the application.
--   **Requirements:**
-    -   Sidebar with navigation buttons.
-    -   `QStackedWidget` for switching views (Dashboard, Inventory, Settings).
-    -   `Ctrl+K` for global search.
+-   **Mô tả:** Tạo khung sườn cho ứng dụng.
+-   **Yêu cầu:**
+    -   Sidebar với các nút điều hướng.
+    -   `QStackedWidget` để chuyển đổi giữa các màn hình (Dashboard, Inventory, Settings).
+    -   Bắt sự kiện phím tắt toàn cục `Ctrl+K`.
 
-### T-302: Inventory Table View
--   **Description:** Display all medicines in a sortable/filterable table.
--   **Requirements:**
-    -   Use `QTableView` with a custom `QAbstractTableModel` (powered by Pandas/Polars).
-    -   Columns: Name, Qty, Expiry, Shelf, Status (Color-coded).
+### T-302: Inventory Table View (Bảng kho thuốc)
+-   **Mô tả:** Hiển thị danh sách thuốc trong bảng có thể sắp xếp/lọc.
+-   **Yêu cầu:**
+    -   Sử dụng `QTableView` với `QAbstractTableModel` tùy chỉnh (dùng Pandas/Polars làm backend).
+    -   Các cột: Tên, Số lượng, Hạn dùng, Kệ, Trạng thái (Phân màu).
 
-### T-303: Add/Edit Medicine Dialog
--   **Description:** Form to input medicine details.
--   **Requirements:**
-    -   Date picker for expiry.
-    -   Dropdown for Shelf selection.
-    -   Validation before submit.
+### T-303: Dialog Thêm/Sửa thuốc
+-   **Mô tả:** Form nhập liệu thông tin thuốc.
+-   **Yêu cầu:**
+    -   Date picker chọn hạn sử dụng.
+    -   Dropdown chọn vị trí kệ (Shelf).
+    -   Validate dữ liệu trước khi submit.
 
-### T-304: Dashboard & Matplotlib Integration
--   **Description:** Landing page with charts.
--   **Requirements:**
-    -   Embed `FigureCanvasQTAgg`.
-    -   Plot: Pie chart of Expiry status.
-    -   Plot: Bar chart of Stock levels.
+### T-304: Dashboard & Tích hợp Matplotlib
+-   **Mô tả:** Màn hình chính với các biểu đồ thống kê.
+-   **Yêu cầu:**
+    -   Nhúng `FigureCanvasQTAgg`.
+    -   Vẽ: Biểu đồ trọng (Pie chart) tỉ lệ hạn sử dụng.
+    -   Vẽ: Biểu đồ cột (Bar chart) mức tồn kho.
 
 ### T-305: Dark/Light Mode Toggle
--   **Description:** Implement theming.
--   **Requirements:**
-    -   Use a stylesheet (QSS) loader.
-    -   Toggle button `Ctrl+D`.
-    -   Persist preference in `settings.json`.
+-   **Mô tả:** Chức năng đổi giao diện Sáng/Tối.
+-   **Yêu cầu:**
+    -   Sử dụng loader cho stylesheet (QSS).
+    -   Nút chuyển đổi hoặc phím tắt `Ctrl+D`.
+    -   Lưu cài đặt vào `settings.json`.

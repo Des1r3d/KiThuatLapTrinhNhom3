@@ -1,17 +1,17 @@
-# Pharmacy Management System - Design Document
+# Pharmacy Management System - Tài liệu Thiết kế
 
-## 1. Project Overview
-**Goal:** A desktop application for pharmacists to manage inventory, check stock, and monitor expiry dates.
-**Target Users:** Pharmacists (Internal use only).
+## 1. Tổng quan Dự án
+**Mục tiêu:** Xây dựng ứng dụng desktop cho dược sĩ để quản lý kho, kiểm tra tồn kho và theo dõi hạn sử dụng thuốc.
+**Đối tượng sử dụng:** Dược sĩ (Nội bộ).
 **Tech Stack:**
--   **Language:** Python 3.10+
--   **GUI:** PyQt6 (Modern, Responsive, Dark/Light mode)
--   **Data Processing:** Pandas (or Polars for performance) + Numpy
--   **Storage:** Pure JSON files (No Database)
--   **Search:** Fuzzy Search (TheFuzz/RapidFuzz)
--   **Visuals:** Matplotlib for reporting
+-   **Ngôn ngữ:** Python 3.10+
+-   **GUI:** PyQt6 (Giao diện hiện đại, Responsive, hỗ trợ Dark/Light mode)
+-   **Xử lý dữ liệu:** Pandas (hoặc Polars để tối ưu hiệu năng) + Numpy
+-   **Lưu trữ:** Pure JSON files (Không sử dụng Database)
+-   **Tìm kiếm:** Fuzzy Search (TheFuzz/RapidFuzz)
+-   **Biểu đồ:** Matplotlib
 
-## 2. System Architecture (Structure Chart)
+## 2. Kiến trúc Hệ thống (Structure Chart)
 
 ```mermaid
 graph TD
@@ -36,10 +36,10 @@ graph TD
     JSON_Store --> Files[(JSON Files)]
 ```
 
-## 3. Data Design & Class Diagram
+## 3. Thiết kế Dữ liệu & Class Diagram
 
 ### Data Models
-We will use Python Dataclasses for models, serialized to JSON.
+Sử dụng Python `dataclasses` cho các model, serialize sang JSON.
 
 ```mermaid
 classDiagram
@@ -87,46 +87,46 @@ classDiagram
     InventoryManager "1" *-- "many" Medicine
 ```
 
-## 4. Key Flows (Flowcharts)
+## 4. Các luồng xử lý chính (Flowcharts)
 
-### 4.1. Import/Add Medicine
+### 4.1. Import/Thêm thuốc mới
 ```mermaid
 flowchart LR
-    Start([Start]) --> Input[Fill Form (Name, Qty, Expiry, Shelf)]
-    Input --> Validate{Validate Data?}
-    Validate -- No --> Error[Show Error] --> Input
-    Validate -- Yes --> UpdateObj[Create Medicine Object]
-    UpdateObj --> Save[Save to JSON]
-    Save --> UI_Update[Update Table View]
-    UI_Update --> End([End])
+    Start([Bắt đầu]) --> Input[Điền form (Tên, SL, HSD, Vị trí)]
+    Input --> Validate{Dữ liệu hợp lệ?}
+    Validate -- Không --> Error[Hiện lỗi] --> Input
+    Validate -- Có --> UpdateObj[Tạo Object Medicine]
+    UpdateObj --> Save[Lưu vào JSON]
+    Save --> UI_Update[Cập nhật bảng hiển thị]
+    UI_Update --> End([Kết thúc])
 ```
 
-### 4.2. Global Search (Ctrl+K)
+### 4.2. Tìm kiếm toàn cục (Ctrl+K)
 ```mermaid
 flowchart TD
-    Start([User presses Ctrl+K]) --> Modal[Open Search Modal]
-    Modal --> Type[User Types Query]
+    Start([Nhấn Ctrl+K]) --> Modal[Mở Search Modal]
+    Modal --> Type[Nhập từ khóa]
     Type --> Fuzzy{Fuzzy Match?}
-    Fuzzy -- Score > 80% --> Results[Show Top Results]
-    Results --> Select[Select Item]
-    Select --> Detail[Show Medicine Details/Location]
-    Detail --> End([End])
+    Fuzzy -- Score > 80% --> Results[Hiện kết quả trùng khớp]
+    Results --> Select[Chọn thuốc]
+    Select --> Detail[Xem chi tiết/Vị trí]
+    Detail --> End([Kết thúc])
 ```
 
-## 5. UI/UX Strategy
--   **Theme:** Modern Flat Design using `Breeze` or `Qt-Material` themes (customizable via CSS/QSS).
--   **Shortcuts:**
-    -   `Ctrl+K`: Global Search.
-    -   `Ctrl+N`: Add new medicine.
-    -   `Ctrl+D`: Toggle Dark/Light Mode.
+## 5. Chiến lược UI/UX
+-   **Theme:** Modern Flat Design sử dụng `Breeze` hoặc `Qt-Material` (tùy chỉnh qua CSS/QSS).
+-   **Phím tắt:**
+    -   `Ctrl+K`: Tìm kiếm nhanh (Global Search).
+    -   `Ctrl+N`: Thêm thuốc mới.
+    -   `Ctrl+D`: Chuyển đổi Dark/Light Mode.
 -   **Layout:**
-    -   **Sidebar:** Navigation (Dashboard, Inventory, Reports, Settings).
-    -   **Main Area:** Dynamic content.
-    -   **Status Bar:** Total items, alerts.
+    -   **Sidebar:** Điều hướng (Dashboard, Kho thuốc, Báo cáo, Cài đặt).
+    -   **Main Area:** Nội dung chính thay đổi động.
+    -   **Status Bar:** Tổng số thuốc, cảnh báo.
 
-## 6. Reporting (Matplotlib Integration)
-The `ReportWidget` will embed Matplotlib figures into PyQt6 canvas.
-**Planned Charts:**
-1.  **Expiry Distribution (Pie Chart):** Good vs. Near Expiry (<30 days) vs. Expired.
-2.  **Stock Levels (Bar Chart):** Top 10 items by quantity.
-3.  **Shelf Utilization (Heatmap - Optional):** Visual representation of shelf fullness.
+## 6. Báo cáo (Tích hợp Matplotlib)
+Widget `ReportWidget` sẽ nhúng biểu đồ Matplotlib vào PyQt6 canvas.
+**Các biểu đồ dự kiến:**
+1.  **Phân bố hạn sử dụng (Pie Chart):** Tốt vs. Cận date (<30 ngày) vs. Hết hạn.
+2.  **Mức tồn kho (Bar Chart):** Top 10 thuốc có số lượng cao nhất.
+3.  **Sức chứa tủ kệ (Heatmap - Optional):** Trực quan hóa độ đầy của kệ thuốc.
