@@ -22,7 +22,6 @@ Core data model representing a medicine item in inventory.
 ### Attributes
 - `id: str` - Unique identifier (auto-generated if empty)
 - `name: str` - Medicine name
-- `active_ingredient: str` - Active pharmaceutical ingredient
 - `quantity: int` - Stock quantity (must be >= 0)
 - `expiry_date: date` - Expiration date
 - `shelf_id: str` - Reference to storage location
@@ -384,8 +383,7 @@ Clear existing index
   ↓
 For each medicine:
   - Extract name
-  - Extract active_ingredient
-  - Store in index dict: {id: [name, ingredient]}
+  - Store in index dict: {id: name}
   ↓
 Cache index for fast lookup
   ↓
@@ -402,8 +400,7 @@ Initialize results list
   ↓
 For each medicine in index:
   - Calculate fuzzy score for name (fuzz.ratio)
-  - Calculate fuzzy score for ingredient
-  - Take max(name_score, ingredient_score)
+  - Use name_score
   ↓
 Filter results: score >= 80
   ↓

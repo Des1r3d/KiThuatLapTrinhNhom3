@@ -80,20 +80,33 @@ Data Access Layer (JSON)
 
 ## Data Models
 
+> For detailed class flows and method sequences, see [docs/classflow.md](docs/classflow.md)
+
 ### Medicine
 ```python
 @dataclass
 class Medicine:
     id: str
     name: str
-    active_ingredient: str
     quantity: int
     expiry_date: date
     shelf_id: str
     price: float
 
-    def is_expired() -> bool
-    def days_until_expiry() -> int
+    def is_expired() -> bool      # True if expiry_date < today
+    def days_until_expiry() -> int  # Negative if expired
+    def to_dict() -> dict         # JSON serialization
+    @staticmethod
+    def from_dict(data: dict) -> Medicine  # Deserialize from JSON
+```
+
+**Medicine State Transitions:**
+```
+[New] → [Valid] → [In Inventory]
+           ↓
+      [Expired] (when expiry_date < today)
+           ↓
+      [Low Stock] (when quantity < threshold)
 ```
 
 ### Shelf
@@ -104,24 +117,55 @@ class Shelf:
     row: str
     column: str
     capacity: str
+
+    def to_dict() -> dict
+    @staticmethod
+    def from_dict(data: dict) -> Shelf
 ```
 
 ## Critical Implementation Details
 
-### JSON Storage (`src/storage.py`)
+### StorageEngine (`src/storage.py`)
 - **Atomic writes required:** Write to `.tmp` file first, then rename to prevent data corruption
 - **Error handling:** Handle missing files and malformed JSON gracefully
 - **Validation:** Always validate JSON structure on load
+- **Backup mechanism:** Create backup before write, restore on failure
 
-### Search Engine (`src/inventory_manager.py` or dedicated file)
+**Key Methods:**
+```python
+def read_json(filepath: str) -> dict   # Raises FileNotFoundError, JSONDecodeError
+def write_json(filepath: str, data: dict)  # Atomic: backup → temp → rename
+```
+
+### InventoryManager (`src/inventory_manager.py`)
+Central controller for all inventory operations.
+
+**Key Methods:**
+```python
+def load_data()                                    # Load medicines from JSON
+def save_data()                                    # Persist to JSON
+def add_medicine(medicine: Medicine)               # Validate & add
+def remove_medicine(medicine_id: str)              # Find & remove
+def update_medicine(medicine_id: str, changes: dict)  # Immutable update
+def check_expiry(days_threshold: int = 30) -> List[Medicine]
+def check_low_stock(threshold: int = 5) -> List[Medicine]
+```
+
+**Validation Rules:**
+- **No negative quantities:** Validate qty >= 0 before save
+- **Auto-generate IDs:** If Medicine.id is empty, generate unique ID
+- **Date validation:** Expiry date must be future date for new entries
+
+### SearchEngine (`src/search_engine.py`)
 - **Fuzzy matching threshold:** 80% minimum score using TheFuzz
 - **Index caching:** Cache medicine names for faster repeated searches
 - **Return top 5 results** with scores
 
-### Inventory Manager Validation
-- **No negative quantities:** Validate qty >= 0 before save
-- **Auto-generate IDs:** If Medicine.id is empty, generate unique ID
-- **Date validation:** Expiry date must be future date for new entries
+**Key Methods:**
+```python
+def index_data(medicines: List[Medicine])  # Build search index
+def search(query: str, limit: int = 5) -> List[Tuple[Medicine, int]]
+```
 
 ### UI Keyboard Shortcuts
 - `Ctrl+K`: Global search modal
@@ -184,6 +228,50 @@ tests/
 2. Bar chart: Top 10 medicines by quantity
 3. Optional heatmap: Shelf capacity visualization
 
+### UI Components
+
+**MainWindow (`src/ui/main_window.py`):**
+- QStackedWidget for page switching (Dashboard, InventoryView, Settings)
+- Keyboard shortcuts: Ctrl+K (search), Ctrl+N (add), Ctrl+D (theme)
+- Emits signals on navigation changes
+
+**InventoryView (`src/ui/inventory_view.py`):**
+- QTableView with custom QAbstractTableModel
+- Pandas DataFrame as backend
+- Double-click → Edit dialog, Right-click → Context menu
+
+**Dashboard (`src/ui/dashboard.py`):**
+- FigureCanvasQTAgg for Matplotlib integration
+- Refresh button reloads charts from InventoryManager
+
+**Add/Edit Dialog (`src/ui/dialogs.py`):**
+- QLineEdit (Name, Ingredient, Price), QSpinBox (Qty), QDateEdit, QComboBox (Shelf)
+- Validation before save, emits signal on success
+
+### Integration Flow Example
+
+```
+User clicks "Add Medicine" (Ctrl+N)
+    ↓
+AddMedicineDialog opens
+    ↓
+User fills form → clicks Save
+    ↓
+Dialog validates → creates Medicine object
+    ↓
+InventoryManager.add_medicine() validates & appends
+    ↓
+InventoryManager.save_data() → StorageEngine.write_json()
+    ↓
+StorageEngine: backup → write .tmp → rename
+    ↓
+InventoryManager emits 'medicine_added' signal
+    ↓
+InventoryView receives signal → reloads DataFrame
+    ↓
+Table updates, Dialog closes
+```
+
 ## Important Notes
 
 - This is a **desktop-only** application (no web/mobile)
@@ -191,3 +279,34 @@ tests/
 - All data persists in **JSON files only** (no SQL database)
 - Settings stored in `data/settings.json` (theme preference, alert thresholds)
 - Use **immutable patterns** when updating medicine objects (create new object, don't mutate)
+
+## Error Handling Strategy
+
+**Data Layer Errors:**
+- `FileNotFoundError` → Check for backup, initialize empty list if none
+- `JSONDecodeError` → Load backup if exists, show error dialog if not
+- Write failure → Rollback from backup, keep in-memory state
+
+**Business Logic Errors:**
+- Invalid data → Raise `ValueError` with message, dialog shows error
+- Duplicate ID → Auto-generate new ID, retry
+
+**UI Layer Errors:**
+- Invalid form input → Inline error, disable Save button
+- Search no results → Display "No results found" message
+
+## Ticket Cross-Reference
+
+| Ticket | Component | Description |
+|--------|-----------|-------------|
+| T-101 | Project Setup | Infrastructure |
+| T-102 | Data Models | Medicine, Shelf classes |
+| T-103 | Storage Engine | JSON read/write |
+| T-201 | Inventory Manager | CRUD operations |
+| T-202 | Alert System | Expiry/low stock checks |
+| T-203 | Search Engine | Fuzzy search |
+| T-301 | Main Window | Navigation, shortcuts |
+| T-302 | Inventory View | Table display |
+| T-303 | Add/Edit Dialog | Form dialogs |
+| T-304 | Dashboard | Charts |
+| T-305 | Theme Toggle | Dark/Light mode |
