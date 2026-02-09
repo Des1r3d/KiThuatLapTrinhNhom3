@@ -26,7 +26,7 @@ class SearchEngine:
         match_threshold: Minimum score (0-100) to include in results
     """
     
-    def __init__(self, match_threshold: int = 80):
+    def __init__(self, match_threshold: int = 70):
         """
         Initialize SearchEngine.
         
