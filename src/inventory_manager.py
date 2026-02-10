@@ -101,7 +101,18 @@ class InventoryManager:
             Unique ID string (UUID format)
         """
         return f"MED-{uuid.uuid4().hex[:8].upper()}"
-    
+        # chuỗi trả về dạng MED-XXXXXXXX với XXXXXXXX là 8 ký tự đầu tiên của UUID được chuyển thành chữ hoa   
+        # ví dụ: MED-1A2B3C4D
+        # uuid.uuid4() tạo ra một UUID ngẫu nhiên
+        # .hex chuyển UUID thành chuỗi hex không có dấu gạch ngang 
+        '''
+        import uuid
+        u = uuid.uuid4()
+        print(str(u))      # ví dụ: '123e4567-e89b-12d3-a456-426614174000'
+        print(u.hex)       # ví dụ: '123e4567e89b12d3a456426614174000'
+        print(u.hex[:8].upper())  # '123E4567'
+        '''
+
     def _find_medicine_by_id(self, medicine_id: str) -> Optional[Medicine]:
         """
         Find medicine by ID.
@@ -131,7 +142,10 @@ class InventoryManager:
             if medicine.id == medicine_id:
                 return i
         return -1
-    
+        ''' ở dưới có hàm xử lý -> updated
+        if index == -1:
+            raise ValueError(f"Medicine with ID '{medicine_id}' not found")
+        '''
     def _validate_shelf_exists(self, shelf_id: str) -> bool:
         """
         Check if a shelf ID exists.

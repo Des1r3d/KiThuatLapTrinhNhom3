@@ -37,7 +37,13 @@ class Alert:
     message: str
     severity: int  # 1 = low, 2 = medium, 3 = high
 
-
+    '''
+    Checks for:
+        - Expired medicines (severity: 3)
+        - Expiring soon (severity: 2)
+        - Out of stock (severity: 3)
+        - Low stock (severity: 1)
+    '''
 class AlertSystem:
     """
     System for monitoring inventory and generating alerts.
@@ -169,7 +175,7 @@ class AlertSystem:
             alerts.append(Alert(
                 medicine=med,
                 alert_type=AlertType.EXPIRED,
-                message=f"'{med.name}' đã hết hạn {days_overdue} ngày",
+                message=f"'{med.name}' đã hết hạn được {days_overdue} ngày",
                 severity=3
             ))
         
@@ -199,7 +205,7 @@ class AlertSystem:
                 alerts.append(Alert(
                     medicine=med,
                     alert_type=AlertType.LOW_STOCK,
-                    message=f"'{med.name}' còn ít hàng ({med.quantity} đơn vị)",
+                    message=f"'{med.name}' còn ít hàng, với ({med.quantity} đơn vị còn lại)",
                     severity=1
                 ))
         
