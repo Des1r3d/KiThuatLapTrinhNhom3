@@ -1,24 +1,24 @@
-# Project Charts: Pharmacy Management System
+# Sơ đồ dự án: Hệ thống Quản lý Nhà thuốc
 
-This document outlines key architectural and flow diagrams for the Pharmacy Management System, providing a visual overview of its structure and functionality. These diagrams are generated using Mermaid syntax, which can be rendered by many Markdown viewers and documentation tools.
+Tài liệu này trình bày các sơ đồ kiến trúc và sơ đồ luồng chính cho Hệ thống Quản lý Nhà thuốc, cung cấp một cái nhìn tổng quan trực quan về cấu trúc và chức năng của nó. Các sơ đồ này được tạo bằng cú pháp Mermaid, có thể được hiển thị bởi nhiều trình xem Markdown và công cụ tài liệu.
 
 ---
 
-## 1. Component Architecture Diagram
+## 1. Sơ đồ Kiến trúc Thành phần
 
-This diagram illustrates the high-level organization of the Pharmacy Management System into distinct layers and components, showing their primary relationships and dependencies.
+Sơ đồ này minh họa tổ chức cấp cao của Hệ thống Quản lý Nhà thuốc thành các lớp và thành phần riêng biệt, thể hiện các mối quan hệ và sự phụ thuộc chính của chúng.
 
 ```mermaid
 graph TD
-    App[Main Application] --> UI[UI Layer (PyQt6)]
+    App[Main Application] --> UI["UI Layer (PyQt6)"]
 
     UI --> Logic[Business Logic]
     Logic --> Data[Data Access Layer]
 
     UI --> Dashboard[Dashboard View]
     UI --> InventoryView[Inventory View]
-    UI --> SearchBar[Global Search (Ctrl+K)]
-    UI --> Reports[Reports (Matplotlib)]
+    UI --> SearchBar["Global Search (Ctrl+K)"]
+    UI --> Reports["Reports (Matplotlib)"]
 
     Logic --> InvMgr[Inventory Manager]
     Logic --> SearchEng[Search Engine]
@@ -32,7 +32,7 @@ graph TD
     JSON_Store --> Files[(JSON Files)]
 ```
 
-### Explanation:
+### Giải thích:
 -   **Main Application:** Đóng vai trò khởi tạo (bootstrap) hệ thống.
 -   **UI Layer (PyQt6):** Xử lý tương tác người dùng và hiển thị thông tin. Gọi các chức năng từ lớp Business Logic. Gồm các chế độ xem như Dashboard, Inventory View, Global Search và Reports.
 -   **Business Logic Layer:** Chứa các quy tắc nghiệp vụ và hoạt động cốt lõi, được quản lý bởi Inventory Manager, Search Engine và Alert System.
@@ -41,9 +41,9 @@ graph TD
 
 ---
 
-## 2. Logic Flow / Sequence Diagram (for a Key Use Case: Add Medicine)
+## 2. Sơ đồ Luồng Logic / Tuần tự (cho một Trường hợp Sử dụng Chính: Thêm Thuốc)
 
-This sequence diagram details the interaction between the user and various system components during the process of adding a new medicine entry.
+Sơ đồ tuần tự này mô tả chi tiết sự tương tác giữa người dùng và các thành phần hệ thống khác nhau trong quá trình thêm một mục thuốc mới.
 
 ```mermaid
 sequenceDiagram
@@ -75,7 +75,7 @@ sequenceDiagram
     deactivate UI
 ```
 
-### Explanation:
+### Giải thích:
 -   Biểu đồ này theo dõi quy trình "Thêm thuốc" từ khi người dùng khởi tạo đến khi cập nhật UI và lưu trữ dữ liệu.
 -   **Người dùng và UI:** Người dùng tương tác với giao diện đồ họa.
 -   **Xác thực ở UI:** UI thực hiện xác thực đầu vào cơ bản (UX-level validation) trước khi chuyển dữ liệu.
@@ -87,9 +87,9 @@ sequenceDiagram
 
 ---
 
-## 3. Class Diagram
+## 3. Sơ đồ Lớp
 
-This diagram presents the core classes of the system, their attributes, key methods, and the relationships between them.
+Sơ đồ này trình bày các lớp (class) cốt lõi của hệ thống, các thuộc tính (attribute), phương thức (method) chính và mối quan hệ giữa chúng.
 
 ```mermaid
 classDiagram
@@ -121,8 +121,8 @@ classDiagram
     }
 
     class InventoryManager {
-        -List[Medicine] medicines
-        -List[Shelf] shelves
+        -List~Medicine~ medicines
+        -List~Shelf~ shelves
         -StorageEngine storage
         +load_data()
         +save_data()
@@ -137,8 +137,8 @@ classDiagram
     }
 
     class SearchEngine {
-        -List[Medicine] medicines
-        -Dict~str, str~ name_index
+        -List~Medicine~ medicines
+        -Dict~str,str~ name_index
         +index_data(List~Medicine~)
         +search(str query, int limit) List~Tuple~
         +get_suggestions(str partial_query, int limit) List~str~
@@ -174,32 +174,32 @@ classDiagram
 
     InventoryManager "1" *-- "many" Medicine
     InventoryManager "1" *-- "many" Shelf
-    InventoryManager -- StorageEngine : uses >
-    AlertSystem -- Medicine : checks >
-    AlertSystem -- AlertType : uses >
+    InventoryManager -- StorageEngine : uses
+    AlertSystem -- Medicine : checks
+    AlertSystem -- AlertType : uses
     Alert --> Medicine : references
     Alert "1" *-- "1" AlertType : has
-    SearchEngine -- Medicine : indexes >
+    SearchEngine -- Medicine : indexes
 ```
 
-### Explanation:
--   **Medicine & Shelf:** These are dataclasses representing the fundamental data entities, with methods for validation and serialization.
--   **StorageEngine:** Encapsulates the logic for reading and writing JSON data to files, ensuring data integrity.
--   **InventoryManager:** The central business logic component for managing `Medicine` and `Shelf` objects, performing CRUD operations and interacting with the `StorageEngine` for persistence.
--   **SearchEngine:** Provides fuzzy search capabilities for medicines using `TheFuzz` library, indexing medicine names for efficient querying.
--   **AlertType & Alert:** `AlertType` is an enumeration for different alert categories, and `Alert` is a dataclass representing a specific alert for a medicine.
--   **AlertSystem:** Monitors medicine inventory for expiry dates and stock levels, generating `Alert` objects based on defined thresholds.
-    -   **Relationships:**
-        -   `InventoryManager` aggregates `Medicine` và `Shelf` objects (được biểu thị bằng `*--`).
-        -   `InventoryManager` sử dụng `StorageEngine` (được biểu thị bằng `-->`).
-        -   `AlertSystem` và `SearchEngine` tương tác với các đối tượng `Medicine`.
-        -   `Alert` objects `tham chiếu` đến `Medicine` (thay vì sở hữu), và được `kết hợp` với `AlertType`.
-        -   *Lưu ý:* Thuộc tính `capacity` của `Shelf` hiện đang là kiểu `str` trong mã nguồn, nhưng nên được cân nhắc thay đổi thành `int` để đảm bảo tính toàn vẹn dữ liệu tốt hơn.
+### Giải thích:
+-   **Medicine & Shelf:** Đây là các dataclass đại diện cho các thực thể dữ liệu cơ bản, với các phương thức để xác thực và tuần tự hóa (serialization).
+-   **StorageEngine:** Đóng gói logic để đọc và ghi dữ liệu JSON vào tệp, đảm bảo tính toàn vẹn của dữ liệu.
+-   **InventoryManager:** Thành phần logic nghiệp vụ trung tâm để quản lý các đối tượng `Medicine` và `Shelf`, thực hiện các thao tác CRUD và tương tác với `StorageEngine` để lưu trữ dữ liệu (persistence).
+-   **SearchEngine:** Cung cấp khả năng tìm kiếm mờ (fuzzy search) cho các loại thuốc bằng thư viện `TheFuzz`, lập chỉ mục (indexing) tên thuốc để truy vấn hiệu quả.
+-   **AlertType & Alert:** `AlertType` là một enum cho các loại cảnh báo khác nhau, và `Alert` là một dataclass đại diện cho một cảnh báo cụ thể cho một loại thuốc.
+-   **AlertSystem:** Giám sát kho thuốc về hạn sử dụng và mức tồn kho, tạo ra các đối tượng `Alert` dựa trên các ngưỡng đã xác định.
+-   **Các mối quan hệ:**
+    -   `InventoryManager` tổng hợp (aggregates) các đối tượng `Medicine` và `Shelf` (được biểu thị bằng `*--`).
+    -   `InventoryManager` sử dụng `StorageEngine` (được biểu thị bằng `--`).
+    -   `AlertSystem` và `SearchEngine` tương tác với các đối tượng `Medicine`.
+    -   Các đối tượng `Alert` tham chiếu đến `Medicine` (thay vì sở hữu), và được kết hợp với `AlertType`.
+    -   *Lưu ý:* Thuộc tính `capacity` của `Shelf` hiện đang là kiểu `str` trong mã nguồn, nhưng nên được cân nhắc thay đổi thành `int` để đảm bảo tính toàn vẹn dữ liệu tốt hơn.
 ---
 
-## 4. File Structure Diagram
+## 4. Sơ đồ Cấu trúc Tệp
 
-This diagram provides a visual representation of the project's directory and file organization, highlighting the main modules.
+Sơ đồ này cung cấp một biểu diễn trực quan về tổ chức thư mục và tệp của dự án, làm nổi bật các module chính.
 
 ```mermaid
 graph TD
@@ -230,13 +230,13 @@ graph TD
 
     E --> E1[classDiagram.drawio.png]
     E --> E2[classflow.md]
-    E --> E3[design_docs.md]
+    E --> E3[design_guideline.md]
     E --> E4[PROGRESS.md]
 ```
 
-### Explanation:
--   **Root Directory:** Contains project-level files like `.gitignore`, `README.md`, and `requirements.txt`.
--   **`src/`:** Houses the main source code of the application, logically separated into modules for data models, storage, inventory management, alerts, and search.
--   **`tests/`:** Contains unit tests for each corresponding module in the `src/` directory, ensuring code quality and functionality.
--   **`data/`:** Intended for storing application data, such as JSON files for persistence (e.g., `medicines.json`, `shelves.json`).
--   **`docs/`:** Holds documentation files, including design documents, progress reports, and now, these project charts.
+### Giải thích:
+-   **Thư mục gốc (Root Directory):** Chứa các tệp cấp dự án như `.gitignore`, `README.md`, và `requirements.txt`.
+-   **`src/`:** Chứa mã nguồn chính của ứng dụng, được tách biệt một cách logic thành các module cho data models, storage, inventory management, alerts, và search.
+-   **`tests/`:** Chứa các unit test cho mỗi module tương ứng trong thư mục `src/`, đảm bảo chất lượng và chức năng của mã nguồn.
+-   **`data/`:** Dành cho việc lưu trữ dữ liệu ứng dụng, chẳng hạn như các tệp JSON để lưu trữ lâu dài (ví dụ: `medicines.json`, `shelves.json`).
+-   **`docs/`:** Lưu giữ các tệp tài liệu, bao gồm tài liệu thiết kế, báo cáo tiến độ, và hiện tại là các sơ đồ dự án này.
