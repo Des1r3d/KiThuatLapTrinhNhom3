@@ -39,7 +39,7 @@ class TestStorageEngine:
         }
 
     def test_write_json_creates_file(self, storage_engine, temp_dir, sample_data):
-        """Test that write_json creates a file with correct data."""
+        """Test that wri    te_json creates a file with correct data."""
         filepath = temp_dir / "test.json"
 
         storage_engine.write_json(str(filepath), sample_data)

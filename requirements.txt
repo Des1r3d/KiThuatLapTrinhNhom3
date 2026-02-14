@@ -1,5 +1,4 @@
-PyQt6==6.6.1
-pandas==2.2.0
-thefuzz==0.22.1
-python-Levenshtein==0.25.0
-matplotlib==3.8.2
+PyQt6>=6.6.0
+matplotlib>=3.8.0
+thefuzz>=0.22.0
+python-Levenshtein>=0.25.0
