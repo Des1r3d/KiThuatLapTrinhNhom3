@@ -83,12 +83,5 @@ Nơi thực hiện các thao tác nghiệp vụ cốt lõi.
 
 Nằm ở phía cuối trang Inventory, hiển thị các mục thuốc cần chú ý khẩn cấp (hết hạn, tồn kho cực thấp) để dược sĩ dễ dàng theo dõi trong quá trình kiểm kê.
 
----
 
-## 4. Quy tắc Nghiệp vụ UI quan trọng
-
-* **Xác nhận xóa:** Mọi thao tác xóa phải thông qua hộp thoại xác nhận. Cảnh báo mạnh mẽ hơn nếu thuốc vẫn còn số lượng tồn trong kho.
-* **Trạng thái rỗng:** Hiển thị thông báo và hướng dẫn "Thêm thuốc mới" khi danh sách hoặc kết quả tìm kiếm trống.
-
----
 
