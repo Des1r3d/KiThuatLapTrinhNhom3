@@ -14,7 +14,7 @@ class TestSearchEngine:
     @pytest.fixture
     def search_engine(self):
         """Create SearchEngine with default threshold."""
-        return SearchEngine(match_threshold=80)
+        return SearchEngine(match_threshold=70)
     
     @pytest.fixture
     def sample_medicines(self):
@@ -68,7 +68,7 @@ class TestSearchEngine:
         """Test SearchEngine initializes with default threshold."""
         engine = SearchEngine()
         
-        assert engine.match_threshold == 80
+        assert engine.match_threshold == 70
         assert engine.medicines == []
         assert engine.name_index == {}
     

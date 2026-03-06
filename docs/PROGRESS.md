@@ -242,5 +242,4 @@ Triển khai hiện tại tuân theo:
 
 ## Bước Tiếp Theo
 
-**Phiên bản Beta đã hoàn thành!** 🎉
-
+**Phiên bản Beta đã hoàn thành!**
