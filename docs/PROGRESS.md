@@ -244,13 +244,3 @@ Triển khai hiện tại tuân theo:
 
 **Phiên bản Beta đã hoàn thành!** 🎉
 
-Các bước tiếp theo (tùy chọn):
-
-1. **Testing & Bug Fixes**: Kiểm tra toàn diện các chức năng
-2. **Performance Optimization**: Tối ưu hóa cho dataset lớn (>1000 thuốc)
-3. **Additional Features**:
-   - Export to Excel/PDF
-   - Batch import medicines
-   - User authentication
-   - Cloud sync
-   - Advanced reporting

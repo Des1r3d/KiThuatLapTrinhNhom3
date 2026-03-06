@@ -186,7 +186,8 @@ class InventoryManager:
                 quantity=medicine.quantity,
                 expiry_date=medicine.expiry_date,
                 shelf_id=medicine.shelf_id,
-                price=medicine.price
+                price=medicine.price,
+                image_path=medicine.image_path
             )
         
         # Check for duplicate ID
@@ -267,7 +268,8 @@ class InventoryManager:
             quantity=changes.get("quantity", old_medicine.quantity),
             expiry_date=changes.get("expiry_date", old_medicine.expiry_date),
             shelf_id=changes.get("shelf_id", old_medicine.shelf_id),
-            price=changes.get("price", old_medicine.price)
+            price=changes.get("price", old_medicine.price),
+            image_path=changes.get("image_path", old_medicine.image_path)
         )
         
         # Validate new shelf if changed

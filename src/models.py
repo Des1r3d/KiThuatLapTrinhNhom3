@@ -22,6 +22,7 @@ class Medicine:
         expiry_date: Expiration date
         shelf_id: Reference to storage location
         price: Unit price (must be >= 0)
+        image_path: Optional path to medicine image (relative to data/images/)
     """
     id: str
     name: str
@@ -29,6 +30,7 @@ class Medicine:
     expiry_date: date
     shelf_id: str
     price: float
+    image_path: str = ""
 
     def __post_init__(self):
         """Validate medicine data after initialization."""
@@ -69,7 +71,8 @@ class Medicine:
             "quantity": self.quantity,
             "expiry_date": self.expiry_date.isoformat(),
             "shelf_id": self.shelf_id,
-            "price": self.price
+            "price": self.price,
+            "image_path": self.image_path
         }
 
     @staticmethod
@@ -93,7 +96,8 @@ class Medicine:
             quantity=data["quantity"],
             expiry_date=date.fromisoformat(data["expiry_date"]),
             shelf_id=data["shelf_id"],
-            price=data["price"]
+            price=data["price"],
+            image_path=data.get("image_path", "")
         )
 
 

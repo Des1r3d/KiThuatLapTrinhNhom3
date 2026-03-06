@@ -1,0 +1,83 @@
+[
+  {
+    "id": "MED-001",
+    "name": "Paracetamol 500mg",
+    "quantity": 150,
+    "expiry_date": "2027-06-30",
+    "shelf_id": "SHELF-A1",
+    "price": 5000,
+    "image_path": ""
+  },
+  {
+    "id": "MED-002",
+    "name": "Aspirin 100mg",
+    "quantity": 200,
+    "expiry_date": "2027-12-31",
+    "shelf_id": "SHELF-A2",
+    "price": 3500,
+    "image_path": ""
+  },
+  {
+    "id": "MED-003",
+    "name": "Ibuprofen 400mg",
+    "quantity": 4,
+    "expiry_date": "2026-08-15",
+    "shelf_id": "SHELF-B1",
+    "price": 7500,
+    "image_path": ""
+  },
+  {
+    "id": "MED-004",
+    "name": "Amoxicillin 250mg",
+    "quantity": 30,
+    "expiry_date": "2026-03-01",
+    "shelf_id": "SHELF-B2",
+    "price": 12000,
+    "image_path": ""
+  },
+  {
+    "id": "MED-005",
+    "name": "Vitamin C 1000mg",
+    "quantity": 0,
+    "expiry_date": "2028-01-15",
+    "shelf_id": "SHELF-C1",
+    "price": 8000,
+    "image_path": ""
+  },
+  {
+    "id": "MED-006",
+    "name": "Cetirizine 10mg",
+    "quantity": 100,
+    "expiry_date": "2026-02-10",
+    "shelf_id": "SHELF-C2",
+    "price": 4500,
+    "image_path": ""
+  },
+  {
+    "id": "MED-007",
+    "name": "Omeprazole 20mg",
+    "quantity": 75,
+    "expiry_date": "2027-09-20",
+    "shelf_id": "SHELF-A1",
+    "price": 15000,
+    "image_path": ""
+  },
+  {
+    "id": "MED-008",
+    "name": "Metformin 500mg",
+    "quantity": 3,
+    "expiry_date": "2027-04-10",
+    "shelf_id": "SHELF-B1",
+    "price": 6000,
+    "image_path": ""
+  },
+  {
+    "id": "MED-7EB7091E",
+    "name": "hoisinh",
+    "quantity": 200000,
+    "expiry_date": "2027-03-06",
+    "shelf_id": "SHELF-A1",
+    "price": 69999.0,
+    "image_path": "images\\MED-7EB7091E.png"
+  }
+]

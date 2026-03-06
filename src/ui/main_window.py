@@ -21,6 +21,7 @@ from PyQt6.QtGui import QKeySequence, QShortcut, QFont, QAction
 
 from src.inventory_manager import InventoryManager
 from src.search_engine import SearchEngine
+from src.image_manager import ImageManager
 from src.models import Medicine
 from src.ui.theme import Theme, ThemeMode
 from src.ui.dashboard import Dashboard
@@ -170,6 +171,7 @@ class MainWindow(QMainWindow):
         # Initialize managers
         self.inventory_manager = InventoryManager()
         self.search_engine = SearchEngine()
+        self.image_manager = ImageManager()
         self.theme = Theme(ThemeMode.LIGHT)
         
         # Load data
@@ -340,14 +342,32 @@ class MainWindow(QMainWindow):
             parent=self,
             medicine=None,
             shelves=self.inventory_manager.get_all_shelves(),
-            theme=self.theme
+            theme=self.theme,
+            image_manager=self.image_manager
         )
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
             medicine = dialog.get_medicine()
             if medicine:
                 try:
-                    self.inventory_manager.add_medicine(medicine)
+                    added = self.inventory_manager.add_medicine(medicine)
+                    
+                    # Handle image upload
+                    image_source = dialog.get_selected_image_path()
+                    if image_source and added.id:
+                        try:
+                            rel_path = self.image_manager.save_image(
+                                image_source, added.id
+                            )
+                            self.inventory_manager.update_medicine(
+                                added.id, {"image_path": rel_path}
+                            )
+                        except (IOError, ValueError) as img_err:
+                            QMessageBox.warning(
+                                self, "Cảnh báo",
+                                f"Thuốc đã thêm nhưng không lưu được ảnh: {str(img_err)}"
+                            )
+                    
                     self.refresh_all_views()
                     self.search_engine.update_index(
                         self.inventory_manager.get_all_medicines()
@@ -376,20 +396,43 @@ class MainWindow(QMainWindow):
             parent=self,
             medicine=medicine,
             shelves=self.inventory_manager.get_all_shelves(),
-            theme=self.theme
+            theme=self.theme,
+            image_manager=self.image_manager
         )
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
             updated_medicine = dialog.get_medicine()
             if updated_medicine:
                 try:
+                    # Handle image changes
+                    image_path = medicine.image_path  # Keep existing by default
+                    image_source = dialog.get_selected_image_path()
+                    
+                    if image_source:
+                        # New image uploaded
+                        try:
+                            image_path = self.image_manager.save_image(
+                                image_source, medicine_id
+                            )
+                        except (IOError, ValueError) as img_err:
+                            QMessageBox.warning(
+                                self, "Cảnh báo",
+                                f"Không lưu được ảnh: {str(img_err)}"
+                            )
+                            image_path = medicine.image_path
+                    elif dialog.is_image_removed():
+                        # Image explicitly removed
+                        self.image_manager.delete_image(medicine_id)
+                        image_path = ""
+                    
                     # Create changes dict
                     changes = {
                         'name': updated_medicine.name,
                         'quantity': updated_medicine.quantity,
                         'expiry_date': updated_medicine.expiry_date,
                         'shelf_id': updated_medicine.shelf_id,
-                        'price': updated_medicine.price
+                        'price': updated_medicine.price,
+                        'image_path': image_path
                     }
                     self.inventory_manager.update_medicine(
                         medicine_id, changes
@@ -408,13 +451,17 @@ class MainWindow(QMainWindow):
     
     def delete_medicine(self, medicine_id: str):
         """
-        Delete a medicine.
+        Delete a medicine and its associated image.
         
         Args:
             medicine_id: ID of medicine to delete
         """
         try:
             medicine = self.inventory_manager.get_medicine(medicine_id)
+            
+            # Delete associated image
+            self.image_manager.delete_image(medicine_id)
+            
             self.inventory_manager.remove_medicine(medicine_id)
             self.refresh_all_views()
             self.search_engine.update_index(

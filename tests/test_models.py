@@ -149,7 +149,8 @@ class TestMedicine:
             "quantity": 100,
             "expiry_date": "2025-12-31",
             "shelf_id": "SHELF-A1",
-            "price": 5.99
+            "price": 5.99,
+            "image_path": ""
         }
 
     def test_from_dict_deserialization(self):
