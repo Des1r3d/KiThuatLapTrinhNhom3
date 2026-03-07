@@ -1,0 +1,26 @@
+[
+    {
+        "id": "K-A1",
+        "row": "A",
+        "column": "1",
+        "capacity": "50"
+    },
+    {
+        "id": "K-A2",
+        "row": "A",
+        "column": "2",
+        "capacity": "50"
+    },
+    {
+        "id": "K-B1",
+        "row": "B",
+        "column": "1",
+        "capacity": "100"
+    },
+    {
+        "id": "K-B2",
+        "row": "B",
+        "column": "2",
+        "capacity": "100"
+    }
+]

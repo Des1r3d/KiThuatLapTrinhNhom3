@@ -1,0 +1,20 @@
+[
+  {
+    "id": "MED-1181B478",
+    "name": "a",
+    "quantity": 2,
+    "expiry_date": "2027-03-07",
+    "shelf_id": "K-A2",
+    "price": 2323.0,
+    "image_path": "images\\MED-1181B478.png"
+  },
+  {
+    "id": "MED-92BCFD46",
+    "name": "đấ",
+    "quantity": 123,
+    "expiry_date": "2027-03-08",
+    "shelf_id": "K-B2",
+    "price": 209.0,
+    "image_path": ""
+  }
+]
