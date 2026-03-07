@@ -346,6 +346,90 @@ class InventoryManager:
                 return shelf
         return None
     
+    def update_shelf(
+        self,
+        shelf_id: str,
+        changes: Dict[str, Any],
+        auto_save: bool = True
+    ) -> Shelf:
+        """
+        Update a shelf with new values (immutable pattern).
+        
+        Args:
+            shelf_id: ID of shelf to update
+            changes: Dictionary of field names to new values
+            auto_save: If True, automatically save after updating
+            
+        Returns:
+            Updated Shelf object
+            
+        Raises:
+            ValueError: If shelf not found
+        """
+        index = -1
+        for i, shelf in enumerate(self.shelves):
+            if shelf.id == shelf_id:
+                index = i
+                break
+        
+        if index == -1:
+            raise ValueError(f"Shelf with ID '{shelf_id}' not found")
+        
+        old_shelf = self.shelves[index]
+        
+        new_shelf = Shelf(
+            id=old_shelf.id,
+            row=changes.get("row", old_shelf.row),
+            column=changes.get("column", old_shelf.column),
+            capacity=changes.get("capacity", old_shelf.capacity)
+        )
+        
+        self.shelves[index] = new_shelf
+        
+        if auto_save:
+            self.save_shelves()
+        
+        return new_shelf
+    
+    def remove_shelf(self, shelf_id: str, auto_save: bool = True) -> Shelf:
+        """
+        Remove a shelf from storage.
+        
+        Args:
+            shelf_id: ID of shelf to remove
+            auto_save: If True, automatically save after removing
+            
+        Returns:
+            Removed Shelf object
+            
+        Raises:
+            ValueError: If shelf not found or still has medicines
+        """
+        medicines_on_shelf = [
+            m for m in self.medicines if m.shelf_id == shelf_id
+        ]
+        if medicines_on_shelf:
+            raise ValueError(
+                f"Không thể xóa kệ '{shelf_id}': "
+                f"vẫn còn {len(medicines_on_shelf)} thuốc trên kệ này"
+            )
+        
+        index = -1
+        for i, shelf in enumerate(self.shelves):
+            if shelf.id == shelf_id:
+                index = i
+                break
+        
+        if index == -1:
+            raise ValueError(f"Shelf with ID '{shelf_id}' not found")
+        
+        removed = self.shelves.pop(index)
+        
+        if auto_save:
+            self.save_shelves()
+        
+        return removed
+    
     def get_all_shelves(self) -> List[Shelf]:
         """
         Get all shelves.

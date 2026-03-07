@@ -27,6 +27,8 @@ from src.ui.theme import Theme, ThemeMode
 from src.ui.dashboard import Dashboard
 from src.ui.inventory_view import InventoryView
 from src.ui.medicine_dialog import MedicineDialog
+from src.ui.shelf_dialog import ShelfDialog
+from src.ui.shelf_view import ShelfView
 
 
 class SearchModal(QDialog):
@@ -249,6 +251,34 @@ class MainWindow(QMainWindow):
         
         self.content_stack.addWidget(inventory_container)
         
+        # Shelf management page
+        shelf_container = QWidget()
+        shelf_layout = QVBoxLayout(shelf_container)
+        shelf_layout.setContentsMargins(
+            Theme.SPACING_BASE * 3,
+            Theme.SPACING_BASE * 3,
+            Theme.SPACING_BASE * 3,
+            Theme.SPACING_BASE * 3
+        )
+        
+        # Shelf toolbar
+        shelf_toolbar = QHBoxLayout()
+        
+        self.add_shelf_button = QPushButton("➕ Thêm kệ mới")
+        self.add_shelf_button.clicked.connect(self.show_add_shelf_dialog)
+        shelf_toolbar.addWidget(self.add_shelf_button)
+        
+        shelf_toolbar.addStretch()
+        shelf_layout.addLayout(shelf_toolbar)
+        
+        # Shelf view
+        self.shelf_view = ShelfView(theme=self.theme)
+        self.shelf_view.edit_requested.connect(self.show_edit_shelf_dialog)
+        self.shelf_view.delete_requested.connect(self.delete_shelf)
+        shelf_layout.addWidget(self.shelf_view)
+        
+        self.content_stack.addWidget(shelf_container)
+        
         main_layout.addWidget(self.content_stack, 1)
         
         self.setCentralWidget(central_widget)
@@ -293,6 +323,7 @@ class MainWindow(QMainWindow):
         self.nav_list = QListWidget()
         self.nav_list.addItem("📊 Bảng điều khiển")
         self.nav_list.addItem("📦 Danh sách thuốc")
+        self.nav_list.addItem("🗄️ Quản lý kệ")
         self.nav_list.setCurrentRow(0)
         self.nav_list.currentRowChanged.connect(self.on_nav_changed)
         layout.addWidget(self.nav_list)
@@ -335,6 +366,8 @@ class MainWindow(QMainWindow):
             self.refresh_dashboard()
         elif index == 1:  # Inventory
             self.refresh_inventory()
+        elif index == 2:  # Shelf Management
+            self.refresh_shelf_view()
     
     def show_add_medicine_dialog(self):
         """Show dialog to add new medicine."""
@@ -520,6 +553,7 @@ class MainWindow(QMainWindow):
         """Refresh all data views."""
         self.refresh_dashboard()
         self.refresh_inventory()
+        self.refresh_shelf_view()
     
     def refresh_dashboard(self):
         """Refresh dashboard data."""
@@ -530,6 +564,79 @@ class MainWindow(QMainWindow):
         """Refresh inventory table."""
         medicines = self.inventory_manager.get_all_medicines()
         self.inventory_view.load_medicines(medicines)
+    
+    def refresh_shelf_view(self):
+        """Refresh shelf view with current data."""
+        shelves = self.inventory_manager.get_all_shelves()
+        medicines = self.inventory_manager.get_all_medicines()
+        self.shelf_view.load_shelves(shelves, medicines)
+    
+    def show_add_shelf_dialog(self):
+        """Show dialog to add new shelf."""
+        dialog = ShelfDialog(
+            parent=self,
+            shelf=None,
+            theme=self.theme
+        )
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            shelf = dialog.get_shelf()
+            if shelf:
+                try:
+                    self.inventory_manager.add_shelf(shelf)
+                    self.refresh_shelf_view()
+                    self.status_bar.showMessage(
+                        f"Đã thêm kệ: {shelf.id}", 3000
+                    )
+                except ValueError as e:
+                    QMessageBox.warning(
+                        self, "Lỗi", f"Không thể thêm kệ: {str(e)}"
+                    )
+    
+    def show_edit_shelf_dialog(self, shelf_id: str):
+        """Show dialog to edit existing shelf."""
+        shelf = self.inventory_manager.get_shelf(shelf_id)
+        if not shelf:
+            QMessageBox.warning(self, "Lỗi", "Không tìm thấy kệ")
+            return
+        
+        dialog = ShelfDialog(
+            parent=self,
+            shelf=shelf,
+            theme=self.theme
+        )
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            updated_shelf = dialog.get_shelf()
+            if updated_shelf:
+                try:
+                    changes = {
+                        'row': updated_shelf.row,
+                        'column': updated_shelf.column,
+                        'capacity': updated_shelf.capacity
+                    }
+                    self.inventory_manager.update_shelf(shelf_id, changes)
+                    self.refresh_shelf_view()
+                    self.status_bar.showMessage(
+                        f"Đã cập nhật kệ: {shelf_id}", 3000
+                    )
+                except ValueError as e:
+                    QMessageBox.warning(
+                        self, "Lỗi", f"Không thể cập nhật: {str(e)}"
+                    )
+    
+    def delete_shelf(self, shelf_id: str):
+        """Delete a shelf."""
+        try:
+            self.inventory_manager.remove_shelf(shelf_id)
+            self.refresh_shelf_view()
+            self.status_bar.showMessage(
+                f"Đã xóa kệ: {shelf_id}", 3000
+            )
+        except ValueError as e:
+            QMessageBox.warning(
+                self, "Lỗi", f"Không thể xóa kệ: {str(e)}"
+            )
     
     def apply_theme(self):
         """Apply current theme to all components."""
@@ -544,3 +651,7 @@ class MainWindow(QMainWindow):
         self.inventory_view.theme = self.theme
         self.inventory_view.apply_theme()
         self.inventory_view.refresh()  # Reapply row colors
+        
+        self.shelf_view.theme = self.theme
+        self.shelf_view.apply_theme()
+        self.shelf_view.refresh()
