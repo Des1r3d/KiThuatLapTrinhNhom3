@@ -37,6 +37,7 @@ Bảng dưới đây liệt kê các tính năng chính có trong phiên bản B
 | Thêm thuốc mới     | Hoạt động | Có xác thực dữ liệu đầu vào.              |
 | Sửa thông tin thuốc | Hoạt động | Cho phép cập nhật các trường trừ ID.     |
 | Xóa thuốc         | Hoạt động | Yêu cầu xác nhận trước khi xóa.           |
+| Sắp xếp (Sort)   | Hoạt động | Hỗ trợ 5 cột, ascending/descending.       |
 | **Giám sát & Cảnh báo** |           |                                           |
 | Dashboard         | Cơ bản    | Hiển thị tóm tắt cảnh báo, chưa có biểu đồ nâng cao. |
 | Cảnh báo hết hạn  | Hoạt động | Các loại cảnh báo: hết hạn, sắp hết hạn, tồn kho thấp, hết hàng. |
@@ -44,6 +45,32 @@ Bảng dưới đây liệt kê các tính năng chính có trong phiên bản B
 | Tìm kiếm toàn cục | Hoạt động | Hỗ trợ tìm kiếm mờ (fuzzy search).        |
 | **Giao diện**     |           |                                           |
 | Chế độ Sáng/Tối   | Có        | Hỗ trợ chuyển đổi giữa Light và Dark mode. |
+
+### 2.1. Chức năng Sắp xếp (Sort)
+
+Hệ thống hỗ trợ sắp xếp bảng danh sách thuốc theo nhiều tiêu chí, giúp Dược sĩ nhanh chóng tìm thấy thông tin cần thiết.
+
+#### Các cột hỗ trợ sắp xếp
+
+| Cột              | Kiểu sắp xếp                    | Ví dụ                          |
+| :--------------- | :------------------------------- | :----------------------------- |
+| ID (Mã thuốc)   | Chuỗi ký tự (string)            | MED-A → MED-B → MED-C         |
+| Tên thuốc        | Bảng chữ cái (case-insensitive) | Aspirin → Ibuprofen → Paracetamol |
+| Số lượng         | Số (numeric)                     | 5 → 25 → 100                  |
+| Hạn sử dụng     | Ngày tháng năm (date)           | 01/03/2026 → 15/06/2026 → 01/01/2027 |
+| Giá (VNĐ)       | Số (numeric, float)             | 3.99 → 5.99 → 8.50            |
+
+#### Chế độ sắp xếp (Sort Mode)
+
+*   **Ascending (Tăng dần):** Từ nhỏ đến lớn / A → Z / ngày sớm → ngày muộn.
+*   **Descending (Giảm dần):** Từ lớn đến nhỏ / Z → A / ngày muộn → ngày sớm.
+*   **Toggle behavior:** Khi người dùng nhấn vào icon tam giác (▲/▼) kế bên tiêu đề cột, trạng thái sắp xếp sẽ chuyển đổi giữa ascending ↔ descending. Trạng thái mặc định khi chưa nhấn là ascending.
+
+#### Quy tắc nghiệp vụ
+
+*   Sắp xếp **không thay đổi** dữ liệu gốc, chỉ thay đổi thứ tự hiển thị.
+*   Sắp xếp tên thuốc là **case-insensitive** (không phân biệt chữ hoa/thường).
+*   Khi danh sách thuốc trống, thao tác sắp xếp trả về danh sách trống mà không gây lỗi.
 
 ---
 

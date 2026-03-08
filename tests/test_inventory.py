@@ -386,3 +386,171 @@ class TestInventoryManager:
         
         assert len(manager2.medicines) == 1
         assert manager2.medicines[0].name == "Persistent Medicine"
+
+
+class TestSortMedicines:
+    """Test suite for InventoryManager.sort_medicines method."""
+    
+    @pytest.fixture
+    def temp_dir(self):
+        """Create temporary directory for test files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+    
+    @pytest.fixture
+    def manager_with_data(self, temp_dir):
+        """Create InventoryManager pre-loaded with multiple medicines."""
+        medicines_path = os.path.join(temp_dir, "medicines.json")
+        shelves_path = os.path.join(temp_dir, "shelves.json")
+        manager = InventoryManager(
+            medicines_filepath=medicines_path,
+            shelves_filepath=shelves_path
+        )
+        
+        medicines = [
+            Medicine(
+                id="MED-C",
+                name="Aspirin",
+                quantity=50,
+                expiry_date=date.today() + timedelta(days=180),
+                shelf_id="SHELF-A1",
+                price=3.99
+            ),
+            Medicine(
+                id="MED-A",
+                name="paracetamol",  # lowercase intentionally
+                quantity=100,
+                expiry_date=date.today() + timedelta(days=365),
+                shelf_id="SHELF-A1",
+                price=5.99
+            ),
+            Medicine(
+                id="MED-B",
+                name="Ibuprofen",
+                quantity=25,
+                expiry_date=date.today() + timedelta(days=90),
+                shelf_id="SHELF-A1",
+                price=8.50
+            ),
+        ]
+        
+        for med in medicines:
+            manager.add_medicine(med, auto_save=False)
+        
+        return manager
+    
+    # === Sort by ID ===
+    
+    def test_sort_by_id_ascending(self, manager_with_data):
+        """Test sorting by ID ascending."""
+        result = manager_with_data.sort_medicines("id", ascending=True)
+        
+        ids = [m.id for m in result]
+        assert ids == ["MED-A", "MED-B", "MED-C"]
+    
+    def test_sort_by_id_descending(self, manager_with_data):
+        """Test sorting by ID descending."""
+        result = manager_with_data.sort_medicines("id", ascending=False)
+        
+        ids = [m.id for m in result]
+        assert ids == ["MED-C", "MED-B", "MED-A"]
+    
+    # === Sort by Name ===
+    
+    def test_sort_by_name_ascending_case_insensitive(self, manager_with_data):
+        """Test sorting by name is case-insensitive."""
+        result = manager_with_data.sort_medicines("name", ascending=True)
+        
+        names = [m.name for m in result]
+        # Alphabetical: Aspirin, Ibuprofen, paracetamol
+        assert names == ["Aspirin", "Ibuprofen", "paracetamol"]
+    
+    def test_sort_by_name_descending(self, manager_with_data):
+        """Test sorting by name descending."""
+        result = manager_with_data.sort_medicines("name", ascending=False)
+        
+        names = [m.name for m in result]
+        assert names == ["paracetamol", "Ibuprofen", "Aspirin"]
+    
+    # === Sort by Quantity ===
+    
+    def test_sort_by_quantity_ascending(self, manager_with_data):
+        """Test sorting by quantity ascending."""
+        result = manager_with_data.sort_medicines("quantity", ascending=True)
+        
+        quantities = [m.quantity for m in result]
+        assert quantities == [25, 50, 100]
+    
+    def test_sort_by_quantity_descending(self, manager_with_data):
+        """Test sorting by quantity descending."""
+        result = manager_with_data.sort_medicines("quantity", ascending=False)
+        
+        quantities = [m.quantity for m in result]
+        assert quantities == [100, 50, 25]
+    
+    # === Sort by Expiry Date ===
+    
+    def test_sort_by_expiry_date_ascending(self, manager_with_data):
+        """Test sorting by expiry date ascending (earliest first)."""
+        result = manager_with_data.sort_medicines("expiry_date", ascending=True)
+        
+        # 90 days < 180 days < 365 days
+        ids = [m.id for m in result]
+        assert ids == ["MED-B", "MED-C", "MED-A"]
+    
+    def test_sort_by_expiry_date_descending(self, manager_with_data):
+        """Test sorting by expiry date descending (latest first)."""
+        result = manager_with_data.sort_medicines("expiry_date", ascending=False)
+        
+        ids = [m.id for m in result]
+        assert ids == ["MED-A", "MED-C", "MED-B"]
+    
+    # === Sort by Price ===
+    
+    def test_sort_by_price_ascending(self, manager_with_data):
+        """Test sorting by price ascending."""
+        result = manager_with_data.sort_medicines("price", ascending=True)
+        
+        prices = [m.price for m in result]
+        assert prices == [3.99, 5.99, 8.50]
+    
+    def test_sort_by_price_descending(self, manager_with_data):
+        """Test sorting by price descending."""
+        result = manager_with_data.sort_medicines("price", ascending=False)
+        
+        prices = [m.price for m in result]
+        assert prices == [8.50, 5.99, 3.99]
+    
+    # === Edge Cases ===
+    
+    def test_sort_invalid_field_raises_error(self, manager_with_data):
+        """Test sorting by invalid field raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid sort field"):
+            manager_with_data.sort_medicines("invalid_field")
+    
+    def test_sort_empty_list(self, temp_dir):
+        """Test sorting empty medicine list returns empty list."""
+        manager = InventoryManager(
+            medicines_filepath=os.path.join(temp_dir, "m.json"),
+            shelves_filepath=os.path.join(temp_dir, "s.json")
+        )
+        
+        result = manager.sort_medicines("name", ascending=True)
+        assert result == []
+    
+    def test_sort_does_not_modify_original(self, manager_with_data):
+        """Test that sort returns a copy and does not modify original list."""
+        original_ids = [m.id for m in manager_with_data.medicines]
+        
+        manager_with_data.sort_medicines("name", ascending=True)
+        
+        current_ids = [m.id for m in manager_with_data.medicines]
+        assert current_ids == original_ids
+    
+    def test_sort_default_parameters(self, manager_with_data):
+        """Test sort with default parameters (id, ascending)."""
+        result = manager_with_data.sort_medicines()
+        
+        ids = [m.id for m in result]
+        assert ids == ["MED-A", "MED-B", "MED-C"]
+

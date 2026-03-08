@@ -16,5 +16,14 @@
     "shelf_id": "K-B2",
     "price": 209.0,
     "image_path": ""
+  },
+  {
+    "id": "MED-64543ABF",
+    "name": "thuốc hồi sinh",
+    "quantity": 1,
+    "expiry_date": "2027-03-08",
+    "shelf_id": "K-A2",
+    "price": 12.0,
+    "image_path": "images\\MED-64543ABF.png"
   }
 ]

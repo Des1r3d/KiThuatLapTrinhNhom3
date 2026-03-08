@@ -107,9 +107,9 @@ class Shelf:
     Represents a physical storage location in the pharmacy.
 
     Attributes:
-        id: Shelf identifier
-        row: Row position
-        column: Column position
+        id: Shelf name/identifier (Kệ), e.g. "A1", "B2"
+        row: Row number (Dãy), e.g. "1", "2"
+        column: Column number (Cột), e.g. "1", "2"
         capacity: Maximum capacity
     """
     id: str

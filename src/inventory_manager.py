@@ -22,6 +22,7 @@ class InventoryManager:
     - Automatic ID generation for new medicines
     - Validation of business rules
     - Persistence via StorageEngine
+    - Sorting by various fields (id, name, quantity, expiry_date, price)
     
     Attributes:
         medicines: List of Medicine objects in inventory
@@ -30,6 +31,8 @@ class InventoryManager:
         medicines_filepath: Path to medicines JSON file
         shelves_filepath: Path to shelves JSON file
     """
+    
+    VALID_SORT_FIELDS = ("id", "name", "quantity", "expiry_date", "price")
     
     def __init__(
         self,
@@ -93,25 +96,46 @@ class InventoryManager:
         data = [shelf.to_dict() for shelf in self.shelves]
         self.storage.write_json(self.shelves_filepath, data)
     
-    def _generate_id(self) -> str:
+    def _generate_id(self, shelf_id: str) -> str:
         """
-        Generate a unique medicine ID.
+        Generate a unique medicine ID based on shelf location.
         
+        Format: {shelf_id}{row:02d}{col:02d}.{seq:02d}
+        Example: A10102.01 = Shelf A1, Row 01, Col 02, Sequence 01
+        
+        Args:
+            shelf_id: ID of the shelf where the medicine will be stored
+            
         Returns:
-            Unique ID string (UUID format)
+            Unique location-based ID string
+            
+        Raises:
+            ValueError: If shelf_id is not found
         """
-        return f"MED-{uuid.uuid4().hex[:8].upper()}"
-        # chuỗi trả về dạng MED-XXXXXXXX với XXXXXXXX là 8 ký tự đầu tiên của UUID được chuyển thành chữ hoa   
-        # ví dụ: MED-1A2B3C4D
-        # uuid.uuid4() tạo ra một UUID ngẫu nhiên
-        # .hex chuyển UUID thành chuỗi hex không có dấu gạch ngang 
-        '''
-        import uuid
-        u = uuid.uuid4()
-        print(str(u))      # ví dụ: '123e4567-e89b-12d3-a456-426614174000'
-        print(u.hex)       # ví dụ: '123e4567e89b12d3a456426614174000'
-        print(u.hex[:8].upper())  # '123E4567'
-        '''
+        # Look up the shelf to get row and column
+        shelf = self.get_shelf(shelf_id)
+        if shelf is None:
+            raise ValueError(f"Shelf '{shelf_id}' not found for ID generation")
+        
+        # Build the location prefix: {shelf_id}{row:02d}{col:02d}
+        row_num = int(shelf.row)
+        col_num = int(shelf.column)
+        prefix = f"{shelf.id}{row_num:02d}{col_num:02d}"
+        
+        # Count existing medicines with the same prefix to determine sequence
+        existing_seq = []
+        for med in self.medicines:
+            if med.id.startswith(prefix + "."):
+                try:
+                    seq_part = med.id.split(".")[-1]
+                    existing_seq.append(int(seq_part))
+                except (ValueError, IndexError):
+                    pass
+        
+        # Next sequence number
+        next_seq = max(existing_seq, default=0) + 1
+        
+        return f"{prefix}.{next_seq:02d}"
 
     def _find_medicine_by_id(self, medicine_id: str) -> Optional[Medicine]:
         """
@@ -179,7 +203,7 @@ class InventoryManager:
         """
         # Auto-generate ID if empty
         if not medicine.id:
-            new_id = self._generate_id()
+            new_id = self._generate_id(medicine.shelf_id)
             medicine = Medicine(
                 id=new_id,
                 name=medicine.name,
@@ -296,6 +320,49 @@ class InventoryManager:
             Medicine object if found, None otherwise
         """
         return self._find_medicine_by_id(medicine_id)
+    
+    def sort_medicines(
+        self,
+        sort_by: str = "id",
+        ascending: bool = True
+    ) -> List[Medicine]:
+        """
+        Sort medicines by a specified field.
+        
+        Returns a sorted copy of the medicines list without modifying
+        the original order.
+        
+        Args:
+            sort_by: Field to sort by. Must be one of VALID_SORT_FIELDS:
+                     'id', 'name', 'quantity', 'expiry_date', 'price'
+            ascending: If True, sort ascending; if False, sort descending
+            
+        Returns:
+            New sorted list of Medicine objects
+            
+        Raises:
+            ValueError: If sort_by is not a valid field name
+        """
+        if sort_by not in self.VALID_SORT_FIELDS:
+            raise ValueError(
+                f"Invalid sort field '{sort_by}'. "
+                f"Must be one of: {', '.join(self.VALID_SORT_FIELDS)}"
+            )
+        
+        # Key functions for each sortable field
+        key_functions = {
+            "id": lambda m: m.id,
+            "name": lambda m: m.name.lower(),
+            "quantity": lambda m: m.quantity,
+            "expiry_date": lambda m: m.expiry_date,
+            "price": lambda m: m.price,
+        }
+        
+        return sorted(
+            self.medicines,
+            key=key_functions[sort_by],
+            reverse=not ascending
+        )
     
     def get_all_medicines(self) -> List[Medicine]:
         """
