@@ -81,9 +81,9 @@ class ShelfView(QWidget):
         
         # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            "Mã Kệ", "Dãy", "Cột", "Sức Chứa", "Số Thuốc"
+            "Mã Kệ", "Khu", "Cột", "Dãy", "Sức Chứa", "Số Thuốc"
         ])
         
         # Table properties
@@ -105,8 +105,9 @@ class ShelfView(QWidget):
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         
         # Context menu
         self.table.setContextMenuPolicy(
@@ -160,21 +161,26 @@ class ShelfView(QWidget):
         id_item.setFlags(id_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         self.table.setItem(row, 0, id_item)
         
-        # Row
-        row_item = QTableWidgetItem(shelf.row)
-        row_item.setFlags(row_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 1, row_item)
+        # Zone (Khu)
+        zone_item = QTableWidgetItem(shelf.zone)
+        zone_item.setFlags(zone_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        self.table.setItem(row, 1, zone_item)
         
-        # Column
+        # Column (Cột)
         col_item = QTableWidgetItem(shelf.column)
         col_item.setFlags(col_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         self.table.setItem(row, 2, col_item)
+        
+        # Row (Dãy)
+        row_item = QTableWidgetItem(shelf.row)
+        row_item.setFlags(row_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        self.table.setItem(row, 3, row_item)
         
         # Capacity
         capacity_item = QTableWidgetItem(f"{shelf.capacity}")
         capacity_item.setData(Qt.ItemDataRole.UserRole, int(shelf.capacity))
         capacity_item.setFlags(capacity_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 3, capacity_item)
+        self.table.setItem(row, 4, capacity_item)
         
         # Medicine count on this shelf
         med_count = sum(
@@ -183,7 +189,7 @@ class ShelfView(QWidget):
         count_item = QTableWidgetItem(str(med_count))
         count_item.setData(Qt.ItemDataRole.UserRole, med_count)
         count_item.setFlags(count_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 4, count_item)
+        self.table.setItem(row, 5, count_item)
     
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item."""

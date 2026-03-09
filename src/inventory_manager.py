@@ -100,27 +100,16 @@ class InventoryManager:
         """
         Generate a unique medicine ID based on shelf location.
         
-        Format: {shelf_id}{row:02d}{col:02d}.{seq:02d}
-        Example: A10102.01 = Shelf A1, Row 01, Col 02, Sequence 01
+        Format: {shelf_id}.{seq:03d}
+        Example: K-A1.001 = Kệ K-A1, Thuốc thứ 001
         
         Args:
             shelf_id: ID of the shelf where the medicine will be stored
             
         Returns:
             Unique location-based ID string
-            
-        Raises:
-            ValueError: If shelf_id is not found
         """
-        # Look up the shelf to get row and column
-        shelf = self.get_shelf(shelf_id)
-        if shelf is None:
-            raise ValueError(f"Shelf '{shelf_id}' not found for ID generation")
-        
-        # Build the location prefix: {shelf_id}{row:02d}{col:02d}
-        row_num = int(shelf.row)
-        col_num = int(shelf.column)
-        prefix = f"{shelf.id}{row_num:02d}{col_num:02d}"
+        prefix = shelf_id
         
         # Count existing medicines with the same prefix to determine sequence
         existing_seq = []
@@ -135,7 +124,7 @@ class InventoryManager:
         # Next sequence number
         next_seq = max(existing_seq, default=0) + 1
         
-        return f"{prefix}.{next_seq:02d}"
+        return f"{prefix}.{next_seq:03d}"
 
     def _find_medicine_by_id(self, medicine_id: str) -> Optional[Medicine]:
         """
@@ -186,6 +175,37 @@ class InventoryManager:
         
         return any(shelf.id == shelf_id for shelf in self.shelves)
     
+    def get_shelf_remaining_capacity(self, shelf_id: str, exclude_medicine_id: str = "") -> int:
+        """
+        Calculate remaining capacity of a shelf in quantity units.
+        
+        Capacity = shelf.capacity - sum(quantity of all medicines on shelf).
+        If exclude_medicine_id is provided, that medicine's quantity is excluded
+        from the used calculation (useful when updating a medicine).
+        
+        Args:
+            shelf_id: ID of the shelf
+            exclude_medicine_id: Medicine ID to exclude from used calculation
+            
+        Returns:
+            Remaining capacity (int). Returns 0 if shelf not found.
+        """
+        shelf = self.get_shelf(shelf_id)
+        if not shelf:
+            return 0
+        
+        try:
+            total_capacity = int(shelf.capacity)
+        except (ValueError, TypeError):
+            return 0
+        
+        used = sum(
+            m.quantity for m in self.medicines
+            if m.shelf_id == shelf_id and m.id != exclude_medicine_id
+        )
+        
+        return total_capacity - used
+    
     def add_medicine(self, medicine: Medicine, auto_save: bool = True) -> Medicine:
         """
         Add a new medicine to inventory.
@@ -221,6 +241,16 @@ class InventoryManager:
         # Validate shelf exists
         if not self._validate_shelf_exists(medicine.shelf_id):
             raise ValueError(f"Shelf '{medicine.shelf_id}' does not exist")
+        
+        # Validate shelf capacity (only if shelves are loaded)
+        if self.shelves:
+            remaining = self.get_shelf_remaining_capacity(medicine.shelf_id)
+            if medicine.quantity > remaining:
+                raise ValueError(
+                    f"Kệ '{medicine.shelf_id}' hiện tại chỉ còn {remaining} "
+                    f"đơn vị sức chứa. Vui lòng chọn kệ khác hoặc "
+                    f"thay đổi đơn vị thuốc nhập vào"
+                )
         
         self.medicines.append(medicine)
         
@@ -300,6 +330,19 @@ class InventoryManager:
         if "shelf_id" in changes:
             if not self._validate_shelf_exists(new_medicine.shelf_id):
                 raise ValueError(f"Shelf '{new_medicine.shelf_id}' does not exist")
+        
+        # Validate shelf capacity (only if shelves are loaded and quantity/shelf changed)
+        if self.shelves and ("quantity" in changes or "shelf_id" in changes):
+            remaining = self.get_shelf_remaining_capacity(
+                new_medicine.shelf_id,
+                exclude_medicine_id=old_medicine.id
+            )
+            if new_medicine.quantity > remaining:
+                raise ValueError(
+                    f"Kệ '{new_medicine.shelf_id}' hiện tại chỉ còn {remaining} "
+                    f"đơn vị sức chứa. Vui lòng chọn kệ khác hoặc "
+                    f"thay đổi đơn vị thuốc nhập vào"
+                )
         
         # Replace in list
         self.medicines[index] = new_medicine

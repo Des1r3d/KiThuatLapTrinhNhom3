@@ -17,7 +17,7 @@ class TestMedicine:
             name="Paracetamol 500mg",
             quantity=100,
             expiry_date=date(2025, 12, 31),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -25,7 +25,7 @@ class TestMedicine:
         assert medicine.name == "Paracetamol 500mg"
         assert medicine.quantity == 100
         assert medicine.expiry_date == date(2025, 12, 31)
-        assert medicine.shelf_id == "SHELF-A1"
+        assert medicine.shelf_id == "K-A1"
         assert medicine.price == 5.99
 
     def test_medicine_negative_quantity_raises_error(self):
@@ -36,7 +36,7 @@ class TestMedicine:
                 name="Paracetamol",
                 quantity=-5,
                 expiry_date=date(2025, 12, 31),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             )
 
@@ -48,7 +48,7 @@ class TestMedicine:
                 name="Paracetamol",
                 quantity=10,
                 expiry_date=date(2025, 12, 31),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=-5.99
             )
 
@@ -59,7 +59,7 @@ class TestMedicine:
             name="Expired Medicine",
             quantity=10,
             expiry_date=date.today() - timedelta(days=1),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -72,7 +72,7 @@ class TestMedicine:
             name="Valid Medicine",
             quantity=10,
             expiry_date=date.today() + timedelta(days=30),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -85,7 +85,7 @@ class TestMedicine:
             name="Expiring Today",
             quantity=10,
             expiry_date=date.today(),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -98,7 +98,7 @@ class TestMedicine:
             name="Valid Medicine",
             quantity=10,
             expiry_date=date.today() + timedelta(days=30),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -111,7 +111,7 @@ class TestMedicine:
             name="Expired Medicine",
             quantity=10,
             expiry_date=date.today() - timedelta(days=5),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -124,7 +124,7 @@ class TestMedicine:
             name="Expiring Today",
             quantity=10,
             expiry_date=date.today(),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -137,7 +137,7 @@ class TestMedicine:
             name="Paracetamol 500mg",
             quantity=100,
             expiry_date=date(2025, 12, 31),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
 
@@ -148,7 +148,7 @@ class TestMedicine:
             "name": "Paracetamol 500mg",
             "quantity": 100,
             "expiry_date": "2025-12-31",
-            "shelf_id": "SHELF-A1",
+            "shelf_id": "K-A1",
             "price": 5.99,
             "image_path": ""
         }
@@ -160,7 +160,7 @@ class TestMedicine:
             "name": "Paracetamol 500mg",
             "quantity": 100,
             "expiry_date": "2025-12-31",
-            "shelf_id": "SHELF-A1",
+            "shelf_id": "K-A1",
             "price": 5.99
         }
 
@@ -170,7 +170,7 @@ class TestMedicine:
         assert medicine.name == "Paracetamol 500mg"
         assert medicine.quantity == 100
         assert medicine.expiry_date == date(2025, 12, 31)
-        assert medicine.shelf_id == "SHELF-A1"
+        assert medicine.shelf_id == "K-A1"
         assert medicine.price == 5.99
 
     def test_from_dict_missing_field_raises_error(self):
@@ -180,7 +180,7 @@ class TestMedicine:
             "name": "Paracetamol 500mg",
             # missing quantity
             "expiry_date": "2025-12-31",
-            "shelf_id": "SHELF-A1",
+            "shelf_id": "K-A1",
             "price": 5.99
         }
 
@@ -194,7 +194,7 @@ class TestMedicine:
             "name": "Paracetamol 500mg",
             "quantity": 100,
             "expiry_date": "invalid-date",
-            "shelf_id": "SHELF-A1",
+            "shelf_id": "K-A1",
             "price": 5.99
         }
 
@@ -208,56 +208,62 @@ class TestShelf:
     def test_shelf_creation_valid(self):
         """Test creating a valid Shelf object."""
         shelf = Shelf(
-            id="SHELF-A1",
-            row="A",
-            column="1",
+            id="K-A1",
+            zone="K",
+            column="A",
+            row="1",
             capacity="100"
         )
 
-        assert shelf.id == "SHELF-A1"
-        assert shelf.row == "A"
-        assert shelf.column == "1"
+        assert shelf.id == "K-A1"
+        assert shelf.zone == "K"
+        assert shelf.column == "A"
+        assert shelf.row == "1"
         assert shelf.capacity == "100"
 
     def test_shelf_to_dict_serialization(self):
         """Test Shelf serialization to dictionary."""
         shelf = Shelf(
-            id="SHELF-A1",
-            row="A",
-            column="1",
+            id="K-A1",
+            zone="K",
+            column="A",
+            row="1",
             capacity="100"
         )
 
         result = shelf.to_dict()
 
         assert result == {
-            "id": "SHELF-A1",
-            "row": "A",
-            "column": "1",
+            "id": "K-A1",
+            "zone": "K",
+            "column": "A",
+            "row": "1",
             "capacity": "100"
         }
 
     def test_shelf_from_dict_deserialization(self):
         """Test Shelf deserialization from dictionary."""
         data = {
-            "id": "SHELF-A1",
-            "row": "A",
-            "column": "1",
+            "id": "K-A1",
+            "zone": "K",
+            "column": "A",
+            "row": "1",
             "capacity": "100"
         }
 
         shelf = Shelf.from_dict(data)
 
-        assert shelf.id == "SHELF-A1"
-        assert shelf.row == "A"
-        assert shelf.column == "1"
+        assert shelf.id == "K-A1"
+        assert shelf.zone == "K"
+        assert shelf.column == "A"
+        assert shelf.row == "1"
         assert shelf.capacity == "100"
 
     def test_shelf_from_dict_missing_field_raises_error(self):
         """Test from_dict raises KeyError for missing required field."""
         data = {
-            "id": "SHELF-A1",
-            "row": "A",
+            "id": "K-A1",
+            "zone": "K",
             # missing column
             "capacity": "100"
         }

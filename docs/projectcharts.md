@@ -60,6 +60,7 @@ sequenceDiagram
     UI->>IM: Creates Medicine object & Calls add_medicine()
     activate IM
     IM->>IM: Validates medicine data (ID, quantity, shelf_id)
+    IM->>IM: Check shelf capacity (remaining >= quantity)
     IM->>IM: Appends medicine to list
     IM->>SE: Calls save_data() (indirectly via IM)
     activate SE
@@ -108,8 +109,9 @@ classDiagram
 
     class Shelf {
         +str id
-        +str row
+        +str zone
         +str column
+        +str row
         +str capacity
         +to_dict() dict
         +from_dict(dict) Shelf
@@ -131,6 +133,7 @@ classDiagram
         +update_medicine(str id, dict changes) Medicine
         +get_medicine(str id) Medicine
         +get_all_medicines() List~Medicine~
+        +get_shelf_remaining_capacity(str shelf_id, str exclude_medicine_id) int
         +add_shelf(Shelf) Shelf
         +get_shelf(str id) Shelf
         +get_all_shelves() List~Shelf~
@@ -194,7 +197,7 @@ classDiagram
     -   `InventoryManager` sử dụng `StorageEngine` (được biểu thị bằng `--`).
     -   `AlertSystem` và `SearchEngine` tương tác với các đối tượng `Medicine`.
     -   Các đối tượng `Alert` tham chiếu đến `Medicine` (thay vì sở hữu), và được kết hợp với `AlertType`.
-    -   *Lưu ý:* Thuộc tính `capacity` của `Shelf` hiện đang là kiểu `str` trong mã nguồn, nhưng nên được cân nhắc thay đổi thành `int` để đảm bảo tính toàn vẹn dữ liệu tốt hơn.
+    -   *Lưu ý:* Thuộc tính `capacity` của `Shelf` đại diện cho **tổng số đơn vị (quantity) thuốc tối đa** mà kệ có thể chứa. Khi thêm hoặc cập nhật thuốc, hệ thống kiểm tra tổng quantity trên kệ không vượt quá capacity. Thuộc tính này hiện là kiểu `str` trong mã nguồn nhưng được chuyển đổi sang `int` khi tính toán.
 ---
 
 ## 4. Sơ đồ Cấu trúc Tệp

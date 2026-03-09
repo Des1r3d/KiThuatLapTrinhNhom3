@@ -107,14 +107,16 @@ class Shelf:
     Represents a physical storage location in the pharmacy.
 
     Attributes:
-        id: Shelf name/identifier (Kệ), e.g. "A1", "B2"
+        id: Shelf identifier, e.g. "K-A1" (format: {zone}-{column}{row})
+        zone: Zone/area code (Khu), e.g. "K"
+        column: Column letter (Cột), e.g. "A", "B"
         row: Row number (Dãy), e.g. "1", "2"
-        column: Column number (Cột), e.g. "1", "2"
         capacity: Maximum capacity
     """
     id: str
-    row: str
+    zone: str
     column: str
+    row: str
     capacity: str
 
     def to_dict(self) -> Dict[str, Any]:
@@ -126,8 +128,9 @@ class Shelf:
         """
         return {
             "id": self.id,
-            "row": self.row,
+            "zone": self.zone,
             "column": self.column,
+            "row": self.row,
             "capacity": self.capacity
         }
 
@@ -147,7 +150,8 @@ class Shelf:
         """
         return Shelf(
             id=data["id"],
-            row=data["row"],
+            zone=data["zone"],
             column=data["column"],
+            row=data["row"],
             capacity=data["capacity"]
         )

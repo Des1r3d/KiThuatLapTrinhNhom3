@@ -221,7 +221,7 @@ class MedicineDialog(QDialog):
             return
         
         for shelf in self.shelves:
-            display_text = f"{shelf.id} - Dãy {shelf.row}, Cột {shelf.column}"
+            display_text = f"{shelf.id} - Khu {shelf.zone}, Cột {shelf.column}, Dãy {shelf.row}"
             self.shelf_combo.addItem(display_text, shelf.id)
     
     def populate_fields(self):

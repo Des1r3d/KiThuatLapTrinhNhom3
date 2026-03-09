@@ -86,32 +86,45 @@ class ShelfDialog(QDialog):
         form_layout.setSpacing(Theme.SPACING_BASE * 2)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         
-        # ID Field
+        # ID Field (read-only, auto-generated)
         self.id_input = QLineEdit()
-        self.id_input.setPlaceholderText("Ví dụ: K-A1")
-        self.id_input.setMaxLength(20)
+        self.id_input.setPlaceholderText("Tự động tạo từ Khu-Cột+Dãy")
+        self.id_input.setReadOnly(True)
+        form_layout.addRow("Mã kệ:", self.id_input)
+        
+        # Zone Field (Khu)
+        self.zone_input = QLineEdit()
+        self.zone_input.setPlaceholderText("Ví dụ: K")
+        self.zone_input.setMaxLength(10)
         if self.is_edit_mode:
-            self.id_input.setReadOnly(True)
-        form_layout.addRow("Mã kệ*:", self.id_input)
+            self.zone_input.setReadOnly(True)
+        self.zone_input.textChanged.connect(self._update_shelf_id)
+        form_layout.addRow("Khu*:", self.zone_input)
         
-        # Row Field
-        self.row_input = QLineEdit()
-        self.row_input.setPlaceholderText("Ví dụ: A, B, C")
-        self.row_input.setMaxLength(10)
-        form_layout.addRow("Dãy*:", self.row_input)
-        
-        # Column Field
+        # Column Field (Cột)
         self.column_input = QLineEdit()
-        self.column_input.setPlaceholderText("Ví dụ: 1, 2, 3")
+        self.column_input.setPlaceholderText("Ví dụ: A, B, C")
         self.column_input.setMaxLength(10)
+        if self.is_edit_mode:
+            self.column_input.setReadOnly(True)
+        self.column_input.textChanged.connect(self._update_shelf_id)
         form_layout.addRow("Cột*:", self.column_input)
+        
+        # Row Field (Dãy)
+        self.row_input = QLineEdit()
+        self.row_input.setPlaceholderText("Ví dụ: 1, 2, 3")
+        self.row_input.setMaxLength(10)
+        if self.is_edit_mode:
+            self.row_input.setReadOnly(True)
+        self.row_input.textChanged.connect(self._update_shelf_id)
+        form_layout.addRow("Dãy*:", self.row_input)
         
         # Capacity Field
         self.capacity_input = QSpinBox()
         self.capacity_input.setMinimum(1)
         self.capacity_input.setMaximum(9999)
         self.capacity_input.setValue(50)
-        self.capacity_input.setSuffix(" thuốc")
+        self.capacity_input.setSuffix(" đơn vị")
         form_layout.addRow("Sức chứa*:", self.capacity_input)
         
         layout.addLayout(form_layout)
@@ -145,14 +158,25 @@ class ShelfDialog(QDialog):
         layout.addLayout(button_layout)
         self.setLayout(layout)
     
+    def _update_shelf_id(self):
+        """Auto-generate shelf ID from zone, column, and row inputs."""
+        zone = self.zone_input.text().strip().upper()
+        column = self.column_input.text().strip().upper()
+        row = self.row_input.text().strip()
+        if zone and column and row:
+            self.id_input.setText(f"{zone}-{column}{row}")
+        else:
+            self.id_input.setText("")
+    
     def populate_fields(self):
         """Populate form fields with existing shelf data (Edit mode)."""
         if not self.shelf:
             return
         
-        self.id_input.setText(self.shelf.id)
-        self.row_input.setText(self.shelf.row)
+        self.zone_input.setText(self.shelf.zone)
         self.column_input.setText(self.shelf.column)
+        self.row_input.setText(self.shelf.row)
+        # ID is auto-generated from zone/column/row via _update_shelf_id
         
         try:
             self.capacity_input.setValue(int(self.shelf.capacity))
@@ -168,10 +192,16 @@ class ShelfDialog(QDialog):
         """Validate form input and create Shelf object."""
         self.validation_label.hide()
         
-        shelf_id = self.id_input.text().strip()
-        if not shelf_id:
-            self.show_validation_error("Vui lòng nhập mã kệ")
-            self.id_input.setFocus()
+        zone = self.zone_input.text().strip().upper()
+        if not zone:
+            self.show_validation_error("Vui lòng nhập khu")
+            self.zone_input.setFocus()
+            return
+        
+        column = self.column_input.text().strip().upper()
+        if not column:
+            self.show_validation_error("Vui lòng nhập cột")
+            self.column_input.setFocus()
             return
         
         row = self.row_input.text().strip()
@@ -180,18 +210,14 @@ class ShelfDialog(QDialog):
             self.row_input.setFocus()
             return
         
-        column = self.column_input.text().strip()
-        if not column:
-            self.show_validation_error("Vui lòng nhập cột")
-            self.column_input.setFocus()
-            return
-        
+        shelf_id = f"{zone}-{column}{row}"
         capacity = str(self.capacity_input.value())
         
         self.result_shelf = Shelf(
             id=shelf_id,
-            row=row,
+            zone=zone,
             column=column,
+            row=row,
             capacity=capacity
         )
         self.accept()

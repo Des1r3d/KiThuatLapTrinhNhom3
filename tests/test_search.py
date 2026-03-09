@@ -25,7 +25,7 @@ class TestSearchEngine:
                 name="Paracetamol 500mg",
                 quantity=100,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             ),
             Medicine(
@@ -96,7 +96,7 @@ class TestSearchEngine:
                 name="UPPERCASE Medicine",
                 quantity=10,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             )
         ]
@@ -115,7 +115,7 @@ class TestSearchEngine:
                 name="New Medicine",
                 quantity=10,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             )
         ]
@@ -302,7 +302,7 @@ class TestSearchEngine:
                 name="Updated Medicine",
                 quantity=10,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             )
         ]
@@ -322,7 +322,7 @@ class TestSearchEngine:
                 name="Thuốc giảm đau Paracetamol",
                 quantity=100,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             ),
             Medicine(

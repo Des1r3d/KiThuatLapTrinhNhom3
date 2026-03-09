@@ -28,7 +28,7 @@ class TestInventoryManager:
             name="Paracetamol 500mg",
             quantity=100,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -36,9 +36,10 @@ class TestInventoryManager:
     def sample_shelf(self):
         """Create a sample valid shelf."""
         return Shelf(
-            id="SHELF-A1",
-            row="A",
-            column="1",
+            id="K-A1",
+            zone="K",
+            column="A",
+            row="1",
             capacity="100"
         )
     
@@ -76,13 +77,14 @@ class TestInventoryManager:
             "name": "Paracetamol",
             "quantity": 50,
             "expiry_date": "2026-12-31",
-            "shelf_id": "SHELF-A1",
+            "shelf_id": "K-A1",
             "price": 5.99
         }]
         shelves_data = [{
-            "id": "SHELF-A1",
-            "row": "A",
-            "column": "1",
+            "id": "K-A1",
+            "zone": "K",
+            "column": "A",
+            "row": "1",
             "capacity": "100"
         }]
         
@@ -98,7 +100,7 @@ class TestInventoryManager:
         assert len(manager.medicines) == 1
         assert manager.medicines[0].name == "Paracetamol"
         assert len(manager.shelves) == 1
-        assert manager.shelves[0].id == "SHELF-A1"
+        assert manager.shelves[0].id == "K-A1"
     
     # === Add Medicine Tests ===
     
@@ -117,14 +119,13 @@ class TestInventoryManager:
             name="Test Medicine",
             quantity=10,
             expiry_date=date.today() + timedelta(days=30),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=9.99
         )
         
         result = manager.add_medicine(medicine)
         
-        assert result.id.startswith("MED-")
-        assert len(result.id) == 12  # "MED-" + 8 chars
+        assert result.id == "K-A1.001"
         assert result.name == "Test Medicine"
     
     def test_add_medicine_duplicate_id_raises_error(self, manager, sample_medicine):
@@ -265,7 +266,7 @@ class TestInventoryManager:
             name="Aspirin",
             quantity=50,
             expiry_date=date.today() + timedelta(days=180),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=3.99
         )
         
@@ -307,7 +308,7 @@ class TestInventoryManager:
         """Test getting existing shelf."""
         manager.add_shelf(sample_shelf)
         
-        result = manager.get_shelf("SHELF-A1")
+        result = manager.get_shelf("K-A1")
         
         assert result == sample_shelf
     
@@ -319,7 +320,7 @@ class TestInventoryManager:
     
     def test_get_all_shelves(self, manager, sample_shelf):
         """Test getting all shelves."""
-        shelf2 = Shelf(id="SHELF-B1", row="B", column="1", capacity="50")
+        shelf2 = Shelf(id="K-B1", zone="K", column="B", row="1", capacity="50")
         
         manager.add_shelf(sample_shelf, auto_save=False)
         manager.add_shelf(shelf2, auto_save=False)
@@ -341,7 +342,7 @@ class TestInventoryManager:
             name="Test Medicine",
             quantity=100,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=9.99
         )
         added = manager.add_medicine(medicine)
@@ -375,7 +376,7 @@ class TestInventoryManager:
             name="Persistent Medicine",
             quantity=100,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=9.99
         )
         manager1.add_medicine(medicine)
@@ -413,7 +414,7 @@ class TestSortMedicines:
                 name="Aspirin",
                 quantity=50,
                 expiry_date=date.today() + timedelta(days=180),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=3.99
             ),
             Medicine(
@@ -421,7 +422,7 @@ class TestSortMedicines:
                 name="paracetamol",  # lowercase intentionally
                 quantity=100,
                 expiry_date=date.today() + timedelta(days=365),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=5.99
             ),
             Medicine(
@@ -429,7 +430,7 @@ class TestSortMedicines:
                 name="Ibuprofen",
                 quantity=25,
                 expiry_date=date.today() + timedelta(days=90),
-                shelf_id="SHELF-A1",
+                shelf_id="K-A1",
                 price=8.50
             ),
         ]
@@ -553,4 +554,118 @@ class TestSortMedicines:
         
         ids = [m.id for m in result]
         assert ids == ["MED-A", "MED-B", "MED-C"]
+
+
+class TestShelfCapacity:
+    """Test suite for shelf capacity enforcement (total quantity units)."""
+    
+    @pytest.fixture
+    def temp_dir(self):
+        """Create temporary directory for test files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield tmpdir
+    
+    @pytest.fixture
+    def manager_with_shelf(self, temp_dir):
+        """Create InventoryManager with a shelf of capacity 100."""
+        medicines_path = os.path.join(temp_dir, "medicines.json")
+        shelves_path = os.path.join(temp_dir, "shelves.json")
+        manager = InventoryManager(
+            medicines_filepath=medicines_path,
+            shelves_filepath=shelves_path
+        )
+        shelf = Shelf(id="K-A1", zone="K", column="A", row="1", capacity="100")
+        manager.add_shelf(shelf, auto_save=False)
+        return manager
+    
+    # === get_shelf_remaining_capacity Tests ===
+    
+    def test_remaining_capacity_empty_shelf(self, manager_with_shelf):
+        """Empty shelf should have full capacity remaining."""
+        remaining = manager_with_shelf.get_shelf_remaining_capacity("K-A1")
+        assert remaining == 100
+    
+    def test_remaining_capacity_with_medicines(self, manager_with_shelf):
+        """Remaining = capacity - sum(quantities on shelf)."""
+        med = Medicine(
+            id="MED001", name="Test", quantity=30,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="K-A1", price=10.0
+        )
+        manager_with_shelf.add_medicine(med, auto_save=False)
+        
+        remaining = manager_with_shelf.get_shelf_remaining_capacity("K-A1")
+        assert remaining == 70
+    
+    def test_remaining_capacity_nonexistent_shelf(self, manager_with_shelf):
+        """Non-existent shelf should return 0."""
+        remaining = manager_with_shelf.get_shelf_remaining_capacity("INVALID")
+        assert remaining == 0
+    
+    # === add_medicine Capacity Tests ===
+    
+    def test_add_medicine_exceeds_capacity_raises_error(self, manager_with_shelf):
+        """Adding medicine that exceeds shelf capacity should raise ValueError."""
+        med = Medicine(
+            id="MED001", name="Test", quantity=101,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="K-A1", price=10.0
+        )
+        with pytest.raises(ValueError, match="chỉ còn"):
+            manager_with_shelf.add_medicine(med, auto_save=False)
+    
+    def test_add_medicine_exactly_at_capacity_succeeds(self, manager_with_shelf):
+        """Adding medicine that exactly fills shelf capacity should succeed."""
+        med = Medicine(
+            id="MED001", name="Test", quantity=100,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="K-A1", price=10.0
+        )
+        result = manager_with_shelf.add_medicine(med, auto_save=False)
+        assert result.quantity == 100
+    
+    def test_add_medicine_no_shelves_skips_capacity_check(self, temp_dir):
+        """When no shelves loaded, capacity check is skipped (backward compat)."""
+        manager = InventoryManager(
+            medicines_filepath=os.path.join(temp_dir, "m.json"),
+            shelves_filepath=os.path.join(temp_dir, "s.json")
+        )
+        med = Medicine(
+            id="MED001", name="Test", quantity=99999,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="ANY", price=10.0
+        )
+        result = manager.add_medicine(med, auto_save=False)
+        assert result.quantity == 99999
+    
+    # === update_medicine Capacity Tests ===
+    
+    def test_update_medicine_exceeds_capacity_raises_error(self, manager_with_shelf):
+        """Updating quantity beyond capacity should raise ValueError."""
+        med = Medicine(
+            id="MED001", name="Test", quantity=50,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="K-A1", price=10.0
+        )
+        manager_with_shelf.add_medicine(med, auto_save=False)
+        
+        with pytest.raises(ValueError, match="chỉ còn"):
+            manager_with_shelf.update_medicine(
+                "MED001", {"quantity": 101}, auto_save=False
+            )
+    
+    def test_update_medicine_same_shelf_considers_own_quantity(self, manager_with_shelf):
+        """Update should exclude own quantity when checking capacity."""
+        med = Medicine(
+            id="MED001", name="Test", quantity=80,
+            expiry_date=date.today() + timedelta(days=365),
+            shelf_id="K-A1", price=10.0
+        )
+        manager_with_shelf.add_medicine(med, auto_save=False)
+        
+        # Updating from 80 to 100 should work (remaining for others = 100-0 = 100)
+        updated = manager_with_shelf.update_medicine(
+            "MED001", {"quantity": 100}, auto_save=False
+        )
+        assert updated.quantity == 100
 

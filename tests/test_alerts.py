@@ -24,7 +24,7 @@ class TestAlertSystem:
             name="Expired Medicine",
             quantity=10,
             expiry_date=date.today() - timedelta(days=5),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -36,7 +36,7 @@ class TestAlertSystem:
             name="Expiring Soon",
             quantity=10,
             expiry_date=date.today() + timedelta(days=15),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -48,7 +48,7 @@ class TestAlertSystem:
             name="Valid Medicine",
             quantity=100,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -60,7 +60,7 @@ class TestAlertSystem:
             name="Low Stock",
             quantity=3,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -72,7 +72,7 @@ class TestAlertSystem:
             name="Out of Stock",
             quantity=0,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
     
@@ -132,7 +132,7 @@ class TestAlertSystem:
             name="At Threshold",
             quantity=10,
             expiry_date=date.today() + timedelta(days=30),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         
@@ -161,7 +161,7 @@ class TestAlertSystem:
             name="Expires Today",
             quantity=10,
             expiry_date=date.today(),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         
@@ -199,7 +199,7 @@ class TestAlertSystem:
             name="At Threshold",
             quantity=5,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         
@@ -227,7 +227,7 @@ class TestAlertSystem:
             name="Zebra Medicine",
             quantity=0,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         med2 = Medicine(
@@ -235,7 +235,7 @@ class TestAlertSystem:
             name="Alpha Medicine",
             quantity=0,
             expiry_date=date.today() + timedelta(days=365),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         
@@ -362,7 +362,7 @@ class TestAlert:
             name="Test Medicine",
             quantity=10,
             expiry_date=date.today() - timedelta(days=5),
-            shelf_id="SHELF-A1",
+            shelf_id="K-A1",
             price=5.99
         )
         

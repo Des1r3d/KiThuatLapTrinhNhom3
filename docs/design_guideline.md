@@ -99,6 +99,10 @@ Phần này mô tả các quy tắc nghiệp vụ cốt lõi có tác động tr
     *   Về mặt nghiệp vụ, hệ thống không áp đặt giới hạn cứng về `Số lượng` tối đa. Tuy nhiên, nếu người dùng nhập một giá trị `Số lượng` cực lớn (ví dụ: > 9999), UI có thể hiển thị một cảnh báo nhẹ nhàng để người dùng xác nhận lại đầu vào, đảm bảo không có lỗi nhập liệu.
 *   **Xác nhận khi xóa:**
     *   Mọi thao tác xóa (ví dụ: xóa thuốc, xóa kệ) cần một hộp thoại xác nhận rõ ràng và yêu cầu người dùng xác nhận lại trước khi thực hiện, để tránh mất dữ liệu không mong muốn.
+*   **Kiểm tra sức chứa kệ (Shelf Capacity Check):**
+    *   `capacity` của kệ đại diện cho **tổng số đơn vị (quantity) thuốc tối đa** mà kệ có thể chứa. Hệ thống tính sức chứa còn lại = `capacity - tổng quantity các thuốc hiện có trên kệ`.
+    *   Khi người dùng thêm hoặc cập nhật thuốc mà số lượng vượt quá sức chứa còn lại, UI hiển thị thông báo: *"Kệ '{shelf_id}' hiện tại chỉ còn {x} đơn vị sức chứa. Vui lòng chọn kệ khác hoặc thay đổi đơn vị thuốc nhập vào"* (trong đó `x` là sức chứa còn lại).
+    *   Khi cập nhật thuốc trên cùng kệ, hệ thống trừ quantity cũ của thuốc đó ra trước khi kiểm tra để tránh false-positive.
 
 ---
 
