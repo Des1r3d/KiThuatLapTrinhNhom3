@@ -29,11 +29,20 @@ from src.ui.inventory_view import InventoryView
 from src.ui.medicine_dialog import MedicineDialog
 from src.ui.shelf_dialog import ShelfDialog
 from src.ui.shelf_view import ShelfView
+from src.ui.generated.search import Ui_dlg_search
+from src.ui.notification_dialogs import (
+    AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
+    ConfirmDeleteDialog, ShelfFullErrorDialog
+)
+from src.ui.medicine_detail_view import MedicineDetailView
+from src.ui.filter_dialog import FilterMedicineDialog
 
 
 class SearchModal(QDialog):
     """
     Global search modal accessible via Ctrl+K.
+    
+    Uses Ui_dlg_search from Qt Designer for layout.
     
     Features:
     - Fuzzy search
@@ -63,49 +72,26 @@ class SearchModal(QDialog):
         self.theme = theme or Theme()
         
         self.setup_ui()
-        self.apply_theme()
     
     def setup_ui(self):
-        """Setup search modal UI."""
+        """Setup search modal UI using Qt Designer generated class."""
+        self.ui = Ui_dlg_search()
+        self.ui.setupUi(self)
+        
         self.setWindowTitle("Tìm kiếm nhanh")
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(300)
         self.setModal(True)
         
-        layout = QVBoxLayout()
-        layout.setSpacing(Theme.SPACING_BASE * 2)
-        
-        # Search input
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Nhập tên thuốc để tìm kiếm...")
-        search_font = QFont()
-        search_font.setPointSize(Theme.FONT_SIZE_H2)
-        self.search_input.setFont(search_font)
-        self.search_input.textChanged.connect(self.on_search)
-        layout.addWidget(self.search_input)
-        
-        # Results list
-        self.results_list = QListWidget()
-        self.results_list.itemDoubleClicked.connect(self.on_result_selected)
-        layout.addWidget(self.results_list)
-        
-        # Hint label
-        hint_label = QLabel("💡 Gợi ý: Nhấn Enter để chọn kết quả đầu tiên")
-        hint_label.setProperty("secondary", True)
-        hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(hint_label)
-        
-        self.setLayout(layout)
-        
-        # Enter key to select first result
-        self.search_input.returnPressed.connect(self.select_first_result)
+        # Connect signals
+        self.ui.txt_search.textChanged.connect(self.on_search)
+        self.ui.list_results.itemDoubleClicked.connect(self.on_result_selected)
+        self.ui.txt_search.returnPressed.connect(self.select_first_result)
     
     def showEvent(self, event):
         """Focus search input when modal is shown."""
         super().showEvent(event)
-        self.search_input.setFocus()
-        self.search_input.clear()
-        self.results_list.clear()
+        self.ui.txt_search.setFocus()
+        self.ui.txt_search.clear()
+        self.ui.list_results.clear()
     
     def on_search(self, query: str):
         """
@@ -114,7 +100,7 @@ class SearchModal(QDialog):
         Args:
             query: Search query string
         """
-        self.results_list.clear()
+        self.ui.list_results.clear()
         
         if not query or len(query) < 2:
             return
@@ -125,7 +111,7 @@ class SearchModal(QDialog):
         if not results:
             item = QListWidgetItem("Không tìm thấy kết quả")
             item.setFlags(Qt.ItemFlag.NoItemFlags)
-            self.results_list.addItem(item)
+            self.ui.list_results.addItem(item)
             return
         
         # Display results
@@ -133,7 +119,7 @@ class SearchModal(QDialog):
             display_text = f"{medicine.name} - {medicine.shelf_id} ({score}%)"
             item = QListWidgetItem(display_text)
             item.setData(Qt.ItemDataRole.UserRole, medicine.id)
-            self.results_list.addItem(item)
+            self.ui.list_results.addItem(item)
     
     def on_result_selected(self, item: QListWidgetItem):
         """Handle result selection."""
@@ -144,14 +130,14 @@ class SearchModal(QDialog):
     
     def select_first_result(self):
         """Select first result in list."""
-        if self.results_list.count() > 0:
-            first_item = self.results_list.item(0)
+        if self.ui.list_results.count() > 0:
+            first_item = self.ui.list_results.item(0)
             if first_item.flags() & Qt.ItemFlag.ItemIsEnabled:
                 self.on_result_selected(first_item)
     
     def apply_theme(self):
         """Apply theme stylesheet."""
-        self.setStyleSheet(self.theme.get_stylesheet())
+        pass  # Uses Qt Designer inline styles
 
 
 class MainWindow(QMainWindow):
@@ -408,6 +394,13 @@ class MainWindow(QMainWindow):
                     self.status_bar.showMessage(
                         f"Đã thêm thuốc: {medicine.name}", 3000
                     )
+                    
+                    # Show success notification
+                    success_dlg = AddSuccessDialog(
+                        self, medicine.name, added.id
+                    )
+                    success_dlg.exec()
+                    
                 except ValueError as e:
                     QMessageBox.warning(
                         self, "Lỗi", f"Không thể thêm thuốc: {str(e)}"
@@ -477,6 +470,13 @@ class MainWindow(QMainWindow):
                     self.status_bar.showMessage(
                         f"Đã cập nhật thuốc: {updated_medicine.name}", 3000
                     )
+                    
+                    # Show success notification
+                    success_dlg = EditSuccessDialog(
+                        self, updated_medicine.name, medicine_id
+                    )
+                    success_dlg.exec()
+                    
                 except ValueError as e:
                     QMessageBox.warning(
                         self, "Lỗi", f"Không thể cập nhật: {str(e)}"
@@ -504,6 +504,13 @@ class MainWindow(QMainWindow):
                 self.status_bar.showMessage(
                     f"Đã xóa thuốc: {medicine.name}", 3000
                 )
+                
+                # Show success notification
+                success_dlg = DeleteSuccessDialog(
+                    self, medicine.name, medicine_id
+                )
+                success_dlg.exec()
+                
         except ValueError as e:
             QMessageBox.warning(
                 self, "Lỗi", f"Không thể xóa thuốc: {str(e)}"
