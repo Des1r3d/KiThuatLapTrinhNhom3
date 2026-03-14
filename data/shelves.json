@@ -1,0 +1,30 @@
+[
+    {
+        "id": "K-A1",
+        "zone": "K",
+        "column": "A",
+        "row": "1",
+        "capacity": "50"
+    },
+    {
+        "id": "K-A2",
+        "zone": "K",
+        "column": "A",
+        "row": "2",
+        "capacity": "50"
+    },
+    {
+        "id": "K-B1",
+        "zone": "K",
+        "column": "B",
+        "row": "1",
+        "capacity": "100"
+    },
+    {
+        "id": "K-B2",
+        "zone": "K",
+        "column": "B",
+        "row": "2",
+        "capacity": "100"
+    }
+]
