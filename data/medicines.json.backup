@@ -1,0 +1,47 @@
+[
+  {
+    "id": "K-A1.001",
+    "name": "Paracetamol 500mg",
+    "quantity": 50,
+    "expiry_date": "2026-02-15",
+    "shelf_id": "K-A1",
+    "price": 15000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-A2.001",
+    "name": "Amoxicillin 250mg",
+    "quantity": 30,
+    "expiry_date": "2026-03-25",
+    "shelf_id": "K-A2",
+    "price": 35000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-B1.001",
+    "name": "Vitamin C 1000mg",
+    "quantity": 0,
+    "expiry_date": "2026-12-31",
+    "shelf_id": "K-B1",
+    "price": 25000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-B2.001",
+    "name": "Cetirizine 10mg",
+    "quantity": 3,
+    "expiry_date": "2027-06-15",
+    "shelf_id": "K-B2",
+    "price": 18000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-A1.002",
+    "name": "Omeprazole 20mg",
+    "quantity": 100,
+    "expiry_date": "2027-09-30",
+    "shelf_id": "K-A1",
+    "price": 45000.0,
+    "image_path": ""
+  }
+]
