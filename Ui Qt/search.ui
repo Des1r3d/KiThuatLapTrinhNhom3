@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dlg_search</class>
+ <widget class="QDialog" name="dlg_search">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>450</width><height>500</height></rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QDialog { background-color: #FFFFFF; }
+    QLineEdit#txt_search {
+        border: none;
+        padding-left: 10px;
+        font-size: 16px;
+        color: #1E293B;
+        background-color: transparent;
+    }
+    QListWidget { border: none; background-color: #FFFFFF; outline: none; }
+    QListWidget::item { border-bottom: 1px solid #F1F5F9; }
+    QListWidget::item:hover { background-color: #F8FAFC; }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <item>
+    <widget class="QFrame" name="frame_search">
+     <property name="minimumSize"><size><width>0</width><height>60</height></size></property>
+     <property name="styleSheet"><string notr="true">border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;</string></property>
+     <layout class="QHBoxLayout" name="layout_h_search">
+      <property name="leftMargin"><number>20</number></property>
+      <property name="rightMargin"><number>20</number></property>
+      <item><widget class="QLabel" name="lbl_icon"><property name="text"><string>🔍</string></property></widget></item>
+      <item><widget class="QLineEdit" name="txt_search"><property name="placeholderText"><string>Tìm kiếm thuốc...</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item><widget class="QListWidget" name="list_results"/></item>
+  </layout>
+ </widget>
+</ui>

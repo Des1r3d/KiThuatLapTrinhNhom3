@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dlg_edit_success</class>
+ <widget class="QDialog" name="dlg_edit_success">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>400</width><height>420</height></rect>
+  </property>
+  <property name="minimumSize"><size><width>400</width><height>420</height></size></property>
+  <property name="maximumSize"><size><width>400</width><height>420</height></size></property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: rgba(0, 0, 0, 0); }</string>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>10</number></property>
+   <property name="topMargin"><number>10</number></property>
+   <property name="rightMargin"><number>10</number></property>
+   <property name="bottomMargin"><number>10</number></property>
+   <item>
+    <widget class="QFrame" name="container_frame">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#container_frame {
+           background-color: #FFFFFF;
+           border-radius: 20px;
+           border: 2px solid #E2E8F0; /* Viền để không bị chìm vào nền trắng */
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="content_layout">
+      <property name="spacing"><number>20</number></property>
+      <property name="leftMargin"><number>40</number></property>
+      <property name="topMargin"><number>40</number></property>
+      <property name="rightMargin"><number>40</number></property>
+      <property name="bottomMargin"><number>40</number></property>
+
+      <item>
+       <layout class="QHBoxLayout" name="layout_icon">
+        <item><spacer name="s1"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+        <item>
+         <widget class="QLabel" name="lbl_icon">
+          <property name="minimumSize"><size><width>90</width><height>90</height></size></property>
+          <property name="maximumSize"><size><width>90</width><height>90</height></size></property>
+          <property name="styleSheet">
+           <string notr="true">
+                border: 4px solid #22C55E;
+                border-radius: 45px;
+                color: #22C55E;
+                font-family: 'Segoe UI Symbol';
+                font-size: 45px;
+                font-weight: bold;
+           </string>
+          </property>
+          <property name="text"><string>✔</string></property>
+          <property name="alignment"><set>Qt::AlignCenter</set></property>
+         </widget>
+        </item>
+        <item><spacer name="s2"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+       </layout>
+      </item>
+
+      <item>
+       <widget class="QLabel" name="lbl_title">
+        <property name="text"><string>SỬA THUỐC THÀNH CÔNG</string></property>
+        <property name="styleSheet"><string notr="true">color: #22C55E; font-weight: bold; font-size: 20px;</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QLabel" name="lbl_desc">
+        <property name="text"><string>Thông tin thuốc 'Paracetamol 500mg' đã được cập nhật</string></property>
+        <property name="styleSheet"><string notr="true">color: #475569; font-size: 14px;</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QLabel" name="lbl_code">
+        <property name="text"><string>Mã thuốc: K-A1.001</string></property>
+        <property name="styleSheet"><string notr="true">color: #94A3B8; font-size: 13px;</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+       </widget>
+      </item>
+
+      <item><spacer name="v_spacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item>
+
+      <item>
+       <widget class="QPushButton" name="btn_close">
+        <property name="minimumSize"><size><width>100</width><height>50</height></size></property>
+        <property name="text"><string>Đóng thông báo</string></property>
+        <property name="styleSheet"><string notr="true">background-color: #2563EB; color: white; border-radius: 12px; font-weight: bold; font-size: 14px;</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>
