@@ -51,7 +51,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>../../../Downloads/Logo.png</pixmap>
+          <pixmap>Logo.png</pixmap>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -179,7 +179,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Light</string>
+             <string>.</string>
             </property>
             <property name="icon">
              <iconset>
@@ -199,7 +199,7 @@
        <item>
         <widget class="QStackedWidget" name="stacked_main_content">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_dashboard">
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -514,8 +514,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>987</width>
-                <height>349</height>
+                <width>1005</width>
+                <height>392</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_10">
