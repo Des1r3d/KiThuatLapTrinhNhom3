@@ -284,10 +284,14 @@ class Theme:
 
             QPushButton:hover {{
                 background-color: {c['primary_hover']};
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                padding-top: {self.SPACING_BASE - 1}px;
             }}
 
             QPushButton:pressed {{
                 background-color: {c['primary_active']};
+                padding-top: {self.SPACING_BASE + 2}px;
+                border: none;
             }}
 
             QPushButton:disabled {{
@@ -305,6 +309,13 @@ class Theme:
             QPushButton[secondary="true"]:hover {{
                 border-color: {c['primary']};
                 color: {c['primary']};
+                background-color: {c['search_highlight']};
+                padding-top: {self.SPACING_BASE - 1}px;
+            }}
+
+            QPushButton[secondary="true"]:pressed {{
+                background-color: {c['border']};
+                padding-top: {self.SPACING_BASE + 2}px;
             }}
 
             /* Danger Buttons */
@@ -314,6 +325,13 @@ class Theme:
 
             QPushButton[danger="true"]:hover {{
                 background-color: #DC2626;
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                padding-top: {self.SPACING_BASE - 1}px;
+            }}
+
+            QPushButton[danger="true"]:pressed {{
+                background-color: #B91C1C;
+                padding-top: {self.SPACING_BASE + 2}px;
             }}
 
             /* ── Inputs ── */
@@ -370,19 +388,32 @@ class Theme:
                 background-color: {c['surface']};
                 alternate-background-color: {c['table_row_alt']};
                 border: 1px solid {c['border']};
-                border-radius: {self.BORDER_RADIUS}px;
-                gridline-color: {c['border']};
+                border-radius: {self.BORDER_RADIUS + 4}px;
+                gridline-color: transparent;
                 font-size: {self.FONT_SIZE_TABLE}px;
+                outline: none;
+                padding: 4px;
             }}
 
             QTableWidget::item, QTableView::item {{
                 padding: {self.SPACING_BASE}px;
-                border-bottom: 1px solid {c['border']};
+                border: none;
+                border-radius: 4px;
             }}
 
             QTableWidget::item:selected, QTableView::item:selected {{
-                background-color: {c['primary']};
-                color: #FFFFFF;
+                background-color: {c['search_highlight']};
+                color: {c['primary']};
+            }}
+
+            QTableWidget::item:hover, QTableView::item:hover {{
+                background-color: {c['table_row_alt']};
+            }}
+
+            QHeaderView {{
+                background-color: {c['surface']};
+                border-top-left-radius: {self.BORDER_RADIUS + 4}px;
+                border-top-right-radius: {self.BORDER_RADIUS + 4}px;
             }}
 
             QHeaderView::section {{
@@ -556,10 +587,52 @@ class Theme:
             /* ── Message Box ── */
             QMessageBox {{
                 background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: {self.BORDER_RADIUS + 4}px;
             }}
 
             QMessageBox QLabel {{
                 color: {c['text_primary']};
+                font-size: {self.FONT_SIZE_BODY}px;
+                padding: 8px 4px;
+            }}
+
+            QMessageBox QPushButton {{
+                min-width: 90px;
+                min-height: 34px;
+                padding: 8px 20px;
+                border-radius: {self.BORDER_RADIUS}px;
+            }}
+
+            /* ── Calendar Widget (for QDateEdit) ── */
+            QCalendarWidget {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+            }}
+
+            QCalendarWidget QAbstractItemView {{
+                background-color: {c['surface']};
+                color: {c['text_primary']};
+                selection-background-color: {c['primary']};
+                selection-color: #FFFFFF;
+                alternate-background-color: {c['table_row_alt']};
+            }}
+
+            QCalendarWidget QWidget#qt_calendar_navigationbar {{
+                background-color: {c['primary']};
+                color: #FFFFFF;
+            }}
+
+            QCalendarWidget QToolButton {{
+                background-color: transparent;
+                color: #FFFFFF;
+                font-weight: bold;
+                padding: 4px 8px;
+            }}
+
+            QCalendarWidget QToolButton:hover {{
+                background-color: rgba(255, 255, 255, 0.15);
+                border-radius: 4px;
             }}
 
             /* ── Menu ── */

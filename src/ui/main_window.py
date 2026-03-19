@@ -1,56 +1,50 @@
 """
-Main Window for Pharmacy Management System — PHARMA.SYS.
+Main Window — PHARMA.SYS Application.
 
+The central hub for the Pharmacy Management System.
 Features:
-- Dark sidebar navigation (fixed #0D1F3C)
-- Top bar with page title, search hint, theme toggle
-- Stacked widget for different views
-- Keyboard shortcuts (Ctrl+K, Ctrl+N, Ctrl+D)
-- Global search modal
+- Dark sidebar with navigation (Dashboard, Inventory, Shelves)
+- Theme toggle (Light/Dark mode)
+- Search dialog (Ctrl+K)
+- Full CRUD for medicines and shelves
+- Custom notification dialogs
 """
 from typing import Optional, List
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QStackedWidget, QListWidget, QListWidgetItem,
-    QPushButton, QStatusBar, QMessageBox, QDialog,
-    QLineEdit, QLabel, QFrame, QSizePolicy
+    QLabel, QPushButton, QFrame, QMessageBox,
+    QSizePolicy, QApplication
 )
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QKeySequence, QShortcut, QFont, QAction
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 
+from src.models import Medicine, Shelf
 from src.inventory_manager import InventoryManager
-from src.search_engine import SearchEngine
 from src.image_manager import ImageManager
-from src.models import Medicine
+from src.search_engine import SearchEngine
 from src.ui.theme import Theme, ThemeMode
 from src.ui.dashboard import Dashboard
 from src.ui.inventory_view import InventoryView
+from src.ui.shelf_view import ShelfView
 from src.ui.medicine_dialog import MedicineDialog
 from src.ui.shelf_dialog import ShelfDialog
-from src.ui.shelf_view import ShelfView
-from src.ui.generated.search import Ui_dlg_search
+from src.ui.medicine_detail_view import MedicineDetailView
+from src.ui.filter_dialog import FilterMedicineDialog
 from src.ui.notification_dialogs import (
     AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
-from src.ui.medicine_detail_view import MedicineDetailView
-from src.ui.filter_dialog import FilterMedicineDialog
+from src.ui.generated.search import Ui_dlg_search
 
 
-class SearchModal(QDialog):
+class SearchDialog(QFrame):
     """
-    Global search modal accessible via Ctrl+K.
-
-    Uses Ui_dlg_search from Qt Designer for layout.
-
-    Features:
-    - Fuzzy search
-    - Real-time results
-    - Keyboard navigation
+    Search dialog using generated UI from search.py.
+    
+    Provides fuzzy search for medicines with real-time results.
     """
-
-    medicine_selected = pyqtSignal(str)  # medicine_id
 
     def __init__(
         self,
@@ -58,691 +52,670 @@ class SearchModal(QDialog):
         search_engine: Optional[SearchEngine] = None,
         theme: Optional[Theme] = None
     ):
-        """
-        Initialize search modal.
-
-        Args:
-            parent: Parent widget
-            search_engine: SearchEngine instance
-            theme: Theme instance
-        """
         super().__init__(parent)
-
+        from PyQt6.QtWidgets import QDialog
+        
+        self.dialog = QDialog(parent)
         self.search_engine = search_engine or SearchEngine()
         self.theme = theme or Theme()
+        self.selected_medicine_id: Optional[str] = None
 
-        self.setup_ui()
-
-    def setup_ui(self):
-        """Setup search modal UI using Qt Designer generated class."""
         self.ui = Ui_dlg_search()
-        self.ui.setupUi(self)
+        self.ui.setupUi(self.dialog)
 
-        self.setWindowTitle("Tìm kiếm nhanh")
-        self.setModal(True)
+        self.dialog.setWindowTitle("Tìm kiếm thuốc")
+        self.dialog.setWindowFlags(
+            self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
+        )
 
-        # Connect signals
-        self.ui.txt_search.textChanged.connect(self.on_search)
-        self.ui.list_results.itemDoubleClicked.connect(self.on_result_selected)
-        self.ui.txt_search.returnPressed.connect(self.select_first_result)
+        # Connect search
+        self.ui.txt_search.textChanged.connect(self._on_search)
+        self.ui.list_results.itemDoubleClicked.connect(self._on_select)
 
-    def showEvent(self, event):
-        """Focus search input when modal is shown."""
-        super().showEvent(event)
-        self.ui.txt_search.setFocus()
-        self.ui.txt_search.clear()
+    def _on_search(self, text: str):
+        """Handle search text change."""
         self.ui.list_results.clear()
 
-    def on_search(self, query: str):
-        """
-        Perform search when query changes.
-
-        Args:
-            query: Search query string
-        """
-        self.ui.list_results.clear()
-
-        if not query or len(query) < 2:
+        if not text.strip():
             return
 
-        # Search medicines
-        results = self.search_engine.search(query, limit=10)
+        results = self.search_engine.search(text, limit=10)
 
-        if not results:
-            item = QListWidgetItem("Không tìm thấy kết quả")
-            item.setFlags(Qt.ItemFlag.NoItemFlags)
-            self.ui.list_results.addItem(item)
-            return
-
-        # Display results
         for medicine, score in results:
-            display_text = f"{medicine.name} - {medicine.shelf_id} ({score}%)"
-            item = QListWidgetItem(display_text)
+            from PyQt6.QtWidgets import QListWidgetItem
+            item = QListWidgetItem(
+                f"{medicine.name}  (ID: {medicine.id}, "
+                f"Kệ: {medicine.shelf_id}, Score: {score}%)"
+            )
             item.setData(Qt.ItemDataRole.UserRole, medicine.id)
             self.ui.list_results.addItem(item)
 
-    def on_result_selected(self, item: QListWidgetItem):
+    def _on_select(self, item):
         """Handle result selection."""
-        medicine_id = item.data(Qt.ItemDataRole.UserRole)
-        if medicine_id:
-            self.medicine_selected.emit(medicine_id)
-            self.accept()
+        self.selected_medicine_id = item.data(Qt.ItemDataRole.UserRole)
+        self.dialog.accept()
 
-    def select_first_result(self):
-        """Select first result in list."""
-        if self.ui.list_results.count() > 0:
-            first_item = self.ui.list_results.item(0)
-            if first_item.flags() & Qt.ItemFlag.ItemIsEnabled:
-                self.on_result_selected(first_item)
-
-    def apply_theme(self):
-        """Apply theme stylesheet."""
-        pass  # Uses Qt Designer inline styles
+    def exec(self) -> int:
+        """Show dialog and return result."""
+        self.ui.txt_search.clear()
+        self.ui.list_results.clear()
+        self.selected_medicine_id = None
+        return self.dialog.exec()
 
 
 class MainWindow(QMainWindow):
     """
-    Main application window — PHARMA.SYS.
+    Main application window with sidebar navigation.
 
-    Features:
-    - Dark sidebar navigation (Dashboard, Inventory, Shelf Mgmt)
-    - Top bar with search hint, theme toggle, add button
-    - Keyboard shortcuts
-    - Theme toggle (Light/Dark)
-    - Global search (Ctrl+K)
-    - Status bar
+    Provides:
+    - Sidebar: Logo, navigation list (Dashboard, Inventory, Shelves),
+      theme toggle
+    - Content area: Stacked widget with Dashboard, InventoryView, ShelfView
+    - Top bar: Page title, Search, Add Medicine buttons
+    - CRUD operations wired to InventoryManager
     """
 
-    # Page title mapping
-    PAGE_TITLES = [
-        "Dashboard Overview",
-        "Inventory Management",
-        "Shelf Management"
-    ]
+    # Navigation page indices
+    PAGE_DASHBOARD = 0
+    PAGE_INVENTORY = 1
+    PAGE_SHELVES = 2
 
     def __init__(self):
-        """Initialize main window."""
+        """Initialize Main Window."""
         super().__init__()
 
-        # Initialize managers
-        self.inventory_manager = InventoryManager()
-        self.search_engine = SearchEngine()
-        self.image_manager = ImageManager()
+        # Core services
         self.theme = Theme(ThemeMode.LIGHT)
+        self.inventory_manager = InventoryManager()
+        self.image_manager = ImageManager()
+        self.search_engine = SearchEngine()
 
         # Load data
-        try:
-            self.inventory_manager.load_data()
-            self.search_engine.index_data(
-                self.inventory_manager.get_all_medicines()
-            )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Lỗi tải dữ liệu",
-                f"Không thể tải dữ liệu: {str(e)}"
-            )
+        self.inventory_manager.load_data()
+        self.search_engine.index_data(self.inventory_manager.medicines)
 
+        # Setup UI
         self.setup_ui()
-        self.setup_shortcuts()
         self.apply_theme()
-
-        # Initial data load
-        self.refresh_all_views()
+        self.refresh_all()
 
     def setup_ui(self):
-        """Setup main window UI."""
-        self.setWindowTitle("PHARMA.SYS — Hệ Thống Quản Lý Kho Thuốc")
-        self.setMinimumSize(1200, 800)
+        """Setup main window UI components."""
+        self.setWindowTitle("PHARMA.SYS — Quản lý Kho Thuốc")
+        self.setMinimumSize(1200, 750)
+        self.resize(1400, 850)
 
         # Central widget
-        central_widget = QWidget()
-        main_layout = QHBoxLayout(central_widget)
+        central = QWidget()
+        main_layout = QHBoxLayout(central)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         # ── Sidebar ──
-        sidebar = self.create_sidebar()
-        main_layout.addWidget(sidebar)
+        self.sidebar = QFrame()
+        self.sidebar.setObjectName("sidebar")
+        self.sidebar.setFixedWidth(220)
+        sidebar_layout = QVBoxLayout(self.sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 16)
+        sidebar_layout.setSpacing(0)
 
-        # ── Right side (top bar + content) ──
-        right_container = QWidget()
-        right_layout = QVBoxLayout(right_container)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(0)
+        # Logo
+        logo_container = QFrame()
+        logo_container.setStyleSheet("background-color: transparent;")
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setContentsMargins(20, 20, 20, 16)
+
+        logo_icon = QLabel("💊")
+        logo_icon.setStyleSheet(
+            "font-size: 28px; background: transparent;"
+        )
+        logo_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_layout.addWidget(logo_icon)
+
+        logo_label = QLabel("PHARMA.SYS")
+        logo_label.setObjectName("logo_label")
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_layout.addWidget(logo_label)
+
+        logo_sub = QLabel("Quản lý Kho Thuốc")
+        logo_sub.setStyleSheet(
+            "color: #64748B; font-size: 11px; background: transparent;"
+        )
+        logo_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_layout.addWidget(logo_sub)
+
+        sidebar_layout.addWidget(logo_container)
+
+        # Separator
+        sep = QFrame()
+        sep.setFixedHeight(1)
+        sep.setStyleSheet(
+            "background-color: rgba(255,255,255,0.1);"
+        )
+        sidebar_layout.addWidget(sep)
+
+        # Navigation list
+        self.nav_list = QListWidget()
+        self.nav_list.setFixedHeight(160)
+
+        items_data = [
+            ("📊  Dashboard", self.PAGE_DASHBOARD),
+            ("💊  Kho Thuốc", self.PAGE_INVENTORY),
+            ("🗄️  Kệ Thuốc", self.PAGE_SHELVES),
+        ]
+        for text, _ in items_data:
+            item = QListWidgetItem(text)
+            item.setSizeHint(QSize(200, 44))
+            self.nav_list.addItem(item)
+
+        self.nav_list.setCurrentRow(0)
+        self.nav_list.currentRowChanged.connect(self.switch_page)
+        sidebar_layout.addWidget(self.nav_list)
+
+        sidebar_layout.addStretch()
+
+        # Theme toggle
+        self.theme_button = QPushButton("🌙 Dark Mode")
+        self.theme_button.clicked.connect(self.toggle_theme)
+        sidebar_layout.addWidget(self.theme_button)
+
+        main_layout.addWidget(self.sidebar)
+
+        # ── Content Area ──
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
 
         # Top bar
-        topbar = self.create_topbar()
-        right_layout.addWidget(topbar)
+        self.topbar = QFrame()
+        self.topbar.setObjectName("topbar")
+        self.topbar.setFixedHeight(60)
+        topbar_layout = QHBoxLayout(self.topbar)
+        topbar_layout.setContentsMargins(24, 0, 24, 0)
 
-        # Main content area
-        self.content_stack = QStackedWidget()
+        self.page_title = QLabel("Dashboard")
+        page_title_font = QFont()
+        page_title_font.setPointSize(Theme.FONT_SIZE_H1)
+        page_title_font.setBold(True)
+        self.page_title.setFont(page_title_font)
+        topbar_layout.addWidget(self.page_title)
+
+        topbar_layout.addStretch()
+
+        # Search button
+        self.search_button = QPushButton("🔍 Tìm kiếm (Ctrl+K)")
+        self.search_button.setProperty("secondary", True)
+        self.search_button.setFixedWidth(180)
+        self.search_button.clicked.connect(self.show_search)
+        topbar_layout.addWidget(self.search_button)
+
+        # Add medicine button
+        self.add_medicine_button = QPushButton("➕ Thêm thuốc")
+        self.add_medicine_button.setFixedWidth(140)
+        self.add_medicine_button.clicked.connect(self.show_add_medicine)
+        topbar_layout.addWidget(self.add_medicine_button)
+
+        content_layout.addWidget(self.topbar)
+
+        # Stacked widget for pages
+        self.stack = QStackedWidget()
 
         # Dashboard page
         self.dashboard = Dashboard(theme=self.theme)
-        self.content_stack.addWidget(self.dashboard)
+        self.stack.addWidget(self.dashboard)
 
         # Inventory page
-        inventory_container = QWidget()
-        inventory_layout = QVBoxLayout(inventory_container)
-        inventory_layout.setContentsMargins(
-            Theme.SPACING_BASE * 3,
-            Theme.SPACING_BASE * 2,
-            Theme.SPACING_BASE * 3,
-            Theme.SPACING_BASE * 3
-        )
-
-        # Inventory view
         self.inventory_view = InventoryView(theme=self.theme)
-        self.inventory_view.edit_requested.connect(self.show_edit_medicine_dialog)
+        self.inventory_view.edit_requested.connect(self.show_edit_medicine)
         self.inventory_view.delete_requested.connect(self.delete_medicine)
-        inventory_layout.addWidget(self.inventory_view)
+        self.inventory_view.filter_requested.connect(self.show_filter_dialog)
+        inv_wrapper = QWidget()
+        inv_layout = QVBoxLayout(inv_wrapper)
+        inv_layout.setContentsMargins(24, 16, 24, 16)
+        inv_layout.addWidget(self.inventory_view)
+        self.stack.addWidget(inv_wrapper)
 
-        self.content_stack.addWidget(inventory_container)
-
-        # Shelf management page
-        shelf_container = QWidget()
-        shelf_layout = QVBoxLayout(shelf_container)
-        shelf_layout.setContentsMargins(
-            Theme.SPACING_BASE * 3,
-            Theme.SPACING_BASE * 2,
-            Theme.SPACING_BASE * 3,
-            Theme.SPACING_BASE * 3
-        )
-
-        # Shelf toolbar
-        shelf_toolbar = QHBoxLayout()
-
-        self.add_shelf_button = QPushButton("➕ Thêm kệ mới")
-        self.add_shelf_button.clicked.connect(self.show_add_shelf_dialog)
-        shelf_toolbar.addWidget(self.add_shelf_button)
-
-        shelf_toolbar.addStretch()
-        shelf_layout.addLayout(shelf_toolbar)
-
-        # Shelf view
+        # Shelf page
         self.shelf_view = ShelfView(theme=self.theme)
-        self.shelf_view.edit_requested.connect(self.show_edit_shelf_dialog)
+        self.shelf_view.add_requested.connect(self.show_add_shelf)
+        self.shelf_view.edit_requested.connect(self.show_edit_shelf)
         self.shelf_view.delete_requested.connect(self.delete_shelf)
+        shelf_wrapper = QWidget()
+        shelf_layout = QVBoxLayout(shelf_wrapper)
+        shelf_layout.setContentsMargins(24, 16, 24, 16)
         shelf_layout.addWidget(self.shelf_view)
+        self.stack.addWidget(shelf_wrapper)
 
-        self.content_stack.addWidget(shelf_container)
+        content_layout.addWidget(self.stack)
 
-        right_layout.addWidget(self.content_stack, 1)
-        main_layout.addWidget(right_container, 1)
+        main_layout.addWidget(content_widget)
 
-        self.setCentralWidget(central_widget)
+        self.setCentralWidget(central)
 
-        # Status bar
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("● System Ready")
-
-    def create_sidebar(self) -> QWidget:
-        """
-        Create dark sidebar navigation.
-
-        Returns:
-            Sidebar QFrame widget
-        """
-        sidebar = QFrame()
-        sidebar.setObjectName("sidebar")
-        sidebar.setFrameShape(QFrame.Shape.NoFrame)
-        sidebar.setMinimumWidth(220)
-        sidebar.setMaximumWidth(220)
-
-        layout = QVBoxLayout(sidebar)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        # ── Logo section ──
-        logo_container = QWidget()
-        logo_layout = QHBoxLayout(logo_container)
-        logo_layout.setContentsMargins(20, 24, 20, 24)
-
-        logo_icon = QLabel("💊")
-        logo_font = QFont()
-        logo_font.setPointSize(20)
-        logo_icon.setFont(logo_font)
-        logo_layout.addWidget(logo_icon)
-
-        logo_text = QLabel("PHARMA.SYS")
-        logo_text.setObjectName("logo_label")
-        logo_font_text = QFont()
-        logo_font_text.setPointSize(16)
-        logo_font_text.setBold(True)
-        logo_text.setFont(logo_font_text)
-        logo_layout.addWidget(logo_text)
-
-        logo_layout.addStretch()
-        layout.addWidget(logo_container)
-
-        # ── Navigation list ──
-        self.nav_list = QListWidget()
-        self.nav_list.addItem("📊  Dashboard")
-        self.nav_list.addItem("📦  Inventory")
-        self.nav_list.addItem("🗄️  Shelves")
-
-        # Disabled items
-        reports_item = QListWidgetItem("📋  Reports")
-        reports_item.setFlags(Qt.ItemFlag.NoItemFlags)
-        self.nav_list.addItem(reports_item)
-
-        settings_item = QListWidgetItem("⚙️  Settings")
-        settings_item.setFlags(Qt.ItemFlag.NoItemFlags)
-        self.nav_list.addItem(settings_item)
-
-        self.nav_list.setCurrentRow(0)
-        self.nav_list.currentRowChanged.connect(self.on_nav_changed)
-        layout.addWidget(self.nav_list)
-
-        layout.addStretch()
-
-        # ── Theme toggle ──
-        self.theme_button = QPushButton("🌙 Dark Mode")
-        self.theme_button.clicked.connect(self.toggle_theme)
-        self.theme_button.setContentsMargins(16, 8, 16, 8)
-
-        theme_container = QWidget()
-        theme_layout = QVBoxLayout(theme_container)
-        theme_layout.setContentsMargins(12, 8, 12, 16)
-        theme_layout.addWidget(self.theme_button)
-        layout.addWidget(theme_container)
-
-        return sidebar
-
-    def create_topbar(self) -> QWidget:
-        """
-        Create top bar with page title, search, and actions.
-
-        Returns:
-            Top bar QFrame widget
-        """
-        topbar = QFrame()
-        topbar.setObjectName("topbar")
-        topbar.setFrameShape(QFrame.Shape.NoFrame)
-        topbar.setFixedHeight(60)
-
-        layout = QHBoxLayout(topbar)
-        layout.setContentsMargins(24, 0, 24, 0)
-        layout.setSpacing(12)
-
-        # Page title (dynamic)
-        self.page_title_label = QLabel("Dashboard Overview")
-        title_font = QFont()
-        title_font.setPointSize(Theme.FONT_SIZE_H1)
-        title_font.setBold(True)
-        self.page_title_label.setFont(title_font)
-        layout.addWidget(self.page_title_label)
-
-        layout.addStretch()
-
-        # Search hint
-        search_hint = QPushButton("🔍  Ctrl+K to Search")
-        search_hint.setProperty("secondary", True)
-        search_hint.setFixedWidth(180)
-        search_hint.clicked.connect(self.show_search_modal)
-        layout.addWidget(search_hint)
-
-        # Theme toggle (icon only)
-        self.topbar_theme_btn = QPushButton("🌙")
-        self.topbar_theme_btn.setProperty("secondary", True)
-        self.topbar_theme_btn.setFixedWidth(36)
-        self.topbar_theme_btn.setToolTip("Toggle Theme (Ctrl+D)")
-        self.topbar_theme_btn.clicked.connect(self.toggle_theme)
-        layout.addWidget(self.topbar_theme_btn)
-
-        # Add medicine button
-        self.add_button = QPushButton("➕ Add Medicine")
-        self.add_button.clicked.connect(self.show_add_medicine_dialog)
-        self.add_button.setFixedWidth(160)
-        layout.addWidget(self.add_button)
-
-        return topbar
-
-    def setup_shortcuts(self):
-        """Setup keyboard shortcuts."""
-        # Ctrl+K - Search
+        # ── Keyboard shortcuts ──
         search_shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
-        search_shortcut.activated.connect(self.show_search_modal)
+        search_shortcut.activated.connect(self.show_search)
 
-        # Ctrl+N - Add medicine
-        add_shortcut = QShortcut(QKeySequence("Ctrl+N"), self)
-        add_shortcut.activated.connect(self.show_add_medicine_dialog)
-
-        # Ctrl+D - Toggle theme
-        theme_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
-        theme_shortcut.activated.connect(self.toggle_theme)
-
-    def on_nav_changed(self, index: int):
+    def switch_page(self, index: int):
         """
-        Handle navigation change.
+        Switch to the specified page.
 
         Args:
-            index: Selected navigation index
+            index: Page index
         """
-        # Only handle valid page indices (0-2)
-        if index < 0 or index > 2:
-            return
+        self.stack.setCurrentIndex(index)
 
-        self.content_stack.setCurrentIndex(index)
+        titles = {
+            self.PAGE_DASHBOARD: "Dashboard",
+            self.PAGE_INVENTORY: "Kho Thuốc",
+            self.PAGE_SHELVES: "Kệ Thuốc",
+        }
+        self.page_title.setText(titles.get(index, ""))
 
-        # Update page title
-        self.page_title_label.setText(self.PAGE_TITLES[index])
-
-        # Refresh data when switching views
-        if index == 0:  # Dashboard
-            self.refresh_dashboard()
-        elif index == 1:  # Inventory
-            self.refresh_inventory()
-        elif index == 2:  # Shelf Management
-            self.refresh_shelf_view()
-
-    def show_add_medicine_dialog(self):
-        """Show dialog to add new medicine."""
-        dialog = MedicineDialog(
-            parent=self,
-            medicine=None,
-            shelves=self.inventory_manager.get_all_shelves(),
-            theme=self.theme,
-            image_manager=self.image_manager
+        # Show/hide add medicine button based on page
+        self.add_medicine_button.setVisible(
+            index == self.PAGE_INVENTORY
         )
 
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            medicine = dialog.get_medicine()
-            if medicine:
+    def refresh_all(self):
+        """Refresh all views with current data."""
+        medicines = self.inventory_manager.get_all_medicines()
+        shelves = self.inventory_manager.get_all_shelves()
+
+        # Update search index
+        self.search_engine.index_data(medicines)
+
+        # Dashboard
+        self.dashboard.load_data(medicines)
+
+        # Inventory view
+        self.inventory_view.load_medicines(medicines)
+
+        # Shelf view — calculate used per shelf
+        medicines_per_shelf = {}
+        for med in medicines:
+            medicines_per_shelf[med.shelf_id] = (
+                medicines_per_shelf.get(med.shelf_id, 0) + med.quantity
+            )
+        self.shelf_view.load_shelves(shelves, medicines_per_shelf)
+
+    # ── Medicine CRUD ──
+
+    def show_add_medicine(self):
+        """Show dialog to add a new medicine."""
+        shelves = self.inventory_manager.get_all_shelves()
+
+        dialog = MedicineDialog(
+            parent=self,
+            mode="add",
+            shelves=shelves,
+            image_manager=self.image_manager,
+            theme=self.theme,
+            remaining_capacity_func=self._get_shelf_remaining
+        )
+
+        if dialog.exec() == MedicineDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if data:
                 try:
+                    # Handle image
+                    image_path = ""
+                    if "image_path" in data and data["image_path"]:
+                        # Will save after medicine ID is generated
+                        temp_image = data.pop("image_path")
+                    else:
+                        temp_image = None
+
+                    medicine = Medicine(
+                        id="",  # Auto-generate
+                        name=data["name"],
+                        quantity=data["quantity"],
+                        expiry_date=data["expiry_date"],
+                        shelf_id=data["shelf_id"],
+                        price=data["price"],
+                        image_path=""
+                    )
+
                     added = self.inventory_manager.add_medicine(medicine)
 
-                    # Handle image upload
-                    image_source = dialog.get_selected_image_path()
-                    if image_source and added.id:
-                        try:
-                            rel_path = self.image_manager.save_image(
-                                image_source, added.id
-                            )
-                            self.inventory_manager.update_medicine(
-                                added.id, {"image_path": rel_path}
-                            )
-                        except (IOError, ValueError) as img_err:
-                            QMessageBox.warning(
-                                self, "Cảnh báo",
-                                f"Thuốc đã thêm nhưng không lưu được ảnh: {str(img_err)}"
-                            )
+                    # Save image with generated ID
+                    if temp_image:
+                        relative_path = self.image_manager.save_image(
+                            temp_image, added.id
+                        )
+                        self.inventory_manager.update_medicine(
+                            added.id,
+                            {"image_path": relative_path}
+                        )
 
-                    self.refresh_all_views()
-                    self.search_engine.update_index(
-                        self.inventory_manager.get_all_medicines()
-                    )
-                    self.status_bar.showMessage(
-                        f"✅ Đã thêm thuốc: {medicine.name}", 3000
-                    )
+                    self.refresh_all()
 
-                    # Show success notification
-                    success_dlg = AddSuccessDialog(
-                        self, medicine.name, added.id
+                    # Show success dialog
+                    success = AddSuccessDialog(
+                        self,
+                        medicine_name=added.name,
+                        medicine_id=added.id
                     )
-                    success_dlg.exec()
+                    success.exec()
 
                 except ValueError as e:
-                    QMessageBox.warning(
-                        self, "Lỗi", f"Không thể thêm thuốc: {str(e)}"
-                    )
+                    if "sức chứa" in str(e).lower() or "capacity" in str(e).lower():
+                        self._show_shelf_full_error(
+                            data.get("shelf_id", ""),
+                            str(e)
+                        )
+                    else:
+                        QMessageBox.warning(
+                            self, "Lỗi", str(e)
+                        )
 
-    def show_edit_medicine_dialog(self, medicine_id: str):
+    def show_edit_medicine(self, medicine_id: str):
         """
-        Show dialog to edit medicine.
+        Show dialog to edit a medicine.
 
         Args:
             medicine_id: ID of medicine to edit
         """
         medicine = self.inventory_manager.get_medicine(medicine_id)
         if not medicine:
-            QMessageBox.warning(self, "Lỗi", "Không tìm thấy thuốc")
+            QMessageBox.warning(
+                self, "Lỗi",
+                f"Không tìm thấy thuốc với mã '{medicine_id}'"
+            )
             return
+
+        shelves = self.inventory_manager.get_all_shelves()
 
         dialog = MedicineDialog(
             parent=self,
+            mode="edit",
             medicine=medicine,
-            shelves=self.inventory_manager.get_all_shelves(),
+            shelves=shelves,
+            image_manager=self.image_manager,
             theme=self.theme,
-            image_manager=self.image_manager
+            remaining_capacity_func=self._get_shelf_remaining
         )
 
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            updated_medicine = dialog.get_medicine()
-            if updated_medicine:
+        if dialog.exec() == MedicineDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if data:
                 try:
-                    # Handle image changes
-                    image_path = medicine.image_path  # Keep existing by default
-                    image_source = dialog.get_selected_image_path()
-
-                    if image_source:
-                        # New image uploaded
-                        try:
-                            image_path = self.image_manager.save_image(
-                                image_source, medicine_id
+                    # Handle image update
+                    if "image_path" in data:
+                        img_path = data["image_path"]
+                        # If it's a new file (not relative path)
+                        if img_path and not img_path.startswith("images"):
+                            relative = self.image_manager.save_image(
+                                img_path, medicine_id
                             )
-                        except (IOError, ValueError) as img_err:
-                            QMessageBox.warning(
-                                self, "Cảnh báo",
-                                f"Không lưu được ảnh: {str(img_err)}"
+                            data["image_path"] = relative
+
+                    updated = self.inventory_manager.update_medicine(
+                        medicine_id, data
+                    )
+                    
+                    # If shelf changed, ID changed — move image to new ID
+                    if updated.id != medicine_id:
+                        new_img_path = self.image_manager.rename_image(
+                            medicine_id, updated.id
+                        )
+                        if new_img_path:
+                            self.inventory_manager.update_medicine(
+                                updated.id,
+                                {"image_path": new_img_path}
                             )
-                            image_path = medicine.image_path
-                    elif dialog.is_image_removed():
-                        # Image explicitly removed
-                        self.image_manager.delete_image(medicine_id)
-                        image_path = ""
 
-                    # Create changes dict
-                    changes = {
-                        'name': updated_medicine.name,
-                        'quantity': updated_medicine.quantity,
-                        'expiry_date': updated_medicine.expiry_date,
-                        'shelf_id': updated_medicine.shelf_id,
-                        'price': updated_medicine.price,
-                        'image_path': image_path
-                    }
-                    self.inventory_manager.update_medicine(
-                        medicine_id, changes
-                    )
-                    self.refresh_all_views()
-                    self.search_engine.update_index(
-                        self.inventory_manager.get_all_medicines()
-                    )
-                    self.status_bar.showMessage(
-                        f"✅ Đã cập nhật thuốc: {updated_medicine.name}", 3000
-                    )
+                    self.refresh_all()
 
-                    # Show success notification
-                    success_dlg = EditSuccessDialog(
-                        self, updated_medicine.name, medicine_id
+                    # Show success dialog with the updated ID
+                    success = EditSuccessDialog(
+                        self,
+                        medicine_name=updated.name,
+                        medicine_id=updated.id
                     )
-                    success_dlg.exec()
+                    success.exec()
 
                 except ValueError as e:
-                    QMessageBox.warning(
-                        self, "Lỗi", f"Không thể cập nhật: {str(e)}"
-                    )
+                    if "sức chứa" in str(e).lower():
+                        self._show_shelf_full_error(
+                            data.get("shelf_id", ""),
+                            str(e)
+                        )
+                    else:
+                        QMessageBox.warning(
+                            self, "Lỗi", str(e)
+                        )
 
     def delete_medicine(self, medicine_id: str):
         """
-        Delete a medicine and its associated image.
+        Delete a medicine after confirmation.
 
         Args:
             medicine_id: ID of medicine to delete
         """
-        try:
-            medicine = self.inventory_manager.get_medicine(medicine_id)
+        medicine = self.inventory_manager.get_medicine(medicine_id)
+        if not medicine:
+            return
 
-            # Delete associated image
-            self.image_manager.delete_image(medicine_id)
+        # Show custom confirm dialog
+        confirm = ConfirmDeleteDialog(
+            self,
+            medicine_name=medicine.name,
+            medicine_id=medicine_id,
+            quantity=medicine.quantity
+        )
 
-            self.inventory_manager.remove_medicine(medicine_id)
-            self.refresh_all_views()
-            self.search_engine.update_index(
-                self.inventory_manager.get_all_medicines()
-            )
-            if medicine:
-                self.status_bar.showMessage(
-                    f"🗑️ Đã xóa thuốc: {medicine.name}", 3000
+        if confirm.exec() == ConfirmDeleteDialog.DialogCode.Accepted:
+            try:
+                removed = self.inventory_manager.remove_medicine(medicine_id)
+
+                # Delete associated image
+                self.image_manager.delete_image(medicine_id)
+
+                self.refresh_all()
+
+                # Show success dialog
+                success = DeleteSuccessDialog(
+                    self,
+                    medicine_name=removed.name,
+                    medicine_id=medicine_id
                 )
+                success.exec()
 
-                # Show success notification
-                success_dlg = DeleteSuccessDialog(
-                    self, medicine.name, medicine_id
-                )
-                success_dlg.exec()
+            except ValueError as e:
+                QMessageBox.warning(self, "Lỗi", str(e))
 
-        except ValueError as e:
-            QMessageBox.warning(
-                self, "Lỗi", f"Không thể xóa thuốc: {str(e)}"
-            )
+    # ── Shelf CRUD ──
 
-    def show_search_modal(self):
-        """Show global search modal."""
-        modal = SearchModal(
-            parent=self,
-            search_engine=self.search_engine,
-            theme=self.theme
-        )
-        modal.medicine_selected.connect(self.on_search_result_selected)
-        modal.exec()
-
-    def on_search_result_selected(self, medicine_id: str):
-        """
-        Handle search result selection.
-
-        Args:
-            medicine_id: Selected medicine ID
-        """
-        # Switch to inventory view
-        self.nav_list.setCurrentRow(1)
-        self.content_stack.setCurrentIndex(1)
-
-        self.status_bar.showMessage(
-            f"🔍 Đã chọn thuốc ID: {medicine_id}", 3000
-        )
-
-    def toggle_theme(self):
-        """Toggle between Light and Dark themes."""
-        new_mode = self.theme.toggle_mode()
-
-        if new_mode == ThemeMode.DARK:
-            self.theme_button.setText("☀️ Light Mode")
-            self.topbar_theme_btn.setText("☀️")
-        else:
-            self.theme_button.setText("🌙 Dark Mode")
-            self.topbar_theme_btn.setText("🌙")
-
-        self.apply_theme()
-        self.status_bar.showMessage(
-            f"🎨 Switched to {new_mode.value} mode", 2000
-        )
-
-    def refresh_all_views(self):
-        """Refresh all data views."""
-        self.refresh_dashboard()
-        self.refresh_inventory()
-        self.refresh_shelf_view()
-
-    def refresh_dashboard(self):
-        """Refresh dashboard data."""
-        medicines = self.inventory_manager.get_all_medicines()
-        self.dashboard.load_data(medicines)
-
-    def refresh_inventory(self):
-        """Refresh inventory table."""
-        medicines = self.inventory_manager.get_all_medicines()
-        self.inventory_view.load_medicines(medicines)
-
-    def refresh_shelf_view(self):
-        """Refresh shelf view with current data."""
-        shelves = self.inventory_manager.get_all_shelves()
-        medicines = self.inventory_manager.get_all_medicines()
-        self.shelf_view.load_shelves(shelves, medicines)
-
-    def show_add_shelf_dialog(self):
-        """Show dialog to add new shelf."""
+    def show_add_shelf(self):
+        """Show dialog to add a new shelf."""
         dialog = ShelfDialog(
             parent=self,
-            shelf=None,
+            mode="add",
             theme=self.theme
         )
 
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            shelf = dialog.get_shelf()
-            if shelf:
+        if dialog.exec() == ShelfDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if data:
                 try:
+                    shelf = Shelf(
+                        id=data["id"],
+                        zone=data["zone"],
+                        column=data["column"],
+                        row=data["row"],
+                        capacity=data["capacity"]
+                    )
                     self.inventory_manager.add_shelf(shelf)
-                    self.refresh_shelf_view()
-                    self.status_bar.showMessage(
-                        f"✅ Đã thêm kệ: {shelf.id}", 3000
+                    self.refresh_all()
+
+                    QMessageBox.information(
+                        self, "Thành công",
+                        f"Đã thêm kệ '{shelf.id}' thành công!"
                     )
                 except ValueError as e:
-                    QMessageBox.warning(
-                        self, "Lỗi", f"Không thể thêm kệ: {str(e)}"
-                    )
+                    QMessageBox.warning(self, "Lỗi", str(e))
 
-    def show_edit_shelf_dialog(self, shelf_id: str):
-        """Show dialog to edit existing shelf."""
+    def show_edit_shelf(self, shelf_id: str):
+        """
+        Show dialog to edit a shelf.
+
+        Args:
+            shelf_id: ID of shelf to edit
+        """
         shelf = self.inventory_manager.get_shelf(shelf_id)
         if not shelf:
-            QMessageBox.warning(self, "Lỗi", "Không tìm thấy kệ")
+            QMessageBox.warning(
+                self, "Lỗi",
+                f"Không tìm thấy kệ '{shelf_id}'"
+            )
             return
 
         dialog = ShelfDialog(
             parent=self,
+            mode="edit",
             shelf=shelf,
             theme=self.theme
         )
 
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            updated_shelf = dialog.get_shelf()
-            if updated_shelf:
+        if dialog.exec() == ShelfDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if data:
                 try:
-                    changes = {
-                        'row': updated_shelf.row,
-                        'column': updated_shelf.column,
-                        'capacity': updated_shelf.capacity
-                    }
-                    self.inventory_manager.update_shelf(shelf_id, changes)
-                    self.refresh_shelf_view()
-                    self.status_bar.showMessage(
-                        f"✅ Đã cập nhật kệ: {shelf_id}", 3000
+                    self.inventory_manager.update_shelf(
+                        shelf_id,
+                        {
+                            "zone": data["zone"],
+                            "column": data["column"],
+                            "row": data["row"],
+                            "capacity": data["capacity"],
+                        }
+                    )
+                    self.refresh_all()
+
+                    QMessageBox.information(
+                        self, "Thành công",
+                        f"Đã cập nhật kệ '{shelf_id}' thành công!"
                     )
                 except ValueError as e:
-                    QMessageBox.warning(
-                        self, "Lỗi", f"Không thể cập nhật: {str(e)}"
-                    )
+                    QMessageBox.warning(self, "Lỗi", str(e))
 
     def delete_shelf(self, shelf_id: str):
-        """Delete a shelf."""
-        try:
-            self.inventory_manager.remove_shelf(shelf_id)
-            self.refresh_shelf_view()
-            self.status_bar.showMessage(
-                f"🗑️ Đã xóa kệ: {shelf_id}", 3000
-            )
-        except ValueError as e:
-            QMessageBox.warning(
-                self, "Lỗi", f"Không thể xóa kệ: {str(e)}"
-            )
+        """
+        Delete a shelf after confirmation.
 
-    def apply_theme(self):
-        """Apply current theme to all components."""
-        stylesheet = self.theme.get_stylesheet()
-        self.setStyleSheet(stylesheet)
+        Args:
+            shelf_id: ID of shelf to delete
+        """
+        reply = QMessageBox.question(
+            self,
+            "Xác nhận xóa",
+            f"Bạn có chắc chắn muốn xóa kệ '{shelf_id}'?\n\n"
+            "Thao tác này không thể hoàn tác.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
 
-        # Apply to child widgets
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                self.inventory_manager.remove_shelf(shelf_id)
+                self.refresh_all()
+
+                QMessageBox.information(
+                    self, "Thành công",
+                    f"Đã xóa kệ '{shelf_id}' thành công!"
+                )
+            except ValueError as e:
+                QMessageBox.warning(self, "Lỗi", str(e))
+
+    # ── Search ──
+
+    def show_search(self):
+        """Show search dialog."""
+        search = SearchDialog(
+            parent=self,
+            search_engine=self.search_engine,
+            theme=self.theme
+        )
+
+        if search.exec() == 1:  # Accepted
+            if search.selected_medicine_id:
+                # Switch to inventory page
+                self.nav_list.setCurrentRow(self.PAGE_INVENTORY)
+                # Show medicine detail or edit
+                self.show_edit_medicine(search.selected_medicine_id)
+
+    # ── Filter ──
+
+    def show_filter_dialog(self):
+        """Show filter dialog for inventory."""
+        shelves = self.inventory_manager.get_all_shelves()
+
+        dialog = FilterMedicineDialog(
+            parent=self,
+            shelves=shelves
+        )
+
+        if dialog.exec() == FilterMedicineDialog.DialogCode.Accepted:
+            filters = dialog.get_filters()
+            self.inventory_view.set_filters(filters)
+
+    # ── Theme ──
+
+    def toggle_theme(self):
+        """Toggle between Light and Dark modes."""
+        new_mode = self.theme.toggle_mode()
+
+        if new_mode == ThemeMode.DARK:
+            self.theme_button.setText("☀️ Light Mode")
+        else:
+            self.theme_button.setText("🌙 Dark Mode")
+
+        self.apply_theme()
+
+        # Refresh charts with new theme colors
         self.dashboard.theme = self.theme
         self.dashboard.apply_theme()
-        self.dashboard.update_charts()  # Redraw charts with new theme
+        self.dashboard.update_charts()
 
-        self.inventory_view.theme = self.theme
-        self.inventory_view.apply_theme()
-        self.inventory_view.refresh()  # Reapply row colors
+    def apply_theme(self):
+        """Apply current theme stylesheet to entire application."""
+        self.setStyleSheet(self.theme.get_stylesheet())
 
-        self.shelf_view.theme = self.theme
-        self.shelf_view.apply_theme()
-        self.shelf_view.refresh()
+    # ── Helpers ──
+
+    def _get_shelf_remaining(
+        self, shelf_id: str, exclude_id: str = ""
+    ) -> int:
+        """
+        Get remaining capacity of a shelf.
+
+        Args:
+            shelf_id: Shelf ID
+            exclude_id: Medicine ID to exclude from used calculation
+
+        Returns:
+            Remaining capacity in units
+        """
+        return self.inventory_manager.get_shelf_remaining_capacity(
+            shelf_id, exclude_id
+        )
+
+    def _show_shelf_full_error(self, shelf_id: str, message: str):
+        """
+        Show shelf full error dialog.
+
+        Args:
+            shelf_id: ID of the full shelf
+            message: Error message with details
+        """
+        remaining = self.inventory_manager.get_shelf_remaining_capacity(
+            shelf_id
+        )
+        dialog = ShelfFullErrorDialog(
+            self,
+            shelf_id=shelf_id,
+            remaining_capacity=remaining
+        )
+        dialog.exec()

@@ -1,326 +1,303 @@
 """
-Medicine Dialog for adding/editing medicines.
+Medicine Dialog — PHARMA.SYS Add/Edit Medicine.
 
-Uses Qt Designer-generated UI from them_thuoc.py.
-Provides:
-- Input validation
-- Shelf selection
-- Auto-ID generation
-- Edit mode support
-- Image upload
+Uses Qt Designer-generated UI from them_thuoc.py for layout.
+Features:
+- Add mode: hides ID field (auto-generated), shows shelf selector
+- Edit mode: shows ID (read-only), pre-fills all fields
+- Input validation for all fields
+- Image upload/remove
+- Remaining shelf capacity display
+- QDateEdit for expiry date selection
 """
+from typing import Optional, List, Dict, Any
 from datetime import date
-from typing import Optional, List
 
-from PyQt6.QtWidgets import (
-    QDialog, QMessageBox, QFileDialog
-)
+from PyQt6.QtWidgets import QDialog, QFileDialog, QMessageBox
 from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIntValidator, QDoubleValidator
 
 from src.models import Medicine, Shelf
+from src.image_manager import ImageManager
 from src.ui.theme import Theme
-from src.image_manager import ImageManager, SUPPORTED_FORMATS
 from src.ui.generated.them_thuoc import Ui_dlg_medicine_detail
 
 
 class MedicineDialog(QDialog):
     """
-    Dialog for adding or editing medicine entries.
+    Dialog for adding or editing a medicine.
+
+    Uses Ui_dlg_medicine_detail from them_thuoc.py for layout.
     
-    Uses Ui_dlg_medicine_detail from Qt Designer for layout.
-    
-    Features:
-    - Form validation
-    - Auto ID generation (UUID)
-    - Shelf dropdown populated from available shelves
-    - Warning for past expiry dates
-    - Image upload/remove
+    Modes:
+    - Add: Hides ID field, auto-generates ID on save
+    - Edit: Shows ID (read-only), pre-fills data, validates changes
+
+    Attributes:
+        mode: 'add' or 'edit'
+        medicine: Existing Medicine object (edit mode) or None (add mode)
+        shelves: Available shelves for the shelf selector
+        result_data: Validated data dictionary returned on accept
+        selected_image_path: Path to selected image file
     """
-    
+
     def __init__(
-        self, 
-        parent=None, 
+        self,
+        parent=None,
+        mode: str = "add",
         medicine: Optional[Medicine] = None,
         shelves: Optional[List[Shelf]] = None,
+        image_manager: Optional[ImageManager] = None,
         theme: Optional[Theme] = None,
-        image_manager: Optional[ImageManager] = None
+        remaining_capacity_func=None
     ):
         """
         Initialize Medicine Dialog.
-        
+
         Args:
             parent: Parent widget
-            medicine: Medicine object to edit (None for Add mode)
-            shelves: List of available shelves
+            mode: 'add' or 'edit'
+            medicine: Medicine object to edit (edit mode only)
+            shelves: List of Shelf objects for shelf selector
+            image_manager: ImageManager for image operations
             theme: Theme instance for styling
-            image_manager: ImageManager instance for image operations
+            remaining_capacity_func: Callable(shelf_id, exclude_id) -> int
         """
         super().__init__(parent)
-        
+
+        self.mode = mode
         self.medicine = medicine
         self.shelves = shelves or []
-        self.theme = theme or Theme()
         self.image_manager = image_manager or ImageManager()
-        self.is_edit_mode = medicine is not None
+        self.theme = theme or Theme()
+        self.remaining_capacity_func = remaining_capacity_func
+        self.result_data: Optional[Dict[str, Any]] = None
         self.selected_image_path: Optional[str] = None
-        self.image_removed: bool = False
-        
+
         self.setup_ui()
-        
-        if self.is_edit_mode:
-            self.populate_fields()
-    
+
+        if mode == "edit" and medicine:
+            self.load_medicine(medicine)
+
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
-        # Apply generated UI
         self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
-        
-        # Set window title based on mode
-        title = "Sửa Thuốc" if self.is_edit_mode else "Thêm Thuốc Mới"
-        self.setWindowTitle(title)
-        self.ui.lbl_title.setText(title)
-        
-        # Populate shelf combo
-        self.populate_shelves()
-        
-        # Connect buttons
-        self.ui.btn_primary.clicked.connect(self.validate_and_save)
-        self.ui.btn_secondary.clicked.connect(self.reject)
-        
-        # Image buttons
-        self.ui.btn_add_img.clicked.connect(self.select_image)
-        self.ui.btn_remove_img.clicked.connect(self.remove_image)
-        self.ui.btn_remove_img.setEnabled(False)
-        
-        # Set button text based on mode
-        self.ui.btn_primary.setText("Cập nhật" if self.is_edit_mode else "Save")
-        
-        # ID field: read-only in edit mode
-        if self.is_edit_mode:
+
+        # ── Mode-specific setup ──
+        if self.mode == "add":
+            self.setWindowTitle("Thêm thuốc mới")
+            self.ui.lbl_title.setText("Thêm thuốc")
+            # Hide ID field in Add mode (auto-generated)
+            self.ui.lbl_id.setVisible(False)
+            self.ui.txt_medicine_id.setVisible(False)
+            self.ui.btn_primary.setText("Thêm")
+            self.ui.btn_secondary.setText("Hủy")
+        else:
+            self.setWindowTitle("Chỉnh sửa thuốc")
+            self.ui.lbl_title.setText("Chỉnh sửa thuốc")
+            # Show ID (read-only) in Edit mode
             self.ui.txt_medicine_id.setReadOnly(True)
-    
-    def populate_shelves(self):
-        """Populate shelf dropdown with available shelves."""
+            self.ui.txt_medicine_id.setStyleSheet(
+                self.ui.txt_medicine_id.styleSheet()
+                + " color: #94A3B8;"
+            )
+            self.ui.btn_primary.setText("Lưu")
+            self.ui.btn_secondary.setText("Hủy")
+
+        # ── Populate shelf combo ──
         self.ui.cb_shelf_location.clear()
-        
-        if not self.shelves:
-            self.ui.cb_shelf_location.addItem("Chưa có kệ nào", None)
-            self.ui.cb_shelf_location.setEnabled(False)
-            return
-        
         self.ui.cb_shelf_location.addItem("Chọn kệ thuốc", None)
         for shelf in self.shelves:
-            display_text = f"{shelf.id} - Khu {shelf.zone}, Cột {shelf.column}, Dãy {shelf.row}"
-            self.ui.cb_shelf_location.addItem(display_text, shelf.id)
-    
-    def populate_fields(self):
-        """Populate form fields with existing medicine data (Edit mode)."""
-        if not self.medicine:
-            return
-        
-        self.ui.txt_medicine_id.setText(self.medicine.id)
-        self.ui.txt_medicine_name.setText(self.medicine.name)
-        self.ui.txt_quantity.setText(str(self.medicine.quantity))
-        
+            self.ui.cb_shelf_location.addItem(
+                f"{shelf.id} (Còn chứa: {shelf.capacity})", shelf.id
+            )
+
+        # ── Input validators ──
+        self.ui.txt_quantity.setValidator(QIntValidator(0, 999999, self))
+        self.ui.txt_price.setValidator(QDoubleValidator(0, 999999999, 2, self))
+
+        # ── Connect signals ──
+        self.ui.btn_primary.clicked.connect(self.on_save)
+        self.ui.btn_secondary.clicked.connect(self.reject)
+        self.ui.btn_add_img.clicked.connect(self.on_add_image)
+        self.ui.btn_remove_img.clicked.connect(self.on_remove_image)
+
+        # Update remaining capacity when shelf changes
+        self.ui.cb_shelf_location.currentIndexChanged.connect(
+            self.update_remaining_capacity_display
+        )
+
+    def load_medicine(self, medicine: Medicine):
+        """
+        Pre-fill dialog fields with medicine data.
+
+        Args:
+            medicine: Medicine object to load
+        """
+        self.medicine = medicine
+
+        # Fill fields
+        self.ui.txt_medicine_id.setText(medicine.id)
+        self.ui.txt_medicine_name.setText(medicine.name)
+        self.ui.txt_quantity.setText(str(medicine.quantity))
+
         # Set expiry date
-        expiry_str = self.medicine.expiry_date.strftime("%d/%m/%Y")
-        self.ui.txt_expiry_date.setText(expiry_str)
-        
-        self.ui.txt_price.setText(str(self.medicine.price))
-        
+        qdate = QDate(
+            medicine.expiry_date.year,
+            medicine.expiry_date.month,
+            medicine.expiry_date.day
+        )
+        self.ui.txt_expiry_date.setDate(qdate)
+
         # Set shelf selection
         for i in range(self.ui.cb_shelf_location.count()):
-            if self.ui.cb_shelf_location.itemData(i) == self.medicine.shelf_id:
+            if self.ui.cb_shelf_location.itemData(i) == medicine.shelf_id:
                 self.ui.cb_shelf_location.setCurrentIndex(i)
                 break
-        
-        # Load existing image
-        if self.medicine.image_path:
+
+        # Price
+        self.ui.txt_price.setText(str(medicine.price))
+
+        # Load image if exists
+        if medicine.image_path:
             abs_path = self.image_manager.get_image_path_from_relative(
-                self.medicine.image_path
+                medicine.image_path
             )
             if abs_path:
                 self._display_image(abs_path)
-                self.ui.btn_remove_img.setEnabled(True)
-    
-    def validate_and_save(self):
-        """Validate form input and save medicine."""
-        # Validate name
+
+    def update_remaining_capacity_display(self):
+        """Update shelf combo text to show remaining capacity."""
+        if not self.remaining_capacity_func:
+            return
+
+        shelf_id = self.ui.cb_shelf_location.currentData()
+        if shelf_id:
+            exclude_id = self.medicine.id if self.medicine else ""
+            remaining = self.remaining_capacity_func(shelf_id, exclude_id)
+            # Update the placeholder text or a label to show remaining
+            self.ui.lbl_shelf.setText(f"Kệ thuốc (Còn: {remaining} đơn vị)")
+        else:
+            self.ui.lbl_shelf.setText("Kệ thuốc")
+
+    def on_save(self):
+        """Validate inputs and accept dialog."""
+        # ── Validation ──
+        errors = []
+
+        # Name
         name = self.ui.txt_medicine_name.text().strip()
         if not name:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập tên thuốc")
-            self.ui.txt_medicine_name.setFocus()
-            return
-        
-        # Validate quantity
-        try:
-            quantity = int(self.ui.txt_quantity.text().strip() or "0")
-            if quantity < 0:
-                raise ValueError
-        except ValueError:
-            QMessageBox.warning(self, "Lỗi", "Số lượng phải là số nguyên không âm")
-            self.ui.txt_quantity.setFocus()
-            return
-        
-        # Validate price
-        try:
-            price = float(self.ui.txt_price.text().strip() or "0")
-            if price < 0:
-                raise ValueError
-        except ValueError:
-            QMessageBox.warning(self, "Lỗi", "Giá phải là số không âm")
-            self.ui.txt_price.setFocus()
-            return
-        
-        # Validate shelf
+            errors.append("Tên thuốc không được để trống")
+
+        # Quantity
+        qty_text = self.ui.txt_quantity.text().strip()
+        if not qty_text:
+            errors.append("Số lượng không được để trống")
+        else:
+            try:
+                quantity = int(qty_text)
+                if quantity < 0:
+                    errors.append("Số lượng phải >= 0")
+            except ValueError:
+                errors.append("Số lượng phải là số nguyên")
+
+        # Expiry Date
+        qdate = self.ui.txt_expiry_date.date()
+        expiry_date = date(qdate.year(), qdate.month(), qdate.day())
+
+        # Shelf
         shelf_id = self.ui.cb_shelf_location.currentData()
-        if shelf_id is None:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng chọn kệ thuốc")
-            return
-        
-        # Validate and parse expiry date
-        expiry_text = self.ui.txt_expiry_date.text().strip()
-        if not expiry_text:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập hạn sử dụng")
-            self.ui.txt_expiry_date.setFocus()
-            return
-        
-        try:
-            parts = expiry_text.split("/")
-            if len(parts) == 3:
-                expiry_date = date(int(parts[2]), int(parts[1]), int(parts[0]))
-            else:
-                raise ValueError
-        except (ValueError, IndexError):
+        if not shelf_id:
+            errors.append("Vui lòng chọn kệ thuốc")
+
+        # Price
+        price_text = self.ui.txt_price.text().strip()
+        if not price_text:
+            errors.append("Giá không được để trống")
+        else:
+            try:
+                price = float(price_text)
+                if price < 0:
+                    errors.append("Giá phải >= 0")
+            except ValueError:
+                errors.append("Giá phải là số hợp lệ")
+
+        # Show errors if any
+        if errors:
+            error_msg = "\n".join(f"• {e}" for e in errors)
             QMessageBox.warning(
-                self, "Lỗi", "Định dạng ngày không hợp lệ. Dùng dd/mm/yyyy"
+                self,
+                "Lỗi nhập liệu",
+                f"Vui lòng sửa các lỗi sau:\n\n{error_msg}"
             )
-            self.ui.txt_expiry_date.setFocus()
             return
-        
-        # Warn if expiry date is in the past
-        days_until_expiry = (expiry_date - date.today()).days
-        if days_until_expiry < 0:
-            reply = QMessageBox.warning(
-                self, "Cảnh báo",
-                f"Ngày hết hạn đã qua ({abs(days_until_expiry)} ngày). "
-                "Bạn có chắc muốn tiếp tục?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            if reply == QMessageBox.StandardButton.No:
-                return
-        elif days_until_expiry < 30:
-            reply = QMessageBox.warning(
-                self, "Cảnh báo",
-                f"Thuốc sẽ hết hạn trong {days_until_expiry} ngày. "
-                "Bạn có chắc muốn tiếp tục?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            if reply == QMessageBox.StandardButton.No:
-                return
-        
-        # Warn if quantity is very large
-        if quantity > 9999:
-            reply = QMessageBox.question(
-                self, "Xác nhận",
-                f"Số lượng rất lớn ({quantity} đơn vị). "
-                "Vui lòng xác nhận đây không phải lỗi nhập liệu.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            if reply == QMessageBox.StandardButton.No:
-                self.ui.txt_quantity.setFocus()
-                return
-        
-        # Create medicine object
-        try:
-            if self.is_edit_mode:
-                medicine_id = self.medicine.id
-            else:
-                medicine_id = ""
-            
-            # Determine image_path
-            image_path = ""
-            if self.selected_image_path:
-                image_path = "__pending__"
-            elif self.is_edit_mode and not self.image_removed:
-                image_path = self.medicine.image_path if self.medicine.image_path else ""
-            
-            self.result_medicine = Medicine(
-                id=medicine_id,
-                name=name,
-                quantity=quantity,
-                expiry_date=expiry_date,
-                shelf_id=shelf_id,
-                price=price,
-                image_path=image_path
-            )
-            
-            self.accept()
-            
-        except ValueError as e:
-            QMessageBox.warning(self, "Lỗi", f"Lỗi dữ liệu: {str(e)}")
-    
-    def get_medicine(self) -> Optional[Medicine]:
-        """Get the created/edited medicine object."""
-        return getattr(self, 'result_medicine', None)
-    
-    def get_selected_image_path(self) -> Optional[str]:
-        """Get the path of the newly selected image."""
-        return self.selected_image_path
-    
-    def is_image_removed(self) -> bool:
-        """Check if user chose to remove the existing image."""
-        return self.image_removed
-    
-    def select_image(self):
-        """Open file dialog to select an image."""
-        formats_filter = " ".join(f"*{fmt}" for fmt in SUPPORTED_FORMATS)
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Chọn ảnh thuốc", "",
-            f"Ảnh ({formats_filter});;Tất cả (*.*)"
+
+        # ── Build result data ──
+        self.result_data = {
+            "name": name,
+            "quantity": int(qty_text),
+            "expiry_date": expiry_date,
+            "shelf_id": shelf_id,
+            "price": float(price_text),
+        }
+
+        # Include image path if selected
+        if self.selected_image_path:
+            self.result_data["image_path"] = self.selected_image_path
+        elif self.medicine and self.medicine.image_path:
+            self.result_data["image_path"] = self.medicine.image_path
+
+        self.accept()
+
+    def on_add_image(self):
+        """Handle image upload button click."""
+        filepath, _ = QFileDialog.getOpenFileName(
+            self,
+            "Chọn hình ảnh thuốc",
+            "",
+            "Images (*.png *.jpg *.jpeg *.bmp *.webp)"
         )
-        
-        if not file_path:
-            return
-        
-        try:
-            self.image_manager.validate_image(file_path)
-        except (FileNotFoundError, ValueError) as e:
-            QMessageBox.warning(self, "Lỗi ảnh", str(e))
-            return
-        
-        self.selected_image_path = file_path
-        self.image_removed = False
-        self._display_image(file_path)
-        self.ui.btn_remove_img.setEnabled(True)
-    
-    def remove_image(self):
-        """Remove the current image."""
+
+        if filepath:
+            try:
+                self.image_manager.validate_image(filepath)
+                self.selected_image_path = filepath
+                self._display_image(filepath)
+            except (FileNotFoundError, ValueError) as e:
+                QMessageBox.warning(
+                    self, "Lỗi hình ảnh", str(e)
+                )
+
+    def on_remove_image(self):
+        """Handle image remove button click."""
         self.selected_image_path = None
-        self.image_removed = True
         self.ui.lbl_upload_text.setText("Upload hình ảnh thuốc")
-        self.ui.btn_remove_img.setEnabled(False)
-    
-    def _display_image(self, image_path: str):
-        """Display an image in the upload frame."""
-        pixmap = QPixmap(image_path)
-        if pixmap.isNull():
-            self.ui.lbl_upload_text.setText("Không thể tải ảnh")
-            return
-        
-        scaled = pixmap.scaled(
-            280, 140,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
-        self.ui.lbl_upload_text.setPixmap(scaled)
-        self.ui.lbl_upload_text.setText("")
-    
-    def apply_theme(self):
-        """Apply theme stylesheet to dialog."""
-        pass  # Uses Qt Designer inline styles
+        self.ui.lbl_upload_text.setPixmap(QPixmap())
+
+    def _display_image(self, filepath: str):
+        """
+        Display image preview in the upload frame.
+
+        Args:
+            filepath: Absolute path to image file
+        """
+        pixmap = QPixmap(filepath)
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(
+                280, 140,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.ui.lbl_upload_text.setPixmap(scaled)
+            self.ui.lbl_upload_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    def get_data(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the validated form data.
+
+        Returns:
+            Dictionary with medicine field values, or None if cancelled
+        """
+        return self.result_data

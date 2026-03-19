@@ -1,91 +1,102 @@
 """
-Shelf View - Table display for shelf management.
+Shelf View — PHARMA.SYS Shelf Management Table.
 
 Features:
-- Table view with shelf information
-- Context menu (Edit, Delete)
+- Table displaying all shelves with columns:
+  ID, Dãy, Cột, Sức chứa, Đã dùng, Còn lại
+- Add / Edit / Delete shelf operations
+- Context menu (right-click) for edit/delete
 - Double-click to edit
-- Medicine count per shelf
+- Capacity usage visualization
 """
 from typing import List, Optional
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QMenu,
+    QTableWidgetItem, QPushButton, QHeaderView, QMenu,
     QMessageBox, QLabel
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QAction
+from PyQt6.QtGui import QColor, QFont, QAction
 
-from src.models import Shelf, Medicine
+from src.models import Shelf
 from src.ui.theme import Theme
 
 
 class ShelfView(QWidget):
     """
-    Widget for displaying shelves in a table.
-    
+    Widget for displaying and managing shelves in a table.
+
     Features:
-    - Shows shelf ID, row, column, capacity
-    - Shows count of medicines on each shelf
-    - Context menu for Edit/Delete
+    - Table with shelf info and capacity usage
+    - Add/Edit/Delete actions
+    - Context menu for quick actions
     - Double-click to edit
-    
+
     Signals:
-        edit_requested: Emitted when edit is requested (shelf_id)
-        delete_requested: Emitted when delete is requested (shelf_id)
+        add_requested: Emitted when Add button is clicked
+        edit_requested: Emitted with shelf_id when edit is requested
+        delete_requested: Emitted with shelf_id when delete is requested
     """
-    
-    edit_requested = pyqtSignal(str)    # shelf_id
-    delete_requested = pyqtSignal(str)  # shelf_id
-    
+
+    add_requested = pyqtSignal()
+    edit_requested = pyqtSignal(str)     # shelf_id
+    delete_requested = pyqtSignal(str)   # shelf_id
+
     def __init__(self, parent=None, theme: Optional[Theme] = None):
         """
         Initialize Shelf View.
-        
+
         Args:
             parent: Parent widget
             theme: Theme instance for styling
         """
         super().__init__(parent)
-        
+
         self.theme = theme or Theme()
         self.shelves: List[Shelf] = []
-        self.medicines: List[Medicine] = []
-        
+        self._medicines_per_shelf: dict = {}  # shelf_id -> used quantity
+
         self.setup_ui()
-        self.apply_theme()
-    
+
     def setup_ui(self):
-        """Setup table UI components."""
+        """Setup shelf table UI components."""
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        
+        layout.setSpacing(12)
+
         # Header
         header_layout = QHBoxLayout()
-        
-        title_label = QLabel("Danh Sách Kệ Thuốc")
+
+        title_label = QLabel("🗄️ Quản lý kệ thuốc")
         title_font = QFont()
         title_font.setPointSize(Theme.FONT_SIZE_H2)
         title_font.setBold(True)
         title_label.setFont(title_font)
         header_layout.addWidget(title_label)
-        
+
         header_layout.addStretch()
-        
+
+        # Add shelf button
+        self.add_button = QPushButton("➕ Thêm kệ")
+        self.add_button.setFixedWidth(130)
+        self.add_button.clicked.connect(lambda: self.add_requested.emit())
+        header_layout.addWidget(self.add_button)
+
+        # Count label
         self.count_label = QLabel("0 kệ")
         self.count_label.setProperty("secondary", True)
         header_layout.addWidget(self.count_label)
-        
+
         layout.addLayout(header_layout)
-        
+
         # Table
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            "Mã Kệ", "Khu", "Cột", "Dãy", "Sức Chứa", "Số Thuốc"
+            "ID", "Dãy", "Cột", "Sức chứa", "Đã dùng", "Còn lại"
         ])
-        
+
         # Table properties
         self.table.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectRows
@@ -96,168 +107,173 @@ class ShelfView(QWidget):
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
         self.table.verticalHeader().setVisible(False)
+        self.table.setShowGrid(False)
         self.table.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
-        
+
         # Column widths
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
-        
-        # Context menu
+
+        # Row height
+        self.table.verticalHeader().setDefaultSectionSize(42)
+
+        # Connect signals
+        self.table.itemDoubleClicked.connect(self.on_item_double_clicked)
         self.table.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu
         )
         self.table.customContextMenuRequested.connect(
             self.show_context_menu
         )
-        
-        # Double-click to edit
-        self.table.itemDoubleClicked.connect(self.on_item_double_clicked)
-        
+
         layout.addWidget(self.table)
+
         self.setLayout(layout)
-    
-    def load_shelves(self, shelves: List[Shelf], medicines: List[Medicine]):
+
+    def load_shelves(
+        self,
+        shelves: List[Shelf],
+        medicines_per_shelf: Optional[dict] = None
+    ):
         """
         Load shelves into table.
-        
+
         Args:
             shelves: List of Shelf objects to display
-            medicines: List of Medicine objects (to count per shelf)
+            medicines_per_shelf: Dict mapping shelf_id -> used quantity
         """
         self.shelves = shelves
-        self.medicines = medicines
-        self.refresh_table()
-    
-    def refresh_table(self):
-        """Refresh table with current shelf data."""
+        self._medicines_per_shelf = medicines_per_shelf or {}
+
         self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
-        
+
         for shelf in self.shelves:
             self.add_shelf_row(shelf)
-        
+
         self.table.setSortingEnabled(True)
-        self.count_label.setText(f"{len(self.shelves)} kệ")
-    
+        self.count_label.setText(f"{len(shelves)} kệ")
+
     def add_shelf_row(self, shelf: Shelf):
         """
         Add a single shelf row to table.
-        
+
         Args:
             shelf: Shelf object to add
         """
         row = self.table.rowCount()
         self.table.insertRow(row)
-        
+
         # ID
         id_item = QTableWidgetItem(shelf.id)
         id_item.setFlags(id_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         self.table.setItem(row, 0, id_item)
-        
-        # Zone (Khu)
-        zone_item = QTableWidgetItem(shelf.zone)
-        zone_item.setFlags(zone_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 1, zone_item)
-        
-        # Column (Cột)
+
+        # Column (Dãy - letter)
         col_item = QTableWidgetItem(shelf.column)
         col_item.setFlags(col_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 2, col_item)
-        
-        # Row (Dãy)
+        col_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(row, 1, col_item)
+
+        # Row (Cột - number)
         row_item = QTableWidgetItem(shelf.row)
         row_item.setFlags(row_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 3, row_item)
-        
+        row_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(row, 2, row_item)
+
         # Capacity
-        capacity_item = QTableWidgetItem(f"{shelf.capacity}")
-        capacity_item.setData(Qt.ItemDataRole.UserRole, int(shelf.capacity))
-        capacity_item.setFlags(capacity_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 4, capacity_item)
-        
-        # Medicine count on this shelf
-        med_count = sum(
-            1 for m in self.medicines if m.shelf_id == shelf.id
-        )
-        count_item = QTableWidgetItem(str(med_count))
-        count_item.setData(Qt.ItemDataRole.UserRole, med_count)
-        count_item.setFlags(count_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 5, count_item)
-    
+        try:
+            cap = int(shelf.capacity)
+        except (ValueError, TypeError):
+            cap = 0
+        cap_item = QTableWidgetItem(str(cap))
+        cap_item.setData(Qt.ItemDataRole.UserRole, cap)
+        cap_item.setFlags(cap_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        cap_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(row, 3, cap_item)
+
+        # Used
+        used = self._medicines_per_shelf.get(shelf.id, 0)
+        used_item = QTableWidgetItem(str(used))
+        used_item.setData(Qt.ItemDataRole.UserRole, used)
+        used_item.setFlags(used_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        used_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(row, 4, used_item)
+
+        # Remaining
+        remaining = cap - used
+        rem_item = QTableWidgetItem(str(remaining))
+        rem_item.setData(Qt.ItemDataRole.UserRole, remaining)
+        rem_item.setFlags(rem_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        rem_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Color code remaining capacity
+        if remaining <= 0:
+            rem_item.setForeground(QColor(Theme.CHART_RED))
+            rem_font = rem_item.font()
+            rem_font.setBold(True)
+            rem_item.setFont(rem_font)
+        elif remaining <= cap * 0.2:
+            rem_item.setForeground(QColor(Theme.CHART_ORANGE))
+            rem_font = rem_item.font()
+            rem_font.setBold(True)
+            rem_item.setFont(rem_font)
+
+        self.table.setItem(row, 5, rem_item)
+
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item."""
         row = item.row()
         shelf_id = self.table.item(row, 0).text()
         self.edit_requested.emit(shelf_id)
-    
+
     def show_context_menu(self, position):
-        """Show context menu for shelf row."""
+        """
+        Show context menu for table row.
+
+        Args:
+            position: Position where menu was requested
+        """
         item = self.table.itemAt(position)
         if not item:
             return
-        
+
         row = item.row()
         shelf_id = self.table.item(row, 0).text()
-        
+
         menu = QMenu(self)
-        
-        edit_action = QAction("✏️ Sửa kệ", self)
+
+        # Edit action
+        edit_action = QAction("✏️ Chỉnh sửa kệ", self)
         edit_action.triggered.connect(
             lambda: self.edit_requested.emit(shelf_id)
         )
         menu.addAction(edit_action)
-        
+
+        # Delete action
         delete_action = QAction("🗑️ Xóa kệ", self)
         delete_action.triggered.connect(
-            lambda: self.confirm_delete(shelf_id)
+            lambda: self.delete_requested.emit(shelf_id)
         )
         menu.addAction(delete_action)
-        
+
         menu.exec(self.table.viewport().mapToGlobal(position))
-    
-    def confirm_delete(self, shelf_id: str):
+
+    def get_selected_shelf_id(self) -> Optional[str]:
         """
-        Show confirmation dialog before deleting.
-        
-        Args:
-            shelf_id: ID of shelf to delete
+        Get ID of currently selected shelf.
+
+        Returns:
+            Shelf ID if a row is selected, None otherwise
         """
-        med_count = sum(
-            1 for m in self.medicines if m.shelf_id == shelf_id
-        )
-        
-        if med_count > 0:
-            QMessageBox.warning(
-                self,
-                "Không thể xóa",
-                f"Kệ '{shelf_id}' vẫn còn {med_count} thuốc.\n"
-                "Vui lòng chuyển thuốc sang kệ khác trước khi xóa."
-            )
-            return
-        
-        reply = QMessageBox.question(
-            self,
-            "Xác nhận xóa",
-            f"Bạn có chắc chắn muốn xóa kệ '{shelf_id}'?\n\n"
-            "Thao tác này không thể hoàn tác.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
-        
-        if reply == QMessageBox.StandardButton.Yes:
-            self.delete_requested.emit(shelf_id)
-    
-    def refresh(self):
-        """Refresh the table display."""
-        self.refresh_table()
-    
-    def apply_theme(self):
-        """Apply theme stylesheet."""
-        self.setStyleSheet(self.theme.get_stylesheet())
+        current_row = self.table.currentRow()
+        if current_row >= 0:
+            return self.table.item(current_row, 0).text()
+        return None

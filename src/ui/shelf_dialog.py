@@ -1,13 +1,16 @@
 """
-Shelf Dialog for adding/editing shelves.
+Shelf Dialog — PHARMA.SYS Add/Edit Shelf.
 
-Uses Qt Designer-generated UI from them_ke.py.
-Provides:
-- Input validation
-- Edit mode support
-- Row/Column/Capacity input
+Uses Qt Designer-generated UI from them_ke.py for layout.
+Features:
+- Auto-generate shelf ID from zone + column (letter) + row (number)
+- Input validation: zone (uppercase letters), column/dãy (uppercase letter), 
+  row/cột (number)
+- Auto uppercase for zone and column inputs
+- Add and Edit modes
 """
-from typing import Optional
+import re
+from typing import Optional, List, Dict, Any
 
 from PyQt6.QtWidgets import QDialog, QMessageBox
 from PyQt6.QtCore import Qt
@@ -19,139 +22,182 @@ from src.ui.generated.them_ke import Ui_dlg_add_shelf
 
 class ShelfDialog(QDialog):
     """
-    Dialog for adding or editing shelf entries.
-    
-    Uses Ui_dlg_add_shelf from Qt Designer for layout.
-    
-    Features:
-    - Form validation (ID, Row, Column required)
-    - Capacity input
-    - Edit mode (ID read-only)
+    Dialog for adding or editing a shelf.
+
+    Uses Ui_dlg_add_shelf from them_ke.py for layout.
+
+    Shelf ID format: {zone}-{column}{row}
+    - zone: Uppercase letter(s) representing the zone/area (Khu)
+    - column: Uppercase letter(s) (Dãy/Cột A, B, C...)
+    - row: Number(s) (Hàng/Cột 1, 2, 3...)
+
+    Example: K-A1 = Zone K, Column A, Row 1
+
+    Attributes:
+        mode: 'add' or 'edit'
+        shelf: Existing Shelf object (edit mode)
+        result_data: Validated Shelf data on accept
     """
-    
+
     def __init__(
         self,
         parent=None,
+        mode: str = "add",
         shelf: Optional[Shelf] = None,
         theme: Optional[Theme] = None
     ):
         """
         Initialize Shelf Dialog.
-        
+
         Args:
             parent: Parent widget
-            shelf: Shelf object to edit (None for Add mode)
+            mode: 'add' or 'edit'
+            shelf: Shelf object to edit (edit mode only)
             theme: Theme instance for styling
         """
         super().__init__(parent)
-        
+
+        self.mode = mode
         self.shelf = shelf
         self.theme = theme or Theme()
-        self.is_edit_mode = shelf is not None
-        self.result_shelf: Optional[Shelf] = None
-        
+        self.result_data: Optional[Dict[str, Any]] = None
+
         self.setup_ui()
-        
-        if self.is_edit_mode:
-            self.populate_fields()
-    
+
+        if mode == "edit" and shelf:
+            self.load_shelf(shelf)
+
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
         self.ui = Ui_dlg_add_shelf()
         self.ui.setupUi(self)
-        
-        # Set window title based on mode
-        title = "Sửa Kệ Thuốc" if self.is_edit_mode else "Thêm Kệ Thuốc Mới"
-        self.setWindowTitle(title)
-        self.ui.lbl_title.setText(title)
-        
-        # Connect auto-ID generation
-        self.ui.txt_shelf_row.textChanged.connect(self._update_shelf_id)
-        self.ui.txt_shelf_col.textChanged.connect(self._update_shelf_id)
-        
-        # Connect buttons
-        self.ui.btn_primary.clicked.connect(self.validate_and_save)
-        self.ui.btn_secondary.clicked.connect(self.reject)
-        
-        # Set button text based on mode
-        self.ui.btn_primary.setText("Cập nhật" if self.is_edit_mode else "Save")
-        
-        # In edit mode, make ID fields read-only
-        if self.is_edit_mode:
-            self.ui.txt_shelf_id.setReadOnly(True)
-            self.ui.txt_shelf_row.setReadOnly(True)
-            self.ui.txt_shelf_col.setReadOnly(True)
-    
-    def _update_shelf_id(self):
-        """Auto-generate shelf ID from row and column inputs."""
-        shelf_id_text = self.ui.txt_shelf_id.text().strip()
-        row = self.ui.txt_shelf_row.text().strip().upper()
-        col = self.ui.txt_shelf_col.text().strip()
-        
-        if row and col:
-            # Generate ID as K-{row}{col} format
-            self.ui.txt_shelf_id.setText(f"K-{row}{col}")
-        elif not self.is_edit_mode:
-            self.ui.txt_shelf_id.setText("")
-    
-    def populate_fields(self):
-        """Populate form fields with existing shelf data (Edit mode)."""
-        if not self.shelf:
-            return
-        
-        self.ui.txt_shelf_id.setText(self.shelf.id)
-        self.ui.txt_shelf_row.setText(self.shelf.row)
-        self.ui.txt_shelf_col.setText(self.shelf.column)
-        self.ui.txt_shelf_capacity.setText(str(self.shelf.capacity))
-    
-    def validate_and_save(self):
-        """Validate form input and create Shelf object."""
-        # Validate shelf ID
-        shelf_id = self.ui.txt_shelf_id.text().strip()
-        if not shelf_id:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập ID kệ")
-            self.ui.txt_shelf_id.setFocus()
-            return
-        
-        row = self.ui.txt_shelf_row.text().strip().upper()
-        if not row:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập dãy")
-            self.ui.txt_shelf_row.setFocus()
-            return
-        
-        col = self.ui.txt_shelf_col.text().strip().upper()
-        if not col:
-            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập cột")
-            self.ui.txt_shelf_col.setFocus()
-            return
-        
-        # Validate capacity
-        capacity_text = self.ui.txt_shelf_capacity.text().strip()
-        try:
-            capacity = int(capacity_text) if capacity_text else 50
-            if capacity <= 0:
-                raise ValueError
-        except ValueError:
-            QMessageBox.warning(self, "Lỗi", "Sức chứa phải là số nguyên dương")
-            self.ui.txt_shelf_capacity.setFocus()
-            return
-        
-        # Extract zone from shelf_id (e.g., "K-A1" -> zone="K")
-        zone = shelf_id.split("-")[0] if "-" in shelf_id else "K"
-        
-        self.result_shelf = Shelf(
-            id=shelf_id,
-            zone=zone,
-            column=col,
-            row=row,
-            capacity=str(capacity)
+
+        # ── Mode-specific setup ──
+        if self.mode == "add":
+            self.setWindowTitle("Thêm kệ mới")
+            self.ui.lbl_title.setText("Thêm kệ")
+            self.ui.btn_primary.setText("Thêm")
+            self.ui.btn_secondary.setText("Hủy")
+        else:
+            self.setWindowTitle("Chỉnh sửa kệ")
+            self.ui.lbl_title.setText("Chỉnh sửa kệ")
+            self.ui.btn_primary.setText("Lưu")
+            self.ui.btn_secondary.setText("Hủy")
+
+        # ID field is read-only (auto-generated from zone + column + row)
+        self.ui.txt_shelf_id.setReadOnly(True)
+        self.ui.txt_shelf_id.setStyleSheet(
+            self.ui.txt_shelf_id.styleSheet()
+            + " color: #94A3B8; background-color: #F0F2F5;"
         )
+        self.ui.txt_shelf_id.setPlaceholderText("Tự động tạo từ Dãy + Cột")
+
+        # ── Connect signals ──
+        self.ui.btn_primary.clicked.connect(self.on_save)
+        self.ui.btn_secondary.clicked.connect(self.reject)
+
+        # Auto-generate ID when zone/column/row change
+        self.ui.txt_shelf_row.textChanged.connect(self._auto_generate_id)
+        self.ui.txt_shelf_col.textChanged.connect(self._auto_generate_id)
+
+        # Auto uppercase for row (letter) field
+        self.ui.txt_shelf_row.textChanged.connect(
+            lambda: self.ui.txt_shelf_row.setText(
+                self.ui.txt_shelf_row.text().upper()
+            )
+        )
+
+    def _auto_generate_id(self):
+        """Auto-generate shelf ID from zone + column + row inputs."""
+        # In the UI: txt_shelf_row = "Dãy" (letters A,B,C) → model column
+        # In the UI: txt_shelf_col = "Cột" (numbers 1,2,3) → model row
+        column_letter = self.ui.txt_shelf_row.text().strip().upper()
+        row_number = self.ui.txt_shelf_col.text().strip()
+
+        if column_letter and row_number:
+            shelf_id = f"K-{column_letter}{row_number}"
+            self.ui.txt_shelf_id.setText(shelf_id)
+        else:
+            self.ui.txt_shelf_id.clear()
+
+    def load_shelf(self, shelf: Shelf):
+        """
+        Pre-fill dialog fields with shelf data.
+
+        Args:
+            shelf: Shelf object to load
+        """
+        self.shelf = shelf
+
+        self.ui.txt_shelf_id.setText(shelf.id)
+
+        # Map model fields to UI fields
+        # model.column (letter) → UI txt_shelf_row ("Dãy")
+        # model.row (number) → UI txt_shelf_col ("Cột")
+        self.ui.txt_shelf_row.setText(shelf.column)
+        self.ui.txt_shelf_col.setText(shelf.row)
+        self.ui.txt_shelf_capacity.setText(str(shelf.capacity))
+
+    def on_save(self):
+        """Validate inputs and accept dialog."""
+        errors = []
+
+        # Column/Dãy (letter part) — UI txt_shelf_row
+        column_letter = self.ui.txt_shelf_row.text().strip().upper()
+        if not column_letter:
+            errors.append("Dãy không được để trống")
+        elif not re.match(r'^[A-Z]+$', column_letter):
+            errors.append("Dãy phải là chữ cái (VD: A, B, C)")
+
+        # Row/Cột (number part) — UI txt_shelf_col
+        row_number = self.ui.txt_shelf_col.text().strip()
+        if not row_number:
+            errors.append("Cột không được để trống")
+        elif not re.match(r'^[0-9]+$', row_number):
+            errors.append("Cột phải là số (VD: 1, 2, 3)")
+
+        # Capacity
+        capacity_text = self.ui.txt_shelf_capacity.text().strip()
+        if not capacity_text:
+            errors.append("Sức chứa không được để trống")
+        else:
+            try:
+                capacity = int(capacity_text)
+                if capacity <= 0:
+                    errors.append("Sức chứa phải lớn hơn 0")
+            except ValueError:
+                errors.append("Sức chứa phải là số nguyên hợp lệ")
+
+        # Show errors
+        if errors:
+            error_msg = "\n".join(f"• {e}" for e in errors)
+            QMessageBox.warning(
+                self,
+                "Lỗi nhập liệu",
+                f"Vui lòng sửa các lỗi sau:\n\n{error_msg}"
+            )
+            return
+
+        # Build shelf ID
+        zone = "K"  # Default zone
+        shelf_id = f"{zone}-{column_letter}{row_number}"
+
+        # Build result data
+        self.result_data = {
+            "id": shelf_id,
+            "zone": zone,
+            "column": column_letter,  # Letter part (model.column)
+            "row": row_number,        # Number part (model.row)
+            "capacity": capacity_text,
+        }
+
         self.accept()
-    
-    def get_shelf(self) -> Optional[Shelf]:
-        """Get the created/edited shelf object."""
-        return self.result_shelf
-    
-    def apply_theme(self):
-        """Apply theme stylesheet to dialog."""
-        pass  # Uses Qt Designer inline styles
+
+    def get_data(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the validated form data.
+
+        Returns:
+            Dictionary with shelf field values, or None if cancelled
+        """
+        return self.result_data

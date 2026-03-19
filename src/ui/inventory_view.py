@@ -42,6 +42,7 @@ class InventoryView(QWidget):
     medicine_selected = pyqtSignal(str)  # medicine_id
     edit_requested = pyqtSignal(str)     # medicine_id
     delete_requested = pyqtSignal(str)   # medicine_id
+    filter_requested = pyqtSignal()      # request to show filter dialog
 
     def __init__(self, parent=None, theme: Optional[Theme] = None):
         """
@@ -55,6 +56,8 @@ class InventoryView(QWidget):
 
         self.theme = theme or Theme()
         self.medicines: List[Medicine] = []
+        self.filtered_medicines: List[Medicine] = []
+        self.active_filters: Optional[dict] = None
 
         self.setup_ui()
         self.apply_theme()
@@ -76,6 +79,20 @@ class InventoryView(QWidget):
         header_layout.addWidget(title_label)
 
         header_layout.addStretch()
+
+        # Filter button
+        self.filter_button = QPushButton("🔍 Filter")
+        self.filter_button.setFixedWidth(110)
+        self.filter_button.clicked.connect(lambda: self.filter_requested.emit())
+        header_layout.addWidget(self.filter_button)
+
+        # Clear filter button (hidden by default)
+        self.clear_filter_button = QPushButton("✕ Clear")
+        self.clear_filter_button.setProperty("secondary", True)
+        self.clear_filter_button.setFixedWidth(90)
+        self.clear_filter_button.clicked.connect(self.clear_filters)
+        self.clear_filter_button.setVisible(False)
+        header_layout.addWidget(self.clear_filter_button)
 
         # Count label
         self.count_label = QLabel("0 items")
@@ -138,10 +155,21 @@ class InventoryView(QWidget):
             medicines: List of Medicine objects to display
         """
         self.medicines = medicines
+        self.apply_current_filters()
+
+    def apply_current_filters(self):
+        """Apply current active filters and refresh table."""
+        if self.active_filters:
+            self.filtered_medicines = self.filter_medicines(
+                self.medicines, self.active_filters
+            )
+        else:
+            self.filtered_medicines = list(self.medicines)
+
         self.table.setSortingEnabled(False)  # Disable during update
         self.table.setRowCount(0)
 
-        for medicine in medicines:
+        for medicine in self.filtered_medicines:
             self.add_medicine_row(medicine)
 
         self.table.setSortingEnabled(True)
@@ -356,12 +384,82 @@ class InventoryView(QWidget):
 
     def update_count_label(self):
         """Update the count label with current medicine count."""
-        count = len(self.medicines)
-        self.count_label.setText(f"{count} items")
+        total = len(self.medicines)
+        shown = len(self.filtered_medicines)
+        if self.active_filters:
+            self.count_label.setText(f"{shown}/{total} items (filtered)")
+        else:
+            self.count_label.setText(f"{total} items")
 
     def refresh(self):
         """Refresh the table display."""
-        self.load_medicines(self.medicines)
+        self.apply_current_filters()
+
+    def set_filters(self, filters: Optional[dict]):
+        """
+        Set active filters and refresh display.
+
+        Args:
+            filters: Dictionary with filter criteria, or None to clear
+        """
+        self.active_filters = filters
+        if filters:
+            self.clear_filter_button.setVisible(True)
+            self.filter_button.setText("🔍 Filtered")
+        else:
+            self.clear_filter_button.setVisible(False)
+            self.filter_button.setText("🔍 Filter")
+        self.apply_current_filters()
+
+    def clear_filters(self):
+        """Clear all active filters."""
+        self.set_filters(None)
+
+    @staticmethod
+    def filter_medicines(medicines: List[Medicine], filters: dict) -> List[Medicine]:
+        """
+        Filter medicines by given criteria.
+
+        Args:
+            medicines: List of medicines to filter
+            filters: Dictionary with keys: shelf_id, price_min, price_max, status
+
+        Returns:
+            Filtered list of medicines
+        """
+        result = list(medicines)
+
+        # Filter by shelf
+        shelf_id = filters.get('shelf_id')
+        if shelf_id:
+            result = [m for m in result if m.shelf_id == shelf_id]
+
+        # Filter by price range
+        price_min = filters.get('price_min')
+        price_max = filters.get('price_max')
+        if price_min is not None:
+            result = [m for m in result if m.price >= price_min]
+        if price_max is not None:
+            result = [m for m in result if m.price <= price_max]
+
+        # Filter by status
+        status = filters.get('status')
+        if status:
+            filtered_by_status = []
+            for m in result:
+                if status == 'expired' and m.is_expired():
+                    filtered_by_status.append(m)
+                elif status == 'expiring' and not m.is_expired() and m.days_until_expiry() <= 30:
+                    filtered_by_status.append(m)
+                elif status == 'low_stock' and 0 < m.quantity <= 5:
+                    filtered_by_status.append(m)
+                elif status == 'out_of_stock' and m.quantity == 0:
+                    filtered_by_status.append(m)
+                elif status == 'normal' and not m.is_expired() and m.days_until_expiry() > 30 and m.quantity > 5:
+                    filtered_by_status.append(m)
+            result = filtered_by_status
+
+        return result
 
     def apply_theme(self):
         """Apply theme stylesheet."""

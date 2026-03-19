@@ -295,6 +295,7 @@ class InventoryManager:
         Update a medicine with new values (immutable pattern).
         
         Creates a new Medicine object with updated values.
+        If shelf_id changes, a new ID is generated based on the new shelf.
         
         Args:
             medicine_id: ID of medicine to update
@@ -302,7 +303,7 @@ class InventoryManager:
             auto_save: If True, automatically save after updating
             
         Returns:
-            Updated Medicine object
+            Updated Medicine object (with new ID if shelf changed)
             
         Raises:
             ValueError: If medicine not found
@@ -315,21 +316,34 @@ class InventoryManager:
         
         old_medicine = self.medicines[index]
         
-        # Create new medicine with updated values (immutable pattern)
-        new_medicine = Medicine(
-            id=old_medicine.id,  # ID cannot be changed
-            name=changes.get("name", old_medicine.name),
-            quantity=changes.get("quantity", old_medicine.quantity),
-            expiry_date=changes.get("expiry_date", old_medicine.expiry_date),
-            shelf_id=changes.get("shelf_id", old_medicine.shelf_id),
-            price=changes.get("price", old_medicine.price),
-            image_path=changes.get("image_path", old_medicine.image_path)
-        )
+        # Determine new shelf_id
+        new_shelf_id = changes.get("shelf_id", old_medicine.shelf_id)
         
         # Validate new shelf if changed
         if "shelf_id" in changes:
-            if not self._validate_shelf_exists(new_medicine.shelf_id):
-                raise ValueError(f"Shelf '{new_medicine.shelf_id}' does not exist")
+            if not self._validate_shelf_exists(new_shelf_id):
+                raise ValueError(f"Shelf '{new_shelf_id}' does not exist")
+        
+        # If shelf changed, generate new ID based on new shelf
+        shelf_changed = (
+            "shelf_id" in changes
+            and changes["shelf_id"] != old_medicine.shelf_id
+        )
+        if shelf_changed:
+            new_id = self._generate_id(new_shelf_id)
+        else:
+            new_id = old_medicine.id
+        
+        # Create new medicine with updated values (immutable pattern)
+        new_medicine = Medicine(
+            id=new_id,
+            name=changes.get("name", old_medicine.name),
+            quantity=changes.get("quantity", old_medicine.quantity),
+            expiry_date=changes.get("expiry_date", old_medicine.expiry_date),
+            shelf_id=new_shelf_id,
+            price=changes.get("price", old_medicine.price),
+            image_path=changes.get("image_path", old_medicine.image_path)
+        )
         
         # Validate shelf capacity (only if shelves are loaded and quantity/shelf changed)
         if self.shelves and ("quantity" in changes or "shelf_id" in changes):
@@ -489,6 +503,7 @@ class InventoryManager:
         
         new_shelf = Shelf(
             id=old_shelf.id,
+            zone=changes.get("zone", old_shelf.zone),
             row=changes.get("row", old_shelf.row),
             column=changes.get("column", old_shelf.column),
             capacity=changes.get("capacity", old_shelf.capacity)

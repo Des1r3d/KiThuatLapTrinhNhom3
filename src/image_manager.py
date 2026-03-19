@@ -198,3 +198,32 @@ class ImageManager:
             True if image exists, False otherwise
         """
         return self.get_image_path(medicine_id) is not None
+
+    def rename_image(self, old_medicine_id: str, new_medicine_id: str) -> Optional[str]:
+        """
+        Rename a medicine's image file when its ID changes (e.g. shelf transfer).
+
+        Finds the image associated with old_medicine_id, renames it to
+        match new_medicine_id, and returns the new relative path.
+
+        Args:
+            old_medicine_id: The original medicine ID
+            new_medicine_id: The new medicine ID
+
+        Returns:
+            New relative image path, or None if no image was found
+        """
+        old_safe = old_medicine_id.replace("/", "_").replace("\\", "_")
+        new_safe = new_medicine_id.replace("/", "_").replace("\\", "_")
+
+        for ext in SUPPORTED_FORMATS:
+            old_path = Path(self.images_dir) / f"{old_safe}{ext}"
+            if old_path.exists():
+                new_path = Path(self.images_dir) / f"{new_safe}{ext}"
+                try:
+                    old_path.rename(new_path)
+                    return str(Path(self.images_dir).name / Path(f"{new_safe}{ext}"))
+                except OSError:
+                    pass
+
+        return None
