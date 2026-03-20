@@ -22,7 +22,6 @@ class MainWindow_ext(QMainWindow, Ui_MainWindow):
         # Áp dụng theme lần đầu
         self.apply_theme()
 
-        self.btn_add_medicine.clicked.connect(self.show_add_medicine_dialog)
 
     def setup_sidebar(self):
         self.btn_nav_dashboard.clicked.connect(lambda: self.navigate_to(self.page_dashboard, self.btn_nav_dashboard))
@@ -40,7 +39,7 @@ class MainWindow_ext(QMainWindow, Ui_MainWindow):
     #Hàm định dạng sidebar theo trang được chọn/không được chọn
     def update_sidebar_active_state(self, active_btn):
         # Cập nhật style cho các nút ở Sidebar theo Design System
-        buttons = [self.btn_nav_dashboard, self.btn_nav_inventory, self.btn_nav_shelf]
+        buttons = [self.btn_nav_dashboard, self.btn_nav_inventory, self.btn_nav_shelf, self.btn_nav_report, self.btn_nav_setting]
 
         # Nút KHÔNG CHỌN: Nền trong suốt, chữ trắng
         inactive_style = """
