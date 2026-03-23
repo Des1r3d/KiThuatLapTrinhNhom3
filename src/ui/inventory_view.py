@@ -42,6 +42,7 @@ class InventoryView(QWidget):
     medicine_selected = pyqtSignal(str)  # medicine_id
     edit_requested = pyqtSignal(str)     # medicine_id
     delete_requested = pyqtSignal(str)   # medicine_id
+    detail_requested = pyqtSignal(str)   # medicine_id
     filter_requested = pyqtSignal()      # request to show filter dialog
 
     def __init__(self, parent=None, theme: Optional[Theme] = None):
@@ -71,7 +72,7 @@ class InventoryView(QWidget):
         # Header
         header_layout = QHBoxLayout()
 
-        title_label = QLabel("📦 Medicine Inventory")
+        title_label = QLabel("Kho Thuoc")
         title_font = QFont()
         title_font.setPointSize(Theme.FONT_SIZE_H2)
         title_font.setBold(True)
@@ -81,13 +82,13 @@ class InventoryView(QWidget):
         header_layout.addStretch()
 
         # Filter button
-        self.filter_button = QPushButton("🔍 Filter")
+        self.filter_button = QPushButton("Loc")
         self.filter_button.setFixedWidth(110)
         self.filter_button.clicked.connect(lambda: self.filter_requested.emit())
         header_layout.addWidget(self.filter_button)
 
         # Clear filter button (hidden by default)
-        self.clear_filter_button = QPushButton("✕ Clear")
+        self.clear_filter_button = QPushButton("Xoa loc")
         self.clear_filter_button.setProperty("secondary", True)
         self.clear_filter_button.setFixedWidth(90)
         self.clear_filter_button.clicked.connect(self.clear_filters)
@@ -105,8 +106,8 @@ class InventoryView(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels([
-            "ID", "Medicine Name", "Qty", "Expiry Date",
-            "Shelf", "Price (VNĐ)", "Status"
+            "Ma", "Ten thuoc", "SL", "Han su dung",
+            "Ke", "Gia (VND)", "Trang thai"
         ])
 
         # Table properties
@@ -266,22 +267,22 @@ class InventoryView(QWidget):
         # Check if expired
         if medicine.is_expired():
             days_overdue = abs(medicine.days_until_expiry())
-            return f"Expired ({days_overdue}d)", "danger"
+            return f"Het han ({days_overdue} ngay)", "danger"
 
         # Check if out of stock
         if medicine.quantity == 0:
-            return "Out of Stock", "danger"
+            return "Het hang", "danger"
 
         # Check if expiring soon
         days_left = medicine.days_until_expiry()
         if days_left <= 30:
-            return f"Expiring ({days_left}d)", "warning"
+            return f"Sap het han ({days_left} ngay)", "warning"
 
         # Check if low stock
         if medicine.quantity <= 5:
-            return "Low Stock", "low_stock"
+            return "Ton kho thap", "low_stock"
 
-        return "In Stock", "normal"
+        return "Con hang", "normal"
 
     def apply_row_color(self, row: int, status_type: str, medicine: Medicine):
         """
@@ -305,10 +306,10 @@ class InventoryView(QWidget):
                 item.setBackground(bg_color)
 
     def on_item_double_clicked(self, item: QTableWidgetItem):
-        """Handle double-click on table item."""
+        """Handle double-click on table item — show detail view."""
         row = item.row()
         medicine_id = self.table.item(row, 0).text()
-        self.edit_requested.emit(medicine_id)
+        self.detail_requested.emit(medicine_id)
 
     def show_context_menu(self, position):
         """
@@ -328,14 +329,14 @@ class InventoryView(QWidget):
         menu = QMenu(self)
 
         # Edit action
-        edit_action = QAction("✏️ Edit Medicine", self)
+        edit_action = QAction("Chinh sua thuoc", self)
         edit_action.triggered.connect(
             lambda: self.edit_requested.emit(medicine_id)
         )
         menu.addAction(edit_action)
 
         # Delete action
-        delete_action = QAction("🗑️ Delete Medicine", self)
+        delete_action = QAction("Xoa thuoc", self)
         delete_action.triggered.connect(
             lambda: self.confirm_delete(medicine_id, medicine_name)
         )
@@ -361,10 +362,10 @@ class InventoryView(QWidget):
             # Strong confirmation for medicines with stock
             reply = QMessageBox.question(
                 self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}' "
-                f"hiện đang còn {medicine.quantity} đơn vị trong kho?\n\n"
-                "Thao tác này không thể hoàn tác.",
+                "Xac nhan xoa",
+                f"Ban co chac chan muon xoa thuoc '{medicine_name}' "
+                f"hien dang con {medicine.quantity} don vi trong kho?\n\n"
+                "Thao tac nay khong the hoan tac.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -372,9 +373,9 @@ class InventoryView(QWidget):
             # Regular confirmation
             reply = QMessageBox.question(
                 self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}'?\n\n"
-                "Thao tác này không thể hoàn tác.",
+                "Xac nhan xoa",
+                f"Ban co chac chan muon xoa thuoc '{medicine_name}'?\n\n"
+                "Thao tac nay khong the hoan tac.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -387,9 +388,9 @@ class InventoryView(QWidget):
         total = len(self.medicines)
         shown = len(self.filtered_medicines)
         if self.active_filters:
-            self.count_label.setText(f"{shown}/{total} items (filtered)")
+            self.count_label.setText(f"{shown}/{total} muc (da loc)")
         else:
-            self.count_label.setText(f"{total} items")
+            self.count_label.setText(f"{total} muc")
 
     def refresh(self):
         """Refresh the table display."""
@@ -405,10 +406,10 @@ class InventoryView(QWidget):
         self.active_filters = filters
         if filters:
             self.clear_filter_button.setVisible(True)
-            self.filter_button.setText("🔍 Filtered")
+            self.filter_button.setText("Da loc")
         else:
             self.clear_filter_button.setVisible(False)
-            self.filter_button.setText("🔍 Filter")
+            self.filter_button.setText("Loc")
         self.apply_current_filters()
 
     def clear_filters(self):

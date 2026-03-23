@@ -68,7 +68,7 @@ class ShelfView(QWidget):
         # Header
         header_layout = QHBoxLayout()
 
-        title_label = QLabel("🗄️ Quản lý kệ thuốc")
+        title_label = QLabel("Quan ly ke thuoc")
         title_font = QFont()
         title_font.setPointSize(Theme.FONT_SIZE_H2)
         title_font.setBold(True)
@@ -78,7 +78,7 @@ class ShelfView(QWidget):
         header_layout.addStretch()
 
         # Add shelf button
-        self.add_button = QPushButton("➕ Thêm kệ")
+        self.add_button = QPushButton("Them ke")
         self.add_button.setFixedWidth(130)
         self.add_button.clicked.connect(lambda: self.add_requested.emit())
         header_layout.addWidget(self.add_button)
@@ -251,14 +251,14 @@ class ShelfView(QWidget):
         menu = QMenu(self)
 
         # Edit action
-        edit_action = QAction("✏️ Chỉnh sửa kệ", self)
+        edit_action = QAction("Chinh sua ke", self)
         edit_action.triggered.connect(
             lambda: self.edit_requested.emit(shelf_id)
         )
         menu.addAction(edit_action)
 
         # Delete action
-        delete_action = QAction("🗑️ Xóa kệ", self)
+        delete_action = QAction("Xoa ke", self)
         delete_action.triggered.connect(
             lambda: self.delete_requested.emit(shelf_id)
         )

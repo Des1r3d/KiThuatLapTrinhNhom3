@@ -84,6 +84,34 @@ class MedicineDialog(QDialog):
         self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
 
+        # Apply theme styling for dark mode
+        c = self.theme._current_colors
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 12px;
+            }}
+            QLabel {{
+                color: {c['text_primary']};
+                background-color: transparent;
+            }}
+            QLineEdit, QComboBox, QDateEdit {{
+                background-color: {c['input_bg']};
+                color: {c['input_text']};
+                border: 1px solid {c['input_border']};
+                border-radius: 8px;
+                padding: 8px 12px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {c['surface']};
+                color: {c['text_primary']};
+                border: 1px solid {c['border']};
+                selection-background-color: {c['primary']};
+                selection-color: #FFFFFF;
+            }}
+        """)
+
         # ── Mode-specific setup ──
         if self.mode == "add":
             self.setWindowTitle("Thêm thuốc mới")

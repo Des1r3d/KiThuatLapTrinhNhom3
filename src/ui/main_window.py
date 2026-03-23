@@ -9,6 +9,7 @@ Features:
 - Full CRUD for medicines and shelves
 - Custom notification dialogs
 """
+import os
 from typing import Optional, List
 
 from PyQt6.QtWidgets import (
@@ -18,7 +19,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy, QApplication
 )
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QShortcut, QKeySequence
+from PyQt6.QtGui import QFont, QShortcut, QKeySequence, QPixmap, QCloseEvent
 
 from src.models import Medicine, Shelf
 from src.inventory_manager import InventoryManager
@@ -44,6 +45,7 @@ class SearchDialog(QFrame):
     Search dialog using generated UI from search.py.
     
     Provides fuzzy search for medicines with real-time results.
+    Has a close button & supports Escape key to close.
     """
 
     def __init__(
@@ -63,14 +65,49 @@ class SearchDialog(QFrame):
         self.ui = Ui_dlg_search()
         self.ui.setupUi(self.dialog)
 
-        self.dialog.setWindowTitle("Tìm kiếm thuốc")
+        self.dialog.setWindowTitle("Tim kiem thuoc")
         self.dialog.setWindowFlags(
             self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
         )
 
+        # Apply dark theme support
+        c = self.theme._current_colors
+        self.dialog.setStyleSheet(f"""
+            QDialog {{ background-color: {c['surface']}; border: 1px solid {c['border']}; border-radius: 12px; }}
+            QLineEdit#txt_search {{
+                border: none; padding-left: 10px; font-size: 16px;
+                color: {c['input_text']}; background-color: transparent;
+            }}
+            QListWidget {{ border: none; background-color: {c['surface']}; outline: none; color: {c['text_primary']}; }}
+            QListWidget::item {{ border-bottom: 1px solid {c['border']}; padding: 8px; }}
+            QListWidget::item:hover {{ background-color: {c['search_highlight']}; }}
+        """)
+        self.ui.frame_search.setStyleSheet(
+            f"border-bottom: 1px solid {c['border']}; background-color: {c['table_row_alt']};"
+        )
+
+        # Add close button to search bar
+        self.btn_close = QPushButton("Dong")
+        self.btn_close.setFixedSize(60, 30)
+        self.btn_close.setStyleSheet(f"""
+            QPushButton {{ background-color: {c['cancel_btn_bg']}; color: {c['text_primary']};
+                border: 1px solid {c['border']}; border-radius: 6px; font-size: 12px; }}
+            QPushButton:hover {{ border-color: {c['primary']}; color: {c['primary']}; }}
+        """)
+        self.btn_close.clicked.connect(self._on_close)
+        self.ui.layout_h_search.addWidget(self.btn_close)
+
         # Connect search
         self.ui.txt_search.textChanged.connect(self._on_search)
-        self.ui.list_results.itemDoubleClicked.connect(self._on_select)
+        self.ui.list_results.itemClicked.connect(self._on_select)
+
+        # Allow Escape key to close
+        close_shortcut = QShortcut(QKeySequence("Escape"), self.dialog)
+        close_shortcut.activated.connect(self._on_close)
+
+    def _on_close(self):
+        """Close the search dialog."""
+        self.dialog.reject()
 
     def _on_search(self, text: str):
         """Handle search text change."""
@@ -84,14 +121,14 @@ class SearchDialog(QFrame):
         for medicine, score in results:
             from PyQt6.QtWidgets import QListWidgetItem
             item = QListWidgetItem(
-                f"{medicine.name}  (ID: {medicine.id}, "
-                f"Kệ: {medicine.shelf_id}, Score: {score}%)"
+                f"{medicine.name}  (Ma: {medicine.id}, "
+                f"Ke: {medicine.shelf_id}, Do khop: {score}%)"
             )
             item.setData(Qt.ItemDataRole.UserRole, medicine.id)
             self.ui.list_results.addItem(item)
 
     def _on_select(self, item):
-        """Handle result selection."""
+        """Handle result selection (single click)."""
         self.selected_medicine_id = item.data(Qt.ItemDataRole.UserRole)
         self.dialog.accept()
 
@@ -134,14 +171,30 @@ class MainWindow(QMainWindow):
         self.inventory_manager.load_data()
         self.search_engine.index_data(self.inventory_manager.medicines)
 
+        # Track search dialog state
+        self._search_dialog: Optional[SearchDialog] = None
+
         # Setup UI
         self.setup_ui()
         self.apply_theme()
         self.refresh_all()
 
+        # Center window on screen
+        self._center_on_screen()
+
+    def _center_on_screen(self):
+        """Center the main window on the primary screen."""
+        screen = QApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            window_geometry = self.frameGeometry()
+            center_point = screen_geometry.center()
+            window_geometry.moveCenter(center_point)
+            self.move(window_geometry.topLeft())
+
     def setup_ui(self):
         """Setup main window UI components."""
-        self.setWindowTitle("PHARMA.SYS — Quản lý Kho Thuốc")
+        self.setWindowTitle("PHARMA.SYS - Quan ly Kho Thuoc")
         self.setMinimumSize(1200, 750)
         self.resize(1400, 850)
 
@@ -165,10 +218,21 @@ class MainWindow(QMainWindow):
         logo_layout = QVBoxLayout(logo_container)
         logo_layout.setContentsMargins(20, 20, 20, 16)
 
-        logo_icon = QLabel("💊")
-        logo_icon.setStyleSheet(
-            "font-size: 28px; background: transparent;"
+        logo_icon = QLabel()
+        logo_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "design-ui", "design-ui", "Qt_designer", "Logo.png"
         )
+        if os.path.exists(logo_path):
+            pixmap = QPixmap(logo_path).scaled(
+                120, 40,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            logo_icon.setPixmap(pixmap)
+        else:
+            logo_icon.setText("PHARMA.SYS")
+        logo_icon.setStyleSheet("background: transparent;")
         logo_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_layout.addWidget(logo_icon)
 
@@ -177,7 +241,7 @@ class MainWindow(QMainWindow):
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_layout.addWidget(logo_label)
 
-        logo_sub = QLabel("Quản lý Kho Thuốc")
+        logo_sub = QLabel("Quan ly Kho Thuoc")
         logo_sub.setStyleSheet(
             "color: #64748B; font-size: 11px; background: transparent;"
         )
@@ -199,9 +263,9 @@ class MainWindow(QMainWindow):
         self.nav_list.setFixedHeight(160)
 
         items_data = [
-            ("📊  Dashboard", self.PAGE_DASHBOARD),
-            ("💊  Kho Thuốc", self.PAGE_INVENTORY),
-            ("🗄️  Kệ Thuốc", self.PAGE_SHELVES),
+            ("Tong quan", self.PAGE_DASHBOARD),
+            ("Kho Thuoc", self.PAGE_INVENTORY),
+            ("Ke Thuoc", self.PAGE_SHELVES),
         ]
         for text, _ in items_data:
             item = QListWidgetItem(text)
@@ -215,7 +279,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.addStretch()
 
         # Theme toggle
-        self.theme_button = QPushButton("🌙 Dark Mode")
+        self.theme_button = QPushButton("Giao dien toi")
         self.theme_button.clicked.connect(self.toggle_theme)
         sidebar_layout.addWidget(self.theme_button)
 
@@ -234,7 +298,7 @@ class MainWindow(QMainWindow):
         topbar_layout = QHBoxLayout(self.topbar)
         topbar_layout.setContentsMargins(24, 0, 24, 0)
 
-        self.page_title = QLabel("Dashboard")
+        self.page_title = QLabel("Tong quan")
         page_title_font = QFont()
         page_title_font.setPointSize(Theme.FONT_SIZE_H1)
         page_title_font.setBold(True)
@@ -244,14 +308,14 @@ class MainWindow(QMainWindow):
         topbar_layout.addStretch()
 
         # Search button
-        self.search_button = QPushButton("🔍 Tìm kiếm (Ctrl+K)")
+        self.search_button = QPushButton("Tim kiem (Ctrl+K)")
         self.search_button.setProperty("secondary", True)
         self.search_button.setFixedWidth(180)
         self.search_button.clicked.connect(self.show_search)
         topbar_layout.addWidget(self.search_button)
 
         # Add medicine button
-        self.add_medicine_button = QPushButton("➕ Thêm thuốc")
+        self.add_medicine_button = QPushButton("Them thuoc")
         self.add_medicine_button.setFixedWidth(140)
         self.add_medicine_button.clicked.connect(self.show_add_medicine)
         topbar_layout.addWidget(self.add_medicine_button)
@@ -269,6 +333,7 @@ class MainWindow(QMainWindow):
         self.inventory_view = InventoryView(theme=self.theme)
         self.inventory_view.edit_requested.connect(self.show_edit_medicine)
         self.inventory_view.delete_requested.connect(self.delete_medicine)
+        self.inventory_view.detail_requested.connect(self.show_medicine_detail)
         self.inventory_view.filter_requested.connect(self.show_filter_dialog)
         inv_wrapper = QWidget()
         inv_layout = QVBoxLayout(inv_wrapper)
@@ -307,9 +372,9 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(index)
 
         titles = {
-            self.PAGE_DASHBOARD: "Dashboard",
-            self.PAGE_INVENTORY: "Kho Thuốc",
-            self.PAGE_SHELVES: "Kệ Thuốc",
+            self.PAGE_DASHBOARD: "Tong quan",
+            self.PAGE_INVENTORY: "Kho Thuoc",
+            self.PAGE_SHELVES: "Ke Thuoc",
         }
         self.page_title.setText(titles.get(index, ""))
 
@@ -632,19 +697,55 @@ class MainWindow(QMainWindow):
     # ── Search ──
 
     def show_search(self):
-        """Show search dialog."""
+        """Show/toggle search dialog."""
+        # If a search dialog is already visible, close it (toggle behavior)
+        if self._search_dialog is not None:
+            self._search_dialog._on_close()
+            self._search_dialog = None
+            return
+
         search = SearchDialog(
             parent=self,
             search_engine=self.search_engine,
             theme=self.theme
         )
+        self._search_dialog = search
 
-        if search.exec() == 1:  # Accepted
+        result = search.exec()
+        self._search_dialog = None
+
+        if result == 1:  # Accepted
             if search.selected_medicine_id:
-                # Switch to inventory page
+                # Switch to inventory page and show detail view
                 self.nav_list.setCurrentRow(self.PAGE_INVENTORY)
-                # Show medicine detail or edit
-                self.show_edit_medicine(search.selected_medicine_id)
+                self.show_medicine_detail(search.selected_medicine_id)
+
+    # ── Medicine Detail ──
+
+    def show_medicine_detail(self, medicine_id: str):
+        """
+        Show read-only detail view for a medicine.
+
+        Args:
+            medicine_id: ID of medicine to view
+        """
+        medicine = self.inventory_manager.get_medicine(medicine_id)
+        if not medicine:
+            QMessageBox.warning(
+                self, "Loi",
+                f"Khong tim thay thuoc voi ma '{medicine_id}'"
+            )
+            return
+
+        detail = MedicineDetailView(
+            parent=self,
+            medicine=medicine,
+            image_manager=self.image_manager,
+            theme=self.theme
+        )
+        detail.edit_requested.connect(self.show_edit_medicine)
+        detail.delete_requested.connect(self.delete_medicine)
+        detail.exec()
 
     # ── Filter ──
 
@@ -654,7 +755,8 @@ class MainWindow(QMainWindow):
 
         dialog = FilterMedicineDialog(
             parent=self,
-            shelves=shelves
+            shelves=shelves,
+            theme=self.theme
         )
 
         if dialog.exec() == FilterMedicineDialog.DialogCode.Accepted:
@@ -668,9 +770,9 @@ class MainWindow(QMainWindow):
         new_mode = self.theme.toggle_mode()
 
         if new_mode == ThemeMode.DARK:
-            self.theme_button.setText("☀️ Light Mode")
+            self.theme_button.setText("Giao dien sang")
         else:
-            self.theme_button.setText("🌙 Dark Mode")
+            self.theme_button.setText("Giao dien toi")
 
         self.apply_theme()
 
@@ -716,6 +818,24 @@ class MainWindow(QMainWindow):
         dialog = ShelfFullErrorDialog(
             self,
             shelf_id=shelf_id,
+
             remaining_capacity=remaining
         )
         dialog.exec()
+
+    # ── Close Event ──
+
+    def closeEvent(self, event: QCloseEvent):
+        """Show confirmation dialog before closing the application."""
+        reply = QMessageBox.question(
+            self,
+            "Xac nhan thoat",
+            "Ban co chac chan muon thoat chuong trinh?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            event.accept()
+        else:
+            event.ignore()

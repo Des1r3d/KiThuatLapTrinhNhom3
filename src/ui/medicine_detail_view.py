@@ -63,6 +63,20 @@ class MedicineDetailView(QDialog):
         self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
 
+        # Apply theme styling
+        c = self.theme._current_colors
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 12px;
+            }}
+            QLabel {{
+                color: {c['text_primary']};
+                background-color: transparent;
+            }}
+        """)
+
         # Connect buttons
         self.ui.btn_primary.clicked.connect(self._on_edit_clicked)
         self.ui.btn_secondary.clicked.connect(self._on_delete_clicked)
@@ -81,27 +95,27 @@ class MedicineDetailView(QDialog):
 
         # Status tag — using theme badge styles
         if medicine.is_expired():
-            self.ui.lbl_status_tag.setText("Expired")
+            self.ui.lbl_status_tag.setText("Da het han")
             self.ui.lbl_status_tag.setStyleSheet(
                 self.theme.get_badge_style('danger')
             )
         elif medicine.days_until_expiry() <= 30:
-            self.ui.lbl_status_tag.setText("Expiring Soon")
+            self.ui.lbl_status_tag.setText("Sap het han")
             self.ui.lbl_status_tag.setStyleSheet(
                 self.theme.get_badge_style('warning')
             )
         elif medicine.quantity == 0:
-            self.ui.lbl_status_tag.setText("Out of Stock")
+            self.ui.lbl_status_tag.setText("Het hang")
             self.ui.lbl_status_tag.setStyleSheet(
                 self.theme.get_badge_style('danger')
             )
         elif medicine.quantity <= 5:
-            self.ui.lbl_status_tag.setText("Low Stock")
+            self.ui.lbl_status_tag.setText("Ton kho thap")
             self.ui.lbl_status_tag.setStyleSheet(
                 self.theme.get_badge_style('low_stock')
             )
         else:
-            self.ui.lbl_status_tag.setText("In Stock")
+            self.ui.lbl_status_tag.setText("Con hang")
             self.ui.lbl_status_tag.setStyleSheet(
                 self.theme.get_badge_style('success')
             )

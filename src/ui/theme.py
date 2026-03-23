@@ -1,12 +1,13 @@
 """
 Theme system for Pharmacy Management System — PHARMA.SYS Design System.
 
-Implements Light and Dark mode based on PHARMA_SYS_Color_System.md:
+Implements Light and Dark mode based on Qt_designer design specs:
 - Primary Blue brand color (#2563EB)
-- Dark sidebar (#0D1F3C) fixed for both modes
-- Stat card colors (Blue, Yellow, Red, Green)
+- Dark sidebar (#1C2944) fixed for both modes
+- Stat card colors matching Figma (Blue, Orange, Red, Amber)
+- Sidebar active state: #1E40AF with #6CC1FC left accent
 - Status badge system
-- Inter font family
+- Segoe UI / Inter font family
 """
 from enum import Enum
 from typing import Dict
@@ -43,7 +44,7 @@ class Theme:
     DIALOG_PADDING = 24
 
     # ── Typography ──
-    FONT_FAMILY = '"Inter", "Segoe UI", "Roboto", sans-serif'
+    FONT_FAMILY = '"Segoe UI", "Inter", sans-serif'
     FONT_SIZE_H1 = 20
     FONT_SIZE_H2 = 16
     FONT_SIZE_BODY = 14
@@ -52,42 +53,43 @@ class Theme:
     FONT_SIZE_BUTTON = 14
     FONT_SIZE_BADGE = 11
 
-    # ── Sidebar (fixed for BOTH modes) ──
-    SIDEBAR_BG = '#0D1F3C'
+    # ── Sidebar (fixed for BOTH modes, from Qt_designer) ──
+    SIDEBAR_BG = '#1C2944'
     SIDEBAR_TEXT = '#FFFFFF'
-    SIDEBAR_ICON_INACTIVE = '#94A3B8'
+    SIDEBAR_ICON_INACTIVE = '#FFFFFF'
     SIDEBAR_ACTIVE = '#1E40AF'
+    SIDEBAR_ACTIVE_ACCENT = '#6CC1FC'
     SIDEBAR_LOGO_ACCENT = '#3B82F6'
 
-    # ── Stat Card backgrounds ──
+    # ── Stat Card backgrounds (from Figma / Qt_designer) ──
     STAT_CARD_BLUE = '#3B82F6'
-    STAT_CARD_YELLOW = '#F59E0B'
+    STAT_CARD_YELLOW = '#FF8800'
     STAT_CARD_RED = '#EF4444'
-    STAT_CARD_GREEN = '#10B981'
+    STAT_CARD_GREEN = '#FFAD00'
 
     # ── Chart Colors ──
     CHART_BLUE = '#3B82F6'
-    CHART_ORANGE = '#F59E0B'
+    CHART_ORANGE = '#FF8800'
     CHART_GREEN = '#10B981'
     CHART_RED = '#EF4444'
 
-    # ── Light Mode Colors ──
+    # ── Light Mode Colors (from Qt_designer design system) ──
     LIGHT_COLORS = {
         # Backgrounds
-        'background': '#F0F2F5',
+        'background': '#F4F6F8',
         'surface': '#FFFFFF',
         'table_row_alt': '#F8F9FB',
 
         # Borders
-        'border': '#E2E8F0',
+        'border': '#E0E6ED',
 
         # Text
-        'text_primary': '#0F172A',
-        'text_secondary': '#94A3B8',
-        'text_heading': '#0F172A',
-        'text_body': '#334155',
-        'text_muted': '#94A3B8',
-        'table_header_text': '#64748B',
+        'text_primary': '#2F3E46',
+        'text_secondary': '#6C7A89',
+        'text_heading': '#2F3E46',
+        'text_body': '#2F3E46',
+        'text_muted': '#6C7A89',
+        'table_header_text': '#6C7A89',
 
         # Primary Action
         'primary': '#2563EB',
@@ -96,9 +98,9 @@ class Theme:
 
         # Forms / Inputs
         'input_bg': '#F9FAFB',
-        'input_border': '#E2E8F0',
-        'input_text': '#1E293B',
-        'label_text': '#64748B',
+        'input_border': '#E0E6ED',
+        'input_text': '#2F3E46',
+        'label_text': '#6C7A89',
         'cancel_btn_bg': '#F1F5F9',
         'save_btn_bg': '#2563EB',
 
@@ -107,12 +109,12 @@ class Theme:
         'danger_bg': '#FEE2E2',
 
         # Alert System — Warning (Expiring Soon)
-        'warning_text': '#F59E0B',
-        'warning_bg': '#FEF3C7',
+        'warning_text': '#FF8800',
+        'warning_bg': '#FFF3E0',
 
         # Alert System — Low Stock
-        'low_stock_text': '#10B981',
-        'low_stock_bg': '#D1FAE5',
+        'low_stock_text': '#FFAD00',
+        'low_stock_bg': '#FFF8E1',
 
         # Alert System — Success / In Stock / Normal
         'success_text': '#2563EB',
@@ -120,35 +122,35 @@ class Theme:
 
         # Search bar
         'search_bg': '#FFFFFF',
-        'search_border': '#E2E8F0',
-        'search_icon': '#94A3B8',
+        'search_border': '#E0E6ED',
+        'search_icon': '#6C7A89',
         'search_highlight': '#EFF6FF',
 
         # Dialog overlay
         'overlay': 'rgba(0,0,0,0.4)',
 
         # Disabled state
-        'disabled_bg': '#E2E8F0',
-        'disabled_text': '#94A3B8',
+        'disabled_bg': '#E0E6ED',
+        'disabled_text': '#6C7A89',
     }
 
-    # ── Dark Mode Colors ──
+    # ── Dark Mode Colors (from Qt_designer design system) ──
     DARK_COLORS = {
         # Backgrounds
-        'background': '#0F1B2D',
-        'surface': '#132237',
-        'table_row_alt': '#1A2D45',
+        'background': '#1F2933',
+        'surface': '#273947',
+        'table_row_alt': '#2D3F4F',
 
         # Borders
-        'border': '#2D4A6A',
+        'border': '#3E4C59',
 
         # Text
-        'text_primary': '#F1F5F9',
-        'text_secondary': '#64748B',
-        'text_heading': '#F1F5F9',
-        'text_body': '#CBD5E1',
-        'text_muted': '#64748B',
-        'table_header_text': '#94A3B8',
+        'text_primary': '#E4E7EB',
+        'text_secondary': '#9AA5B1',
+        'text_heading': '#E4E7EB',
+        'text_body': '#E4E7EB',
+        'text_muted': '#9AA5B1',
+        'table_header_text': '#9AA5B1',
 
         # Primary Action
         'primary': '#2563EB',
@@ -157,9 +159,9 @@ class Theme:
 
         # Forms / Inputs
         'input_bg': '#1E3A5F',
-        'input_border': '#2D4A6A',
-        'input_text': '#E2E8F0',
-        'label_text': '#94A3B8',
+        'input_border': '#3E4C59',
+        'input_text': '#E4E7EB',
+        'label_text': '#9AA5B1',
         'cancel_btn_bg': '#1E3A5F',
         'save_btn_bg': '#2563EB',
 
@@ -168,29 +170,29 @@ class Theme:
         'danger_bg': '#7F1D1D',
 
         # Alert System — Warning
-        'warning_text': '#F59E0B',
+        'warning_text': '#FF8800',
         'warning_bg': '#78350F',
 
         # Alert System — Low Stock
-        'low_stock_text': '#10B981',
-        'low_stock_bg': '#064E3B',
+        'low_stock_text': '#FFAD00',
+        'low_stock_bg': '#5D4E00',
 
         # Alert System — Success / Normal
         'success_text': '#3B82F6',
         'success_bg': '#1E3A5F',
 
         # Search bar
-        'search_bg': '#1A2D45',
-        'search_border': '#2D4A6A',
-        'search_icon': '#64748B',
+        'search_bg': '#273947',
+        'search_border': '#3E4C59',
+        'search_icon': '#9AA5B1',
         'search_highlight': '#1E3A5F',
 
         # Dialog overlay
         'overlay': 'rgba(0,0,0,0.6)',
 
         # Disabled state
-        'disabled_bg': '#1A2D45',
-        'disabled_text': '#64748B',
+        'disabled_bg': '#273947',
+        'disabled_text': '#9AA5B1',
     }
 
     def __init__(self, mode: ThemeMode = ThemeMode.LIGHT):
@@ -502,11 +504,10 @@ class Theme:
                 width: 0px;
             }}
 
-            /* ── Sidebar ── */
+            /* ── Sidebar (from Qt_designer design system) ── */
             QFrame#sidebar {{
                 background-color: {self.SIDEBAR_BG};
                 border: none;
-                border-right: 1px solid #1A2D45;
             }}
 
             QFrame#sidebar QLabel {{
@@ -528,21 +529,22 @@ class Theme:
             }}
 
             QFrame#sidebar QListWidget::item {{
-                padding: 12px 16px;
-                border-radius: {self.BORDER_RADIUS}px;
+                padding: 12px 20px;
+                border-radius: 4px;
                 margin: 2px 8px;
                 color: {self.SIDEBAR_ICON_INACTIVE};
-                font-size: {self.FONT_SIZE_BODY}px;
+                font-size: {self.FONT_SIZE_H2}px;
             }}
 
             QFrame#sidebar QListWidget::item:selected {{
                 background-color: {self.SIDEBAR_ACTIVE};
                 color: {self.SIDEBAR_TEXT};
                 font-weight: 600;
+                border-left: 4px solid {self.SIDEBAR_ACTIVE_ACCENT};
             }}
 
             QFrame#sidebar QListWidget::item:hover:!selected {{
-                background-color: rgba(255, 255, 255, 0.08);
+                background-color: {self.SIDEBAR_ACTIVE};
                 color: {self.SIDEBAR_TEXT};
             }}
 

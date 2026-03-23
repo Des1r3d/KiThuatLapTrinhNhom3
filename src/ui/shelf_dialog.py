@@ -72,6 +72,27 @@ class ShelfDialog(QDialog):
         self.ui = Ui_dlg_add_shelf()
         self.ui.setupUi(self)
 
+        # Apply theme styling for dark mode
+        c = self.theme._current_colors
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 12px;
+            }}
+            QLabel {{
+                color: {c['text_primary']};
+                background-color: transparent;
+            }}
+            QLineEdit {{
+                background-color: {c['input_bg']};
+                color: {c['input_text']};
+                border: 1px solid {c['input_border']};
+                border-radius: 8px;
+                padding: 8px 12px;
+            }}
+        """)
+
         # ── Mode-specific setup ──
         if self.mode == "add":
             self.setWindowTitle("Thêm kệ mới")
