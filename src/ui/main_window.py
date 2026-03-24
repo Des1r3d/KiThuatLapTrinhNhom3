@@ -14,11 +14,10 @@ from typing import Optional, List
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QStackedWidget, QListWidget, QListWidgetItem,
-    QLabel, QPushButton, QFrame, QMessageBox,
+    QStackedWidget, QLabel, QPushButton, QFrame, QMessageBox,
     QSizePolicy, QApplication
 )
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QShortcut, QKeySequence, QPixmap, QCloseEvent
 
 from src.models import Medicine, Shelf
@@ -65,7 +64,7 @@ class SearchDialog(QFrame):
         self.ui = Ui_dlg_search()
         self.ui.setupUi(self.dialog)
 
-        self.dialog.setWindowTitle("Tim kiem thuoc")
+        self.dialog.setWindowTitle("Tìm kiếm thuốc")
         self.dialog.setWindowFlags(
             self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
         )
@@ -87,7 +86,7 @@ class SearchDialog(QFrame):
         )
 
         # Add close button to search bar
-        self.btn_close = QPushButton("Dong")
+        self.btn_close = QPushButton("Đóng")
         self.btn_close.setFixedSize(60, 30)
         self.btn_close.setStyleSheet(f"""
             QPushButton {{ background-color: {c['cancel_btn_bg']}; color: {c['text_primary']};
@@ -121,8 +120,8 @@ class SearchDialog(QFrame):
         for medicine, score in results:
             from PyQt6.QtWidgets import QListWidgetItem
             item = QListWidgetItem(
-                f"{medicine.name}  (Ma: {medicine.id}, "
-                f"Ke: {medicine.shelf_id}, Do khop: {score}%)"
+                f"{medicine.name}  (Mã: {medicine.id}, "
+                f"Kệ: {medicine.shelf_id}, Độ khớp: {score}%)"
             )
             item.setData(Qt.ItemDataRole.UserRole, medicine.id)
             self.ui.list_results.addItem(item)
@@ -194,8 +193,8 @@ class MainWindow(QMainWindow):
 
     def setup_ui(self):
         """Setup main window UI components."""
-        self.setWindowTitle("PHARMA.SYS - Quan ly Kho Thuoc")
-        self.setMinimumSize(1200, 750)
+        self.setWindowTitle("PHARMA.SYS - Quản lý Kho Thuốc")
+        self.setMinimumSize(1280, 720)
         self.resize(1400, 850)
 
         # Central widget
@@ -204,126 +203,117 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ── Sidebar ──
-        self.sidebar = QFrame()
-        self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(220)
+        # ── Sidebar (matching PharmaSys.py layout) ──
+        self.sidebar = QWidget()
+        self.sidebar.setObjectName("sidebar_container")
+        self.sidebar.setMaximumWidth(240)
+        self.sidebar.setMinimumWidth(240)
         sidebar_layout = QVBoxLayout(self.sidebar)
-        sidebar_layout.setContentsMargins(0, 0, 0, 16)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)
 
         # Logo
-        logo_container = QFrame()
-        logo_container.setStyleSheet("background-color: transparent;")
-        logo_layout = QVBoxLayout(logo_container)
-        logo_layout.setContentsMargins(20, 20, 20, 16)
-
-        logo_icon = QLabel()
+        logo_label = QLabel()
         logo_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
             "design-ui", "design-ui", "Qt_designer", "Logo.png"
         )
         if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path).scaled(
-                120, 40,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            logo_icon.setPixmap(pixmap)
+            pixmap = QPixmap(logo_path)
+            logo_label.setPixmap(pixmap)
         else:
-            logo_icon.setText("PHARMA.SYS")
-        logo_icon.setStyleSheet("background: transparent;")
-        logo_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_layout.addWidget(logo_icon)
-
-        logo_label = QLabel("PHARMA.SYS")
-        logo_label.setObjectName("logo_label")
+            logo_label.setText("PHARMA.SYS")
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_layout.addWidget(logo_label)
+        logo_label.setStyleSheet("background-color: transparent;")
+        sidebar_layout.addWidget(logo_label)
 
-        logo_sub = QLabel("Quan ly Kho Thuoc")
-        logo_sub.setStyleSheet(
-            "color: #64748B; font-size: 11px; background: transparent;"
-        )
-        logo_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_layout.addWidget(logo_sub)
+        # Navigation buttons (matching PharmaSys.py QPushButton structure)
+        self.btn_nav_dashboard = QPushButton("Dashboard")
+        self.btn_nav_inventory = QPushButton("Danh sách thuốc")
+        self.btn_nav_shelf = QPushButton("Quản lý kệ")
+        self.btn_nav_report = QPushButton("Report")
+        self.btn_nav_setting = QPushButton("Setting")
 
-        sidebar_layout.addWidget(logo_container)
-
-        # Separator
-        sep = QFrame()
-        sep.setFixedHeight(1)
-        sep.setStyleSheet(
-            "background-color: rgba(255,255,255,0.1);"
-        )
-        sidebar_layout.addWidget(sep)
-
-        # Navigation list
-        self.nav_list = QListWidget()
-        self.nav_list.setFixedHeight(160)
-
-        items_data = [
-            ("Tong quan", self.PAGE_DASHBOARD),
-            ("Kho Thuoc", self.PAGE_INVENTORY),
-            ("Ke Thuoc", self.PAGE_SHELVES),
+        nav_buttons = [
+            self.btn_nav_dashboard,
+            self.btn_nav_inventory,
+            self.btn_nav_shelf,
+            self.btn_nav_report,
+            self.btn_nav_setting,
         ]
-        for text, _ in items_data:
-            item = QListWidgetItem(text)
-            item.setSizeHint(QSize(200, 44))
-            self.nav_list.addItem(item)
 
-        self.nav_list.setCurrentRow(0)
-        self.nav_list.currentRowChanged.connect(self.switch_page)
-        sidebar_layout.addWidget(self.nav_list)
+        nav_font = QFont()
+        nav_font.setPointSize(16)
+
+        for btn in nav_buttons:
+            btn.setFont(nav_font)
+            btn.setSizePolicy(
+                QSizePolicy.Policy.Preferred,
+                QSizePolicy.Policy.Preferred
+            )
+            btn.setStyleSheet("color: rgb(255, 255, 255);")
+            sidebar_layout.addWidget(btn)
+
+        # Connect navigation buttons
+        self.btn_nav_dashboard.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_DASHBOARD, self.btn_nav_dashboard)
+        )
+        self.btn_nav_inventory.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_INVENTORY, self.btn_nav_inventory)
+        )
+        self.btn_nav_shelf.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_SHELVES, self.btn_nav_shelf)
+        )
 
         sidebar_layout.addStretch()
 
-        # Theme toggle
-        self.theme_button = QPushButton("Giao dien toi")
-        self.theme_button.clicked.connect(self.toggle_theme)
-        sidebar_layout.addWidget(self.theme_button)
-
         main_layout.addWidget(self.sidebar)
 
-        # ── Content Area ──
-        content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
+        # ── Main Content Container ──
+        self.main_container = QWidget()
+        self.main_container.setObjectName("main_container")
+        content_layout = QVBoxLayout(self.main_container)
+        content_layout.setContentsMargins(8, 8, 8, 8)
 
-        # Top bar
-        self.topbar = QFrame()
-        self.topbar.setObjectName("topbar")
-        self.topbar.setFixedHeight(60)
-        topbar_layout = QHBoxLayout(self.topbar)
-        topbar_layout.setContentsMargins(24, 0, 24, 0)
+        # Header container with theme toggle (matching PharmaSys.py)
+        self.header_container = QWidget()
+        self.header_container.setObjectName("header_container")
+        self.header_container.setMaximumHeight(50)
+        header_layout = QHBoxLayout(self.header_container)
+        header_layout.setContentsMargins(8, 8, 8, 8)
 
-        self.page_title = QLabel("Tong quan")
+        # Page title on the left
+        self.page_title = QLabel("Dashboard")
         page_title_font = QFont()
         page_title_font.setPointSize(Theme.FONT_SIZE_H1)
         page_title_font.setBold(True)
         self.page_title.setFont(page_title_font)
-        topbar_layout.addWidget(self.page_title)
+        header_layout.addWidget(self.page_title)
 
-        topbar_layout.addStretch()
+        header_layout.addStretch()
 
         # Search button
-        self.search_button = QPushButton("Tim kiem (Ctrl+K)")
-        self.search_button.setProperty("secondary", True)
-        self.search_button.setFixedWidth(180)
+        self.search_button = QPushButton("🔍 Tìm kiếm (Ctrl+K)")
+        self.search_button.setObjectName("btn_search")
+        self.search_button.setFixedWidth(200)
         self.search_button.clicked.connect(self.show_search)
-        topbar_layout.addWidget(self.search_button)
+        header_layout.addWidget(self.search_button)
 
-        # Add medicine button
-        self.add_medicine_button = QPushButton("Them thuoc")
-        self.add_medicine_button.setFixedWidth(140)
-        self.add_medicine_button.clicked.connect(self.show_add_medicine)
-        topbar_layout.addWidget(self.add_medicine_button)
+        # Theme toggle button (moved to header, matching PharmaSys.py)
+        self.theme_button = QPushButton("🌙 Dark")
+        self.theme_button.setObjectName("btn_toggle_theme")
+        theme_font = QFont()
+        theme_font.setPointSize(14)
+        self.theme_button.setFont(theme_font)
+        self.theme_button.clicked.connect(self.toggle_theme)
+        header_layout.addWidget(self.theme_button)
 
-        content_layout.addWidget(self.topbar)
+        content_layout.addWidget(self.header_container)
 
         # Stacked widget for pages
         self.stack = QStackedWidget()
+        self.stack.setObjectName("stacked_main_content")
+        self.stack.setContentsMargins(0, 0, 0, 0)
 
         # Dashboard page
         self.dashboard = Dashboard(theme=self.theme)
@@ -336,8 +326,9 @@ class MainWindow(QMainWindow):
         self.inventory_view.detail_requested.connect(self.show_medicine_detail)
         self.inventory_view.filter_requested.connect(self.show_filter_dialog)
         inv_wrapper = QWidget()
+        inv_wrapper.setObjectName("page_inventory")
         inv_layout = QVBoxLayout(inv_wrapper)
-        inv_layout.setContentsMargins(24, 16, 24, 16)
+        inv_layout.setContentsMargins(8, 8, 8, 8)
         inv_layout.addWidget(self.inventory_view)
         self.stack.addWidget(inv_wrapper)
 
@@ -347,41 +338,109 @@ class MainWindow(QMainWindow):
         self.shelf_view.edit_requested.connect(self.show_edit_shelf)
         self.shelf_view.delete_requested.connect(self.delete_shelf)
         shelf_wrapper = QWidget()
+        shelf_wrapper.setObjectName("page_shelf")
         shelf_layout = QVBoxLayout(shelf_wrapper)
-        shelf_layout.setContentsMargins(24, 16, 24, 16)
+        shelf_layout.setContentsMargins(8, 8, 8, 8)
         shelf_layout.addWidget(self.shelf_view)
         self.stack.addWidget(shelf_wrapper)
 
         content_layout.addWidget(self.stack)
 
-        main_layout.addWidget(content_widget)
+        main_layout.addWidget(self.main_container)
 
         self.setCentralWidget(central)
+
+        # Set default page
+        self.navigate_to(self.PAGE_DASHBOARD, self.btn_nav_dashboard)
 
         # ── Keyboard shortcuts ──
         search_shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
         search_shortcut.activated.connect(self.show_search)
 
+    def navigate_to(self, page_index: int, button: QPushButton):
+        """
+        Navigate to a page and update sidebar active state.
+
+        Args:
+            page_index: Page index
+            button: The navigation button that was clicked
+        """
+        self.stack.setCurrentIndex(page_index)
+        self.update_sidebar_active_state(button)
+
+        titles = {
+            self.PAGE_DASHBOARD: "Dashboard",
+            self.PAGE_INVENTORY: "Danh sách thuốc",
+            self.PAGE_SHELVES: "Quản lý kệ",
+        }
+        self.page_title.setText(titles.get(page_index, ""))
+
+    def update_sidebar_active_state(self, active_btn: QPushButton):
+        """
+        Update sidebar button styles based on which page is selected.
+        Matches the design from MainWindow_ext.py.
+
+        Args:
+            active_btn: The currently active navigation button
+        """
+        buttons = [
+            self.btn_nav_dashboard,
+            self.btn_nav_inventory,
+            self.btn_nav_shelf,
+            self.btn_nav_report,
+            self.btn_nav_setting,
+        ]
+
+        # Inactive button style
+        inactive_style = """
+            QPushButton {
+                background-color: transparent;
+                color: #FFFFFF;
+                text-align: left;
+                padding: 12px 20px;
+                border: none;
+                font-family: 'Segoe UI', 'Inter', sans-serif;
+                font-size: 16px;
+            }
+            QPushButton:hover { background-color: #1E40AF; }
+        """
+
+        # Active button style
+        active_style = """
+            QPushButton {
+                background-color: #1E40AF;
+                color: #FFFFFF;
+                text-align: left;
+                padding: 12px 20px;
+                border: none;
+                border-left: 4px solid #6CC1FC;
+                border-radius: 4px;
+                font-family: 'Segoe UI', 'Inter', sans-serif;
+                font-size: 16px;
+                font-weight: bold;
+            }
+        """
+
+        for btn in buttons:
+            if btn == active_btn:
+                btn.setStyleSheet(active_style)
+            else:
+                btn.setStyleSheet(inactive_style)
+
     def switch_page(self, index: int):
         """
-        Switch to the specified page.
+        Switch to the specified page (for backward compat).
 
         Args:
             index: Page index
         """
-        self.stack.setCurrentIndex(index)
-
-        titles = {
-            self.PAGE_DASHBOARD: "Tong quan",
-            self.PAGE_INVENTORY: "Kho Thuoc",
-            self.PAGE_SHELVES: "Ke Thuoc",
+        btn_map = {
+            self.PAGE_DASHBOARD: self.btn_nav_dashboard,
+            self.PAGE_INVENTORY: self.btn_nav_inventory,
+            self.PAGE_SHELVES: self.btn_nav_shelf,
         }
-        self.page_title.setText(titles.get(index, ""))
-
-        # Show/hide add medicine button based on page
-        self.add_medicine_button.setVisible(
-            index == self.PAGE_INVENTORY
-        )
+        btn = btn_map.get(index, self.btn_nav_dashboard)
+        self.navigate_to(index, btn)
 
     def refresh_all(self):
         """Refresh all views with current data."""
@@ -717,7 +776,7 @@ class MainWindow(QMainWindow):
         if result == 1:  # Accepted
             if search.selected_medicine_id:
                 # Switch to inventory page and show detail view
-                self.nav_list.setCurrentRow(self.PAGE_INVENTORY)
+                self.navigate_to(self.PAGE_INVENTORY, self.btn_nav_inventory)
                 self.show_medicine_detail(search.selected_medicine_id)
 
     # ── Medicine Detail ──
@@ -732,8 +791,8 @@ class MainWindow(QMainWindow):
         medicine = self.inventory_manager.get_medicine(medicine_id)
         if not medicine:
             QMessageBox.warning(
-                self, "Loi",
-                f"Khong tim thay thuoc voi ma '{medicine_id}'"
+                self, "Lỗi",
+                f"Không tìm thấy thuốc với mã '{medicine_id}'"
             )
             return
 
@@ -770,9 +829,9 @@ class MainWindow(QMainWindow):
         new_mode = self.theme.toggle_mode()
 
         if new_mode == ThemeMode.DARK:
-            self.theme_button.setText("Giao dien sang")
+            self.theme_button.setText("☀️ Light")
         else:
-            self.theme_button.setText("Giao dien toi")
+            self.theme_button.setText("🌙 Dark")
 
         self.apply_theme()
 
@@ -781,9 +840,21 @@ class MainWindow(QMainWindow):
         self.dashboard.apply_theme()
         self.dashboard.update_charts()
 
+        # Re-apply sidebar active state after theme change
+        current_index = self.stack.currentIndex()
+        btn_map = {
+            self.PAGE_DASHBOARD: self.btn_nav_dashboard,
+            self.PAGE_INVENTORY: self.btn_nav_inventory,
+            self.PAGE_SHELVES: self.btn_nav_shelf,
+        }
+        active_btn = btn_map.get(current_index, self.btn_nav_dashboard)
+        self.update_sidebar_active_state(active_btn)
+
     def apply_theme(self):
         """Apply current theme stylesheet to entire application."""
-        self.setStyleSheet(self.theme.get_stylesheet())
+        app = QApplication.instance()
+        if app:
+            app.setStyleSheet(self.theme.get_stylesheet())
 
     # ── Helpers ──
 
@@ -829,8 +900,8 @@ class MainWindow(QMainWindow):
         """Show confirmation dialog before closing the application."""
         reply = QMessageBox.question(
             self,
-            "Xac nhan thoat",
-            "Ban co chac chan muon thoat chuong trinh?",
+            "Xác nhận thoát",
+            "Bạn có chắc chắn muốn thoát chương trình?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
