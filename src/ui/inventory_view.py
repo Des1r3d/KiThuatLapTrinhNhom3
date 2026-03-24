@@ -301,10 +301,9 @@ class InventoryView(QWidget):
         bg_color = QColor(alert_colors['bg'])
         bg_color.setAlpha(80)  # Subtle tint
 
-        for col in range(self.table.columnCount() - 1):  # Skip status column
-            item = self.table.item(row, col)
-            if item:
-                item.setBackground(bg_color)
+        # Removed background coloring of the entire row per user request.
+        # Now only the alternating row colors will be used.
+        pass
 
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item — show detail view."""
