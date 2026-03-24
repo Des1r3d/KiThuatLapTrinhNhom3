@@ -72,7 +72,7 @@ class InventoryView(QWidget):
         # Header
         header_layout = QHBoxLayout()
 
-        title_label = QLabel("Danh sách thuốc")
+        title_label = QLabel("Kho Thuoc")
         title_font = QFont()
         title_font.setPointSize(Theme.FONT_SIZE_H2)
         title_font.setBold(True)
@@ -82,14 +82,13 @@ class InventoryView(QWidget):
         header_layout.addStretch()
 
         # Filter button
-        self.filter_button = QPushButton("Lọc")
-        self.filter_button.setObjectName("btn_filter")
+        self.filter_button = QPushButton("Loc")
         self.filter_button.setFixedWidth(110)
         self.filter_button.clicked.connect(lambda: self.filter_requested.emit())
         header_layout.addWidget(self.filter_button)
 
         # Clear filter button (hidden by default)
-        self.clear_filter_button = QPushButton("Xóa lọc")
+        self.clear_filter_button = QPushButton("Xoa loc")
         self.clear_filter_button.setProperty("secondary", True)
         self.clear_filter_button.setFixedWidth(90)
         self.clear_filter_button.clicked.connect(self.clear_filters)
@@ -107,8 +106,8 @@ class InventoryView(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels([
-            "ID", "TÊN THUỐC", "SỐ LƯỢNG", "HSD",
-            "KỆ", "GIÁ", "TRẠNG THÁI"
+            "Ma", "Ten thuoc", "SL", "Han su dung",
+            "Ke", "Gia (VND)", "Trang thai"
         ])
 
         # Table properties
@@ -268,22 +267,22 @@ class InventoryView(QWidget):
         # Check if expired
         if medicine.is_expired():
             days_overdue = abs(medicine.days_until_expiry())
-            return f"Hết hạn ({days_overdue} ngày)", "danger"
+            return f"Het han ({days_overdue} ngay)", "danger"
 
         # Check if out of stock
         if medicine.quantity == 0:
-            return "Hết hàng", "danger"
+            return "Het hang", "danger"
 
         # Check if expiring soon
         days_left = medicine.days_until_expiry()
         if days_left <= 30:
-            return f"Sắp hết hạn ({days_left} ngày)", "warning"
+            return f"Sap het han ({days_left} ngay)", "warning"
 
         # Check if low stock
         if medicine.quantity <= 5:
-            return "Tồn kho thấp", "low_stock"
+            return "Ton kho thap", "low_stock"
 
-        return "Còn hàng", "normal"
+        return "Con hang", "normal"
 
     def apply_row_color(self, row: int, status_type: str, medicine: Medicine):
         """
@@ -329,14 +328,14 @@ class InventoryView(QWidget):
         menu = QMenu(self)
 
         # Edit action
-        edit_action = QAction("Chỉnh sửa thuốc", self)
+        edit_action = QAction("Chinh sua thuoc", self)
         edit_action.triggered.connect(
             lambda: self.edit_requested.emit(medicine_id)
         )
         menu.addAction(edit_action)
 
         # Delete action
-        delete_action = QAction("Xóa thuốc", self)
+        delete_action = QAction("Xoa thuoc", self)
         delete_action.triggered.connect(
             lambda: self.confirm_delete(medicine_id, medicine_name)
         )
@@ -362,10 +361,10 @@ class InventoryView(QWidget):
             # Strong confirmation for medicines with stock
             reply = QMessageBox.question(
                 self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}' "
-                f"hiện đang còn {medicine.quantity} đơn vị trong kho?\n\n"
-                "Thao tác này không thể hoàn tác.",
+                "Xac nhan xoa",
+                f"Ban co chac chan muon xoa thuoc '{medicine_name}' "
+                f"hien dang con {medicine.quantity} don vi trong kho?\n\n"
+                "Thao tac nay khong the hoan tac.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -373,9 +372,9 @@ class InventoryView(QWidget):
             # Regular confirmation
             reply = QMessageBox.question(
                 self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}'?\n\n"
-                "Thao tác này không thể hoàn tác.",
+                "Xac nhan xoa",
+                f"Ban co chac chan muon xoa thuoc '{medicine_name}'?\n\n"
+                "Thao tac nay khong the hoan tac.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -388,9 +387,9 @@ class InventoryView(QWidget):
         total = len(self.medicines)
         shown = len(self.filtered_medicines)
         if self.active_filters:
-            self.count_label.setText(f"{shown}/{total} mục (đã lọc)")
+            self.count_label.setText(f"{shown}/{total} muc (da loc)")
         else:
-            self.count_label.setText(f"{total} mục")
+            self.count_label.setText(f"{total} muc")
 
     def refresh(self):
         """Refresh the table display."""
@@ -406,10 +405,10 @@ class InventoryView(QWidget):
         self.active_filters = filters
         if filters:
             self.clear_filter_button.setVisible(True)
-            self.filter_button.setText("Đã lọc")
+            self.filter_button.setText("Da loc")
         else:
             self.clear_filter_button.setVisible(False)
-            self.filter_button.setText("Lọc")
+            self.filter_button.setText("Loc")
         self.apply_current_filters()
 
     def clear_filters(self):

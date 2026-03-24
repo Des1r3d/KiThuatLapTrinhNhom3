@@ -181,20 +181,20 @@ class Dashboard(QWidget):
         cards_layout.setSpacing(Theme.SPACING_BASE * 2)
 
         self.total_card = StatCard(
-            "Tổng tồn kho", 0, "",
+            "Tong kho thuoc", 0, "",
             "", "total", self.theme
         )
         self.expiring_card = StatCard(
-            "Sắp hết hạn", 0, "",
-            "Cần xử lý", "expiring", self.theme
+            "Sap het han (30 ngay)", 0, "",
+            "Can xu ly", "expiring", self.theme
         )
         self.expired_card = StatCard(
-            "Hết hạn", 0, "",
-            "Cần loại bỏ", "expired", self.theme
+            "Da het han", 0, "",
+            "Can loai bo", "expired", self.theme
         )
         self.low_stock_card = StatCard(
-            "Tồn kho thấp", 0, "",
-            "Dưới ngưỡng (5 đơn vị)", "low_stock", self.theme
+            "Ton kho thap", 0, "",
+            "Duoi nguong (5 don vi)", "low_stock", self.theme
         )
 
         cards_layout.addWidget(self.total_card)
@@ -215,7 +215,7 @@ class Dashboard(QWidget):
         pie_layout = QVBoxLayout(pie_container)
         pie_layout.setContentsMargins(16, 16, 16, 16)
 
-        pie_title = QLabel("Trạng thái thuốc")
+        pie_title = QLabel("Phan bo trang thai het han")
         pie_title_font = QFont()
         pie_title_font.setPointSize(14)
         pie_title_font.setBold(True)
@@ -234,7 +234,7 @@ class Dashboard(QWidget):
         bar_layout = QVBoxLayout(bar_container)
         bar_layout.setContentsMargins(16, 16, 16, 16)
 
-        bar_title = QLabel("Top 10 loại thuốc nhiều nhất")
+        bar_title = QLabel("Top 10 thuoc theo ton kho")
         bar_title_font = QFont()
         bar_title_font.setPointSize(14)
         bar_title_font.setBold(True)
@@ -260,7 +260,7 @@ class Dashboard(QWidget):
         expiry_inner.setContentsMargins(16, 16, 16, 16)
 
         expiry_header = QHBoxLayout()
-        expiry_title = QLabel("Thuốc sắp hết hạn")
+        expiry_title = QLabel("Sap het han")
         expiry_title_font = QFont()
         expiry_title_font.setPointSize(13)
         expiry_title_font.setBold(True)
@@ -273,7 +273,7 @@ class Dashboard(QWidget):
         self.expiry_table = QTableWidget()
         self.expiry_table.setColumnCount(3)
         self.expiry_table.setHorizontalHeaderLabels([
-            "Tên thuốc", "HSD", "Vị trí kệ"
+            "Ten thuoc", "Han su dung", "Con lai (ngay)"
         ])
         self.expiry_table.verticalHeader().setVisible(False)
         self.expiry_table.setAlternatingRowColors(True)
@@ -296,7 +296,7 @@ class Dashboard(QWidget):
         stock_inner.setContentsMargins(16, 16, 16, 16)
 
         stock_header = QHBoxLayout()
-        stock_title = QLabel("Tồn kho thấp")
+        stock_title = QLabel("Ton kho thap")
         stock_title_font = QFont()
         stock_title_font.setPointSize(13)
         stock_title_font.setBold(True)
@@ -309,7 +309,7 @@ class Dashboard(QWidget):
         self.stock_table = QTableWidget()
         self.stock_table.setColumnCount(3)
         self.stock_table.setHorizontalHeaderLabels([
-            "Tên thuốc", "Vị trí kệ", "Số lượng"
+            "Ten thuoc", "Ke", "So luong"
         ])
         self.stock_table.verticalHeader().setVisible(False)
         self.stock_table.setAlternatingRowColors(True)
@@ -403,7 +403,7 @@ class Dashboard(QWidget):
 
         if not self.medicines:
             self.pie_ax.text(
-                0.5, 0.5, 'Không có dữ liệu',
+                0.5, 0.5, 'Khong co du lieu',
                 ha='center', va='center',
                 fontsize=14, color='gray',
                 transform=self.pie_ax.transAxes
@@ -423,7 +423,7 @@ class Dashboard(QWidget):
 
         # Data
         sizes = [normal, expiring, expired]
-        labels = ['Bình thường', 'Sắp hết hạn', 'Đã hết hạn']
+        labels = ['Binh thuong', 'Sap het han', 'Da het han']
         colors = [
             Theme.CHART_GREEN,
             Theme.CHART_ORANGE,
@@ -440,7 +440,7 @@ class Dashboard(QWidget):
 
         if not sizes_f:
             self.pie_ax.text(
-                0.5, 0.5, 'Không có dữ liệu',
+                0.5, 0.5, 'Khong co du lieu',
                 ha='center', va='center',
                 fontsize=14, color='gray',
                 transform=self.pie_ax.transAxes
@@ -477,7 +477,7 @@ class Dashboard(QWidget):
 
         if not self.medicines:
             self.bar_ax.text(
-                0.5, 0.5, 'Không có dữ liệu',
+                0.5, 0.5, 'Khong co du lieu',
                 ha='center', va='center',
                 fontsize=14, color='gray',
                 transform=self.bar_ax.transAxes

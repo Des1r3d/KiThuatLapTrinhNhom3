@@ -22,22 +22,22 @@ class FilterMedicineDialog(QDialog):
     
     # Predefined price ranges
     PRICE_RANGES = [
-        ("Tất cả", None, None),
-        ("Dưới 10,000d", 0, 10000),
+        ("Tat ca", None, None),
+        ("Duoi 10,000d", 0, 10000),
         ("10,000d - 50,000d", 10000, 50000),
         ("50,000d - 100,000d", 50000, 100000),
         ("100,000d - 500,000d", 100000, 500000),
-        ("Trên 500,000d", 500000, None),
+        ("Tren 500,000d", 500000, None),
     ]
     
     # Status options
     STATUS_OPTIONS = [
-        ("Tất cả", None),
-        ("Bình thường", "normal"),
-        ("Sắp hết hạn", "expiring"),
-        ("Đã hết hạn", "expired"),
-        ("Tồn kho thấp", "low_stock"),
-        ("Hết hàng", "out_of_stock"),
+        ("Tat ca", None),
+        ("Binh thuong", "normal"),
+        ("Sap het han", "expiring"),
+        ("Da het han", "expired"),
+        ("Ton kho thap", "low_stock"),
+        ("Het hang", "out_of_stock"),
     ]
     
     def __init__(
@@ -110,7 +110,7 @@ class FilterMedicineDialog(QDialog):
         
         # Populate shelf combo
         self.ui.cb_filter_shelf.clear()
-        self.ui.cb_filter_shelf.addItem("Tất cả", None)
+        self.ui.cb_filter_shelf.addItem("Tat ca", None)
         for shelf in self.shelves:
             self.ui.cb_filter_shelf.addItem(shelf.id, shelf.id)
         
