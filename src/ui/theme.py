@@ -261,18 +261,45 @@ class Theme:
 
         return f"""
             /* ── Global ── */
-            QWidget {{
+            * {{
                 font-family: {self.FONT_FAMILY};
-                font-size: {self.FONT_SIZE_BODY}px;
-                color: {c['text_primary']};
+            }}
+
+            /* Nền tổng thể trang */
+            QMainWindow, QStackedWidget, QWidget#page_dashboard, QWidget#page_inventory, QWidget#page_shelf, QDialog {{
                 background-color: {c['background']};
             }}
 
-            QMainWindow {{
-                background-color: {c['background']};
+            /* Text nội dung chính */
+            QLabel {{
+                color: {c['text_primary']};
             }}
 
             /* ── Buttons ── */
+            /* Nút phụ / Hủy */
+            QPushButton#btn_toggle_theme, QPushButton#btn_search, QPushButton#btn_filter {{
+                background-color: {c['cancel_btn_bg']};
+                border: 1px solid {c['border']};
+                border-radius: 6px;
+                padding: 6px 16px;
+                color: {c['text_primary']};
+                font-weight: 600;
+            }}
+
+            /* Nút chính / Lưu */
+            QPushButton#btn_add_medicine, QPushButton#pushButton {{
+                background-color: {c['primary']};
+                color: #FFFFFF;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 16px;
+                font-weight: 600;
+            }}
+            QPushButton#btn_add_medicine:hover, QPushButton#pushButton:hover {{
+                background-color: {c['primary_hover']};
+            }}
+
+            /* Generic button defaults */
             QPushButton {{
                 background-color: {c['primary']};
                 color: #FFFFFF;
@@ -286,14 +313,10 @@ class Theme:
 
             QPushButton:hover {{
                 background-color: {c['primary_hover']};
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                padding-top: {self.SPACING_BASE - 1}px;
             }}
 
             QPushButton:pressed {{
                 background-color: {c['primary_active']};
-                padding-top: {self.SPACING_BASE + 2}px;
-                border: none;
             }}
 
             QPushButton:disabled {{
@@ -301,279 +324,62 @@ class Theme:
                 color: {c['disabled_text']};
             }}
 
-            /* Secondary Buttons */
-            QPushButton[secondary="true"] {{
-                background-color: {c['cancel_btn_bg']};
-                color: {c['text_primary']};
-                border: 1px solid {c['border']};
-            }}
-
-            QPushButton[secondary="true"]:hover {{
-                border-color: {c['primary']};
-                color: {c['primary']};
-                background-color: {c['search_highlight']};
-                padding-top: {self.SPACING_BASE - 1}px;
-            }}
-
-            QPushButton[secondary="true"]:pressed {{
-                background-color: {c['border']};
-                padding-top: {self.SPACING_BASE + 2}px;
-            }}
-
-            /* Danger Buttons */
-            QPushButton[danger="true"] {{
-                background-color: {c['danger_text']};
-            }}
-
-            QPushButton[danger="true"]:hover {{
-                background-color: #DC2626;
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                padding-top: {self.SPACING_BASE - 1}px;
-            }}
-
-            QPushButton[danger="true"]:pressed {{
-                background-color: #B91C1C;
-                padding-top: {self.SPACING_BASE + 2}px;
-            }}
-
-            /* ── Inputs ── */
-            QLineEdit, QSpinBox, QDoubleSpinBox, QDateEdit, QComboBox {{
-                background-color: {c['input_bg']};
-                color: {c['input_text']};
-                border: 1px solid {c['input_border']};
-                border-radius: {self.BORDER_RADIUS}px;
-                padding: {self.SPACING_BASE}px {self.SPACING_BASE + 4}px;
-                font-size: {self.FONT_SIZE_BODY}px;
-                min-height: 28px;
-            }}
-
-            QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus,
-            QDateEdit:focus, QComboBox:focus {{
-                border-color: {c['primary']};
-                border-width: 2px;
-            }}
-
-            QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled,
-            QDateEdit:disabled, QComboBox:disabled {{
-                background-color: {c['disabled_bg']};
-                color: {c['disabled_text']};
-            }}
-
-            /* ComboBox */
-            QComboBox::drop-down {{
-                border: none;
-                padding-right: {self.SPACING_BASE}px;
-            }}
-
-            QComboBox QAbstractItemView {{
-                background-color: {c['surface']};
-                color: {c['text_primary']};
-                border: 1px solid {c['border']};
-                selection-background-color: {c['primary']};
-                selection-color: #FFFFFF;
-            }}
-
-            /* ── Labels ── */
-            QLabel {{
-                color: {c['text_primary']};
-                font-size: {self.FONT_SIZE_BODY}px;
-                background-color: transparent;
-            }}
-
-            QLabel[secondary="true"] {{
-                color: {c['text_secondary']};
-                font-size: {self.FONT_SIZE_CAPTION}px;
-            }}
-
-            /* ── Tables ── */
-            QTableWidget, QTableView {{
-                background-color: {c['surface']};
-                alternate-background-color: {c['table_row_alt']};
-                border: 1px solid {c['border']};
-                border-radius: {self.BORDER_RADIUS + 4}px;
-                gridline-color: transparent;
-                font-size: {self.FONT_SIZE_TABLE}px;
-                outline: none;
-                padding: 4px;
-            }}
-
-            QTableWidget::item, QTableView::item {{
-                padding: {self.SPACING_BASE}px;
-                border: none;
-                border-radius: 4px;
-            }}
-
-            QTableWidget::item:selected, QTableView::item:selected {{
-                background-color: {c['search_highlight']};
-                color: {c['primary']};
-            }}
-
-            QTableWidget::item:hover, QTableView::item:hover {{
-                background-color: {c['table_row_alt']};
-            }}
-
-            QHeaderView {{
-                background-color: {c['surface']};
-                border-top-left-radius: {self.BORDER_RADIUS + 4}px;
-                border-top-right-radius: {self.BORDER_RADIUS + 4}px;
-            }}
-
-            QHeaderView::section {{
-                background-color: {c['surface']};
-                color: {c['table_header_text']};
-                border: none;
-                border-bottom: 2px solid {c['border']};
-                padding: {self.SPACING_BASE + 2}px {self.SPACING_BASE}px;
-                font-weight: 600;
-                font-size: {self.FONT_SIZE_TABLE}px;
-                text-transform: uppercase;
-            }}
-
-            /* ── Dialogs ── */
-            QDialog {{
-                background-color: {c['surface']};
-            }}
-
-            /* ── Group Boxes ── */
-            QGroupBox {{
-                background-color: {c['surface']};
-                border: 1px solid {c['border']};
-                border-radius: {self.BORDER_RADIUS}px;
-                margin-top: {self.SPACING_BASE * 2}px;
-                padding: {self.CARD_PADDING}px;
-                padding-top: {self.CARD_PADDING + 8}px;
-                font-weight: 600;
-            }}
-
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                subcontrol-position: top left;
-                padding: 0 {self.SPACING_BASE}px;
-                color: {c['text_primary']};
-            }}
-
-            /* ── Status Bar ── */
-            QStatusBar {{
-                background-color: {c['surface']};
-                color: {c['text_secondary']};
-                border-top: 1px solid {c['border']};
-                font-size: {self.FONT_SIZE_CAPTION}px;
-                padding: 4px {self.SPACING_BASE}px;
-            }}
-
-            /* ── Scroll Bars ── */
-            QScrollBar:vertical {{
-                background-color: transparent;
-                width: 8px;
-                border-radius: 4px;
-                margin: 2px;
-            }}
-
-            QScrollBar::handle:vertical {{
-                background-color: {c['border']};
-                border-radius: 4px;
-                min-height: 24px;
-            }}
-
-            QScrollBar::handle:vertical:hover {{
-                background-color: {c['text_secondary']};
-            }}
-
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                height: 0px;
-            }}
-
-            QScrollBar:horizontal {{
-                background-color: transparent;
-                height: 8px;
-                border-radius: 4px;
-                margin: 2px;
-            }}
-
-            QScrollBar::handle:horizontal {{
-                background-color: {c['border']};
-                border-radius: 4px;
-                min-width: 24px;
-            }}
-
-            QScrollBar::handle:horizontal:hover {{
-                background-color: {c['text_secondary']};
-            }}
-
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
-                width: 0px;
-            }}
-
             /* ── Sidebar (from Qt_designer design system) ── */
-            QFrame#sidebar {{
+            QWidget#sidebar_container {{
                 background-color: {self.SIDEBAR_BG};
                 border: none;
             }}
 
-            QFrame#sidebar QLabel {{
+            QWidget#sidebar_container QLabel {{
                 color: {self.SIDEBAR_TEXT};
                 background-color: transparent;
             }}
 
-            QFrame#sidebar QLabel#logo_label {{
-                color: {self.SIDEBAR_LOGO_ACCENT};
-                font-size: 18px;
-                font-weight: 700;
-            }}
-
-            QFrame#sidebar QListWidget {{
-                background-color: transparent;
-                border: none;
-                outline: none;
-                color: {self.SIDEBAR_TEXT};
-            }}
-
-            QFrame#sidebar QListWidget::item {{
-                padding: 12px 20px;
-                border-radius: 4px;
-                margin: 2px 8px;
-                color: {self.SIDEBAR_ICON_INACTIVE};
-                font-size: {self.FONT_SIZE_H2}px;
-            }}
-
-            QFrame#sidebar QListWidget::item:selected {{
-                background-color: {self.SIDEBAR_ACTIVE};
-                color: {self.SIDEBAR_TEXT};
-                font-weight: 600;
-                border-left: 4px solid {self.SIDEBAR_ACTIVE_ACCENT};
-            }}
-
-            QFrame#sidebar QListWidget::item:hover:!selected {{
-                background-color: {self.SIDEBAR_ACTIVE};
-                color: {self.SIDEBAR_TEXT};
-            }}
-
-            QFrame#sidebar QPushButton {{
-                background-color: transparent;
-                color: {self.SIDEBAR_ICON_INACTIVE};
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                font-size: {self.FONT_SIZE_CAPTION}px;
-                padding: 8px 12px;
-            }}
-
-            QFrame#sidebar QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.08);
-                color: {self.SIDEBAR_TEXT};
-            }}
-
-            /* ── Top Bar ── */
-            QFrame#topbar {{
+            /* ── FRAMES (Card, bảng, hộp thoại) ── */
+            QFrame#chart_row_container QFrame, QFrame#frame_expiring, QFrame#frame_low_stock, QWidget#frame_bar_chart, QWidget#frame_pie_chart {{
                 background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 8px;
+            }}
+
+            /* ── BẢNG DỮ LIỆU ── */
+            QTableWidget {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 8px;
+                gridline-color: {c['border']};
+                color: {c['text_primary']};
+            }}
+            QHeaderView::section {{
+                background-color: {c['surface']};
+                color: {c['text_secondary']};
+                font-weight: bold;
+                border: none;
                 border-bottom: 1px solid {c['border']};
+                padding: 8px;
             }}
 
-            QFrame#topbar QLabel {{
-                background-color: transparent;
+            /* ── DANH SÁCH CẢNH BÁO (LIST WIDGET) ── */
+            QListWidget {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: 8px;
+                color: {c['text_primary']};
+                padding: 4px;
+                outline: none;
             }}
-
-            QFrame#topbar QPushButton {{
-                min-height: 28px;
-                padding: 6px 14px;
+            QListWidget::item {{
+                padding: 12px;
+                border-bottom: 1px solid {c['background']};
+            }}
+            QListWidget::item:hover {{
+                background-color: {c['cancel_btn_bg']};
+                border-radius: 6px;
+            }}
+            QListWidget::item:selected {{
+                background-color: {c['border']};
+                color: {c['text_primary']};
+                border-radius: 6px;
             }}
 
             /* ── Scroll Area ── */
@@ -653,6 +459,177 @@ class Theme:
             QMenu::item:selected {{
                 background-color: {c['primary']};
                 color: #FFFFFF;
+            }}
+
+            /* ── Inputs ── */
+            QLineEdit, QSpinBox, QDoubleSpinBox, QDateEdit, QComboBox {{
+                background-color: {c['input_bg']};
+                color: {c['input_text']};
+                border: 1px solid {c['input_border']};
+                border-radius: {self.BORDER_RADIUS}px;
+                padding: {self.SPACING_BASE}px {self.SPACING_BASE + 4}px;
+                font-size: {self.FONT_SIZE_BODY}px;
+                min-height: 28px;
+            }}
+
+            QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+            QDateEdit:focus, QComboBox:focus {{
+                border-color: {c['primary']};
+                border-width: 2px;
+            }}
+
+            /* ComboBox */
+            QComboBox::drop-down {{
+                border: none;
+                padding-right: {self.SPACING_BASE}px;
+            }}
+
+            QComboBox QAbstractItemView {{
+                background-color: {c['surface']};
+                color: {c['text_primary']};
+                border: 1px solid {c['border']};
+                selection-background-color: {c['primary']};
+                selection-color: #FFFFFF;
+            }}
+
+            /* ── Dialogs ── */
+            QDialog {{
+                background-color: {c['surface']};
+            }}
+
+            /* ── Group Boxes ── */
+            QGroupBox {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: {self.BORDER_RADIUS}px;
+                margin-top: {self.SPACING_BASE * 2}px;
+                padding: {self.CARD_PADDING}px;
+                padding-top: {self.CARD_PADDING + 8}px;
+                font-weight: 600;
+            }}
+
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 0 {self.SPACING_BASE}px;
+                color: {c['text_primary']};
+            }}
+
+            /* ── Scroll Bars ── */
+            QScrollBar:vertical {{
+                background-color: transparent;
+                width: 8px;
+                border-radius: 4px;
+                margin: 2px;
+            }}
+
+            QScrollBar::handle:vertical {{
+                background-color: {c['border']};
+                border-radius: 4px;
+                min-height: 24px;
+            }}
+
+            QScrollBar::handle:vertical:hover {{
+                background-color: {c['text_secondary']};
+            }}
+
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                height: 0px;
+            }}
+
+            QScrollBar:horizontal {{
+                background-color: transparent;
+                height: 8px;
+                border-radius: 4px;
+                margin: 2px;
+            }}
+
+            QScrollBar::handle:horizontal {{
+                background-color: {c['border']};
+                border-radius: 4px;
+                min-width: 24px;
+            }}
+
+            QScrollBar::handle:horizontal:hover {{
+                background-color: {c['text_secondary']};
+            }}
+
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+                width: 0px;
+            }}
+
+            /* ── Scroll Area ── */
+            QScrollArea {{
+                background-color: transparent;
+                border: none;
+            }}
+
+            QScrollArea > QWidget > QWidget {{
+                background-color: transparent;
+            }}
+
+            /* ── Message Box ── */
+            QMessageBox {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+                border-radius: {self.BORDER_RADIUS + 4}px;
+            }}
+
+            QMessageBox QLabel {{
+                color: {c['text_primary']};
+                font-size: {self.FONT_SIZE_BODY}px;
+                padding: 8px 4px;
+            }}
+
+            QMessageBox QPushButton {{
+                min-width: 90px;
+                min-height: 34px;
+                padding: 8px 20px;
+                border-radius: {self.BORDER_RADIUS}px;
+            }}
+
+            /* ── Calendar Widget (for QDateEdit) ── */
+            QCalendarWidget {{
+                background-color: {c['surface']};
+                border: 1px solid {c['border']};
+            }}
+
+            QCalendarWidget QAbstractItemView {{
+                background-color: {c['surface']};
+                color: {c['text_primary']};
+                selection-background-color: {c['primary']};
+                selection-color: #FFFFFF;
+                alternate-background-color: {c['table_row_alt']};
+            }}
+
+            QCalendarWidget QWidget#qt_calendar_navigationbar {{
+                background-color: {c['primary']};
+                color: #FFFFFF;
+            }}
+
+            QCalendarWidget QToolButton {{
+                background-color: transparent;
+                color: #FFFFFF;
+                font-weight: bold;
+                padding: 4px 8px;
+            }}
+
+            QCalendarWidget QToolButton:hover {{
+                background-color: rgba(255, 255, 255, 0.15);
+                border-radius: 4px;
+            }}
+
+            /* ── Danger Buttons ── */
+            QPushButton[danger="true"] {{
+                background-color: {c['danger_text']};
+            }}
+
+            QPushButton[danger="true"]:hover {{
+                background-color: #DC2626;
+            }}
+
+            QPushButton[danger="true"]:pressed {{
+                background-color: #B91C1C;
             }}
         """
 
