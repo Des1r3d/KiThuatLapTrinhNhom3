@@ -8,6 +8,9 @@ Features:
 - Search dialog (Ctrl+K)
 - Full CRUD for medicines and shelves
 - Custom notification dialogs
+
+This file contains ONLY business logic.
+UI layout is defined in src/ui/generated/main_window_ui.py (Ui_MainWindow).
 """
 import os
 from typing import Optional, List
@@ -37,12 +40,13 @@ from src.ui.notification_dialogs import (
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
 from src.ui.generated.search import Ui_dlg_search
+from src.ui.generated.main_window_ui import Ui_MainWindow
 
 
 class SearchDialog(QFrame):
     """
     Search dialog using generated UI from search.py.
-    
+
     Provides fuzzy search for medicines with real-time results.
     Has a close button & supports Escape key to close.
     """
@@ -55,7 +59,7 @@ class SearchDialog(QFrame):
     ):
         super().__init__(parent)
         from PyQt6.QtWidgets import QDialog
-        
+
         self.dialog = QDialog(parent)
         self.search_engine = search_engine or SearchEngine()
         self.theme = theme or Theme()
@@ -143,12 +147,13 @@ class MainWindow(QMainWindow):
     """
     Main application window with sidebar navigation.
 
-    Provides:
-    - Sidebar: Logo, navigation list (Dashboard, Inventory, Shelves),
-      theme toggle
-    - Content area: Stacked widget with Dashboard, InventoryView, ShelfView
-    - Top bar: Page title, Search, Add Medicine buttons
-    - CRUD operations wired to InventoryManager
+    Uses Ui_MainWindow (generated) for layout.
+    This class handles ONLY business logic:
+    - CRUD operations for medicines and shelves
+    - Navigation and page switching
+    - Theme toggling
+    - Search functionality
+    - Signal/Slot connections
     """
 
     # Navigation page indices
@@ -173,13 +178,89 @@ class MainWindow(QMainWindow):
         # Track search dialog state
         self._search_dialog: Optional[SearchDialog] = None
 
-        # Setup UI
-        self.setup_ui()
+        # Setup UI from generated file
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        # Additional UI setup (logo, views, connections)
+        self._setup_logo()
+        self._setup_views()
+        self._connect_signals()
+        self._setup_shortcuts()
+
+        # Apply theme & load data
         self.apply_theme()
         self.refresh_all()
 
+        # Set default page
+        self.navigate_to(self.PAGE_DASHBOARD, self.ui.btn_nav_dashboard)
+
         # Center window on screen
         self._center_on_screen()
+
+    # ── UI Initialization (connecting generated UI to business logic) ──
+
+    def _setup_logo(self):
+        """Load and set the logo image on the sidebar."""
+        logo_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "design-ui", "design-ui", "Qt_designer", "Logo.png"
+        )
+        if os.path.exists(logo_path):
+            pixmap = QPixmap(logo_path)
+            self.ui.logo_label.setPixmap(pixmap)
+        else:
+            self.ui.logo_label.setText("PHARMA.SYS")
+
+    def _setup_views(self):
+        """Create view widgets and add them to the stacked widget."""
+        # Dashboard page
+        self.dashboard = Dashboard(theme=self.theme)
+        self.ui.stacked_main_content.addWidget(self.dashboard)
+
+        # Inventory page
+        self.inventory_view = InventoryView(theme=self.theme)
+        self.ui.inv_layout.addWidget(self.inventory_view)
+        self.ui.stacked_main_content.addWidget(self.ui.page_inventory)
+
+        # Shelf page
+        self.shelf_view = ShelfView(theme=self.theme)
+        self.ui.shelf_layout.addWidget(self.shelf_view)
+        self.ui.stacked_main_content.addWidget(self.ui.page_shelf)
+
+    def _connect_signals(self):
+        """Connect all signals to slots (business logic wiring)."""
+        # Navigation buttons
+        self.ui.btn_nav_dashboard.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_DASHBOARD, self.ui.btn_nav_dashboard)
+        )
+        self.ui.btn_nav_inventory.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_INVENTORY, self.ui.btn_nav_inventory)
+        )
+        self.ui.btn_nav_shelf.clicked.connect(
+            lambda: self.navigate_to(self.PAGE_SHELVES, self.ui.btn_nav_shelf)
+        )
+
+        # Header buttons
+        self.ui.btn_search.clicked.connect(self.show_search)
+        self.ui.btn_toggle_theme.clicked.connect(self.toggle_theme)
+
+        # Inventory view signals
+        self.inventory_view.add_requested.connect(self.show_add_medicine)
+        self.inventory_view.edit_requested.connect(self.show_edit_medicine)
+        self.inventory_view.delete_requested.connect(self.delete_medicine)
+        self.inventory_view.detail_requested.connect(self.show_medicine_detail)
+        self.inventory_view.filter_requested.connect(self.show_filter_dialog)
+
+        # Shelf view signals
+        self.shelf_view.add_requested.connect(self.show_add_shelf)
+        self.shelf_view.edit_requested.connect(self.show_edit_shelf)
+        self.shelf_view.delete_requested.connect(self.delete_shelf)
+
+    def _setup_shortcuts(self):
+        """Setup keyboard shortcuts."""
+        search_shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
+        search_shortcut.activated.connect(self.show_search)
 
     def _center_on_screen(self):
         """Center the main window on the primary screen."""
@@ -191,171 +272,7 @@ class MainWindow(QMainWindow):
             window_geometry.moveCenter(center_point)
             self.move(window_geometry.topLeft())
 
-    def setup_ui(self):
-        """Setup main window UI components."""
-        self.setWindowTitle("PHARMA.SYS - Quản lý Kho Thuốc")
-        self.setMinimumSize(1280, 720)
-        self.resize(1400, 850)
-
-        # Central widget
-        central = QWidget()
-        main_layout = QHBoxLayout(central)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-
-        # ── Sidebar (matching PharmaSys.py layout) ──
-        self.sidebar = QWidget()
-        self.sidebar.setObjectName("sidebar_container")
-        self.sidebar.setMaximumWidth(240)
-        self.sidebar.setMinimumWidth(240)
-        sidebar_layout = QVBoxLayout(self.sidebar)
-        sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        sidebar_layout.setSpacing(0)
-
-        # Logo
-        logo_label = QLabel()
-        logo_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "design-ui", "design-ui", "Qt_designer", "Logo.png"
-        )
-        if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path)
-            logo_label.setPixmap(pixmap)
-        else:
-            logo_label.setText("PHARMA.SYS")
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_label.setStyleSheet("background-color: transparent;")
-        sidebar_layout.addWidget(logo_label)
-
-        # Navigation buttons (matching PharmaSys.py QPushButton structure)
-        self.btn_nav_dashboard = QPushButton("Dashboard")
-        self.btn_nav_inventory = QPushButton("Danh sách thuốc")
-        self.btn_nav_shelf = QPushButton("Quản lý kệ")
-        self.btn_nav_report = QPushButton("Report")
-        self.btn_nav_setting = QPushButton("Setting")
-
-        nav_buttons = [
-            self.btn_nav_dashboard,
-            self.btn_nav_inventory,
-            self.btn_nav_shelf,
-            self.btn_nav_report,
-            self.btn_nav_setting,
-        ]
-
-        nav_font = QFont()
-        nav_font.setPointSize(16)
-
-        for btn in nav_buttons:
-            btn.setFont(nav_font)
-            btn.setSizePolicy(
-                QSizePolicy.Policy.Preferred,
-                QSizePolicy.Policy.Preferred
-            )
-            btn.setStyleSheet("color: rgb(255, 255, 255);")
-            sidebar_layout.addWidget(btn)
-
-        # Connect navigation buttons
-        self.btn_nav_dashboard.clicked.connect(
-            lambda: self.navigate_to(self.PAGE_DASHBOARD, self.btn_nav_dashboard)
-        )
-        self.btn_nav_inventory.clicked.connect(
-            lambda: self.navigate_to(self.PAGE_INVENTORY, self.btn_nav_inventory)
-        )
-        self.btn_nav_shelf.clicked.connect(
-            lambda: self.navigate_to(self.PAGE_SHELVES, self.btn_nav_shelf)
-        )
-
-        sidebar_layout.addStretch()
-
-        main_layout.addWidget(self.sidebar)
-
-        # ── Main Content Container ──
-        self.main_container = QWidget()
-        self.main_container.setObjectName("main_container")
-        content_layout = QVBoxLayout(self.main_container)
-        content_layout.setContentsMargins(8, 8, 8, 8)
-
-        # Header container with theme toggle (matching PharmaSys.py)
-        self.header_container = QWidget()
-        self.header_container.setObjectName("header_container")
-        self.header_container.setMaximumHeight(50)
-        header_layout = QHBoxLayout(self.header_container)
-        header_layout.setContentsMargins(8, 8, 8, 8)
-
-        # Page title on the left
-        self.page_title = QLabel("Dashboard")
-        page_title_font = QFont()
-        page_title_font.setPointSize(Theme.FONT_SIZE_H1)
-        page_title_font.setBold(True)
-        self.page_title.setFont(page_title_font)
-        header_layout.addWidget(self.page_title)
-
-        header_layout.addStretch()
-
-        # Search button
-        self.search_button = QPushButton("🔍 Tìm kiếm (Ctrl+K)")
-        self.search_button.setObjectName("btn_search")
-        self.search_button.setFixedWidth(200)
-        self.search_button.clicked.connect(self.show_search)
-        header_layout.addWidget(self.search_button)
-
-        # Theme toggle button (moved to header, matching PharmaSys.py)
-        self.theme_button = QPushButton("🌙 Dark")
-        self.theme_button.setObjectName("btn_toggle_theme")
-        theme_font = QFont()
-        theme_font.setPointSize(14)
-        self.theme_button.setFont(theme_font)
-        self.theme_button.clicked.connect(self.toggle_theme)
-        header_layout.addWidget(self.theme_button)
-
-        content_layout.addWidget(self.header_container)
-
-        # Stacked widget for pages
-        self.stack = QStackedWidget()
-        self.stack.setObjectName("stacked_main_content")
-        self.stack.setContentsMargins(0, 0, 0, 0)
-
-        # Dashboard page
-        self.dashboard = Dashboard(theme=self.theme)
-        self.stack.addWidget(self.dashboard)
-
-        # Inventory page
-        self.inventory_view = InventoryView(theme=self.theme)
-        self.inventory_view.edit_requested.connect(self.show_edit_medicine)
-        self.inventory_view.delete_requested.connect(self.delete_medicine)
-        self.inventory_view.detail_requested.connect(self.show_medicine_detail)
-        self.inventory_view.filter_requested.connect(self.show_filter_dialog)
-        inv_wrapper = QWidget()
-        inv_wrapper.setObjectName("page_inventory")
-        inv_layout = QVBoxLayout(inv_wrapper)
-        inv_layout.setContentsMargins(8, 8, 8, 8)
-        inv_layout.addWidget(self.inventory_view)
-        self.stack.addWidget(inv_wrapper)
-
-        # Shelf page
-        self.shelf_view = ShelfView(theme=self.theme)
-        self.shelf_view.add_requested.connect(self.show_add_shelf)
-        self.shelf_view.edit_requested.connect(self.show_edit_shelf)
-        self.shelf_view.delete_requested.connect(self.delete_shelf)
-        shelf_wrapper = QWidget()
-        shelf_wrapper.setObjectName("page_shelf")
-        shelf_layout = QVBoxLayout(shelf_wrapper)
-        shelf_layout.setContentsMargins(8, 8, 8, 8)
-        shelf_layout.addWidget(self.shelf_view)
-        self.stack.addWidget(shelf_wrapper)
-
-        content_layout.addWidget(self.stack)
-
-        main_layout.addWidget(self.main_container)
-
-        self.setCentralWidget(central)
-
-        # Set default page
-        self.navigate_to(self.PAGE_DASHBOARD, self.btn_nav_dashboard)
-
-        # ── Keyboard shortcuts ──
-        search_shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
-        search_shortcut.activated.connect(self.show_search)
+    # ── Navigation ──
 
     def navigate_to(self, page_index: int, button: QPushButton):
         """
@@ -365,7 +282,7 @@ class MainWindow(QMainWindow):
             page_index: Page index
             button: The navigation button that was clicked
         """
-        self.stack.setCurrentIndex(page_index)
+        self.ui.stacked_main_content.setCurrentIndex(page_index)
         self.update_sidebar_active_state(button)
 
         titles = {
@@ -373,25 +290,23 @@ class MainWindow(QMainWindow):
             self.PAGE_INVENTORY: "Danh sách thuốc",
             self.PAGE_SHELVES: "Quản lý kệ",
         }
-        self.page_title.setText(titles.get(page_index, ""))
+        self.ui.page_title.setText(titles.get(page_index, ""))
 
     def update_sidebar_active_state(self, active_btn: QPushButton):
         """
         Update sidebar button styles based on which page is selected.
-        Matches the design from MainWindow_ext.py.
 
         Args:
             active_btn: The currently active navigation button
         """
         buttons = [
-            self.btn_nav_dashboard,
-            self.btn_nav_inventory,
-            self.btn_nav_shelf,
-            self.btn_nav_report,
-            self.btn_nav_setting,
+            self.ui.btn_nav_dashboard,
+            self.ui.btn_nav_inventory,
+            self.ui.btn_nav_shelf,
+            self.ui.btn_nav_report,
+            self.ui.btn_nav_setting,
         ]
 
-        # Inactive button style
         inactive_style = """
             QPushButton {
                 background-color: transparent;
@@ -405,7 +320,6 @@ class MainWindow(QMainWindow):
             QPushButton:hover { background-color: #1E40AF; }
         """
 
-        # Active button style
         active_style = """
             QPushButton {
                 background-color: #1E40AF;
@@ -435,12 +349,14 @@ class MainWindow(QMainWindow):
             index: Page index
         """
         btn_map = {
-            self.PAGE_DASHBOARD: self.btn_nav_dashboard,
-            self.PAGE_INVENTORY: self.btn_nav_inventory,
-            self.PAGE_SHELVES: self.btn_nav_shelf,
+            self.PAGE_DASHBOARD: self.ui.btn_nav_dashboard,
+            self.PAGE_INVENTORY: self.ui.btn_nav_inventory,
+            self.PAGE_SHELVES: self.ui.btn_nav_shelf,
         }
-        btn = btn_map.get(index, self.btn_nav_dashboard)
+        btn = btn_map.get(index, self.ui.btn_nav_dashboard)
         self.navigate_to(index, btn)
+
+    # ── Data Refresh ──
 
     def refresh_all(self):
         """Refresh all views with current data."""
@@ -486,7 +402,6 @@ class MainWindow(QMainWindow):
                     # Handle image
                     image_path = ""
                     if "image_path" in data and data["image_path"]:
-                        # Will save after medicine ID is generated
                         temp_image = data.pop("image_path")
                     else:
                         temp_image = None
@@ -568,7 +483,6 @@ class MainWindow(QMainWindow):
                     # Handle image update
                     if "image_path" in data:
                         img_path = data["image_path"]
-                        # If it's a new file (not relative path)
                         if img_path and not img_path.startswith("images"):
                             relative = self.image_manager.save_image(
                                 img_path, medicine_id
@@ -578,7 +492,7 @@ class MainWindow(QMainWindow):
                     updated = self.inventory_manager.update_medicine(
                         medicine_id, data
                     )
-                    
+
                     # If shelf changed, ID changed — move image to new ID
                     if updated.id != medicine_id:
                         new_img_path = self.image_manager.rename_image(
@@ -622,7 +536,6 @@ class MainWindow(QMainWindow):
         if not medicine:
             return
 
-        # Show custom confirm dialog
         confirm = ConfirmDeleteDialog(
             self,
             medicine_name=medicine.name,
@@ -633,13 +546,9 @@ class MainWindow(QMainWindow):
         if confirm.exec() == ConfirmDeleteDialog.DialogCode.Accepted:
             try:
                 removed = self.inventory_manager.remove_medicine(medicine_id)
-
-                # Delete associated image
                 self.image_manager.delete_image(medicine_id)
-
                 self.refresh_all()
 
-                # Show success dialog
                 success = DeleteSuccessDialog(
                     self,
                     medicine_name=removed.name,
@@ -757,7 +666,6 @@ class MainWindow(QMainWindow):
 
     def show_search(self):
         """Show/toggle search dialog."""
-        # If a search dialog is already visible, close it (toggle behavior)
         if self._search_dialog is not None:
             self._search_dialog._on_close()
             self._search_dialog = None
@@ -775,8 +683,7 @@ class MainWindow(QMainWindow):
 
         if result == 1:  # Accepted
             if search.selected_medicine_id:
-                # Switch to inventory page and show detail view
-                self.navigate_to(self.PAGE_INVENTORY, self.btn_nav_inventory)
+                self.navigate_to(self.PAGE_INVENTORY, self.ui.btn_nav_inventory)
                 self.show_medicine_detail(search.selected_medicine_id)
 
     # ── Medicine Detail ──
@@ -829,9 +736,9 @@ class MainWindow(QMainWindow):
         new_mode = self.theme.toggle_mode()
 
         if new_mode == ThemeMode.DARK:
-            self.theme_button.setText("☀️ Light")
+            self.ui.btn_toggle_theme.setText("☀️ Light")
         else:
-            self.theme_button.setText("🌙 Dark")
+            self.ui.btn_toggle_theme.setText("🌙 Dark")
 
         self.apply_theme()
 
@@ -841,13 +748,13 @@ class MainWindow(QMainWindow):
         self.dashboard.update_charts()
 
         # Re-apply sidebar active state after theme change
-        current_index = self.stack.currentIndex()
+        current_index = self.ui.stacked_main_content.currentIndex()
         btn_map = {
-            self.PAGE_DASHBOARD: self.btn_nav_dashboard,
-            self.PAGE_INVENTORY: self.btn_nav_inventory,
-            self.PAGE_SHELVES: self.btn_nav_shelf,
+            self.PAGE_DASHBOARD: self.ui.btn_nav_dashboard,
+            self.PAGE_INVENTORY: self.ui.btn_nav_inventory,
+            self.PAGE_SHELVES: self.ui.btn_nav_shelf,
         }
-        active_btn = btn_map.get(current_index, self.btn_nav_dashboard)
+        active_btn = btn_map.get(current_index, self.ui.btn_nav_dashboard)
         self.update_sidebar_active_state(active_btn)
 
     def apply_theme(self):

@@ -126,6 +126,11 @@ class Theme:
         'search_icon': '#6C7A89',
         'search_highlight': '#EFF6FF',
 
+        # Table selection / hover (Light Mode — soft)
+        'table_selection_bg': '#DBEAFE',
+        'table_selection_text': '#1E3A5F',
+        'table_hover_bg': '#EFF6FF',
+
         # Dialog overlay
         'overlay': 'rgba(0,0,0,0.4)',
 
@@ -186,6 +191,11 @@ class Theme:
         'search_border': '#3E4C59',
         'search_icon': '#9AA5B1',
         'search_highlight': '#1E3A5F',
+
+        # Table selection / hover (Dark Mode — keep strong blue)
+        'table_selection_bg': '#1D4ED8',
+        'table_selection_text': '#FFFFFF',
+        'table_hover_bg': '#1E3A5F',
 
         # Dialog overlay
         'overlay': 'rgba(0,0,0,0.6)',
@@ -349,6 +359,14 @@ class Theme:
                 border-radius: 8px;
                 gridline-color: {c['border']};
                 color: {c['text_primary']};
+                alternate-background-color: {c['table_row_alt']};
+            }}
+            QTableWidget::item:selected {{
+                background-color: {c['table_selection_bg']};
+                color: {c['table_selection_text']};
+            }}
+            QTableWidget::item:hover:!selected {{
+                background-color: {c['table_hover_bg']};
             }}
             QHeaderView::section {{
                 background-color: {c['surface']};
@@ -454,6 +472,7 @@ class Theme:
             QMenu::item {{
                 padding: 8px 24px;
                 border-radius: 4px;
+                color: {c['text_primary']};
             }}
 
             QMenu::item:selected {{

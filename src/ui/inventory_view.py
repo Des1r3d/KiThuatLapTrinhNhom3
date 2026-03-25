@@ -5,7 +5,7 @@ Features:
 - Sortable table with color-coded status badges (pill shape)
 - Context menu (Edit/Delete)
 - Double-click to edit
-- Alert highlighting (Expired, Expiring Soon, Low Stock)
+- Alternating row colors with colored text for alert statuses
 """
 from typing import List, Optional
 from datetime import date
@@ -40,6 +40,7 @@ class InventoryView(QWidget):
     """
 
     medicine_selected = pyqtSignal(str)  # medicine_id
+    add_requested = pyqtSignal()         # request to add a new medicine
     edit_requested = pyqtSignal(str)     # medicine_id
     delete_requested = pyqtSignal(str)   # medicine_id
     detail_requested = pyqtSignal(str)   # medicine_id
@@ -80,6 +81,13 @@ class InventoryView(QWidget):
         header_layout.addWidget(title_label)
 
         header_layout.addStretch()
+
+        # Add medicine button
+        self.add_button = QPushButton("+ Thêm thuốc")
+        self.add_button.setObjectName("btn_add_medicine")
+        self.add_button.setFixedHeight(36)
+        self.add_button.clicked.connect(lambda: self.add_requested.emit())
+        header_layout.addWidget(self.add_button)
 
         # Filter button
         self.filter_button = QPushButton("Lọc")
@@ -287,7 +295,8 @@ class InventoryView(QWidget):
 
     def apply_row_color(self, row: int, status_type: str, medicine: Medicine):
         """
-        Apply subtle background color to entire row based on status.
+        Apply colored text to entire row based on status.
+        Row background remains alternating (handled by Qt); only foreground changes.
 
         Args:
             row: Row index
@@ -298,13 +307,12 @@ class InventoryView(QWidget):
             return
 
         alert_colors = self.theme.get_alert_colors(status_type)
-        bg_color = QColor(alert_colors['bg'])
-        bg_color.setAlpha(80)  # Subtle tint
+        text_color = QColor(alert_colors['text'])
 
         for col in range(self.table.columnCount() - 1):  # Skip status column
             item = self.table.item(row, col)
             if item:
-                item.setBackground(bg_color)
+                item.setForeground(text_color)
 
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item — show detail view."""

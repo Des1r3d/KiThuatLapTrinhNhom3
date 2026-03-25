@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>1400</width><height>850</height></rect>
+  </property>
+  <property name="minimumSize">
+   <size><width>1280</width><height>720</height></size>
+  </property>
+  <property name="windowTitle">
+   <string>KTLT_Nhom3_QuanLyKhoThuoc</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="main_layout">
+    <property name="spacing"><number>0</number></property>
+    <property name="leftMargin"><number>0</number></property>
+    <property name="topMargin"><number>0</number></property>
+    <property name="rightMargin"><number>0</number></property>
+    <property name="bottomMargin"><number>0</number></property>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- ██  SIDEBAR                           -->
+    <!-- ══════════════════════════════════════ -->
+    <item>
+     <widget class="QWidget" name="sidebar_container" native="true">
+      <property name="minimumSize">
+       <size><width>240</width><height>0</height></size>
+      </property>
+      <property name="maximumSize">
+       <size><width>240</width><height>16777215</height></size>
+      </property>
+      <layout class="QVBoxLayout" name="sidebar_layout">
+       <property name="spacing"><number>0</number></property>
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+
+       <!-- Logo -->
+       <item>
+        <widget class="QLabel" name="logo_label">
+         <property name="styleSheet">
+          <string notr="true">background-color: transparent;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Dashboard -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_dashboard">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Dashboard</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Danh sách thuốc -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_inventory">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Danh sách thuốc</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Quản lý kệ -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_shelf">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Quản lý kệ</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Report -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_report">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Report</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Setting -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_setting">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Setting</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Spacer (stretch) -->
+       <item>
+        <spacer name="sidebar_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size><width>20</width><height>40</height></size>
+         </property>
+        </spacer>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- ██  MAIN CONTENT CONTAINER            -->
+    <!-- ══════════════════════════════════════ -->
+    <item>
+     <widget class="QWidget" name="main_container" native="true">
+      <layout class="QVBoxLayout" name="content_layout">
+       <property name="leftMargin"><number>8</number></property>
+       <property name="topMargin"><number>8</number></property>
+       <property name="rightMargin"><number>8</number></property>
+       <property name="bottomMargin"><number>8</number></property>
+
+       <!-- ── Header ── -->
+       <item>
+        <widget class="QWidget" name="header_container" native="true">
+         <property name="maximumSize">
+          <size><width>16777215</width><height>50</height></size>
+         </property>
+         <layout class="QHBoxLayout" name="header_layout">
+          <property name="leftMargin"><number>8</number></property>
+          <property name="topMargin"><number>8</number></property>
+          <property name="rightMargin"><number>8</number></property>
+          <property name="bottomMargin"><number>8</number></property>
+
+          <!-- Page Title -->
+          <item>
+           <widget class="QLabel" name="page_title">
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Dashboard</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Header Spacer -->
+          <item>
+           <spacer name="header_spacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size><width>40</width><height>20</height></size>
+            </property>
+           </spacer>
+          </item>
+
+          <!-- Search Button -->
+          <item>
+           <widget class="QPushButton" name="btn_search">
+            <property name="minimumSize">
+             <size><width>200</width><height>0</height></size>
+            </property>
+            <property name="maximumSize">
+             <size><width>200</width><height>16777215</height></size>
+            </property>
+            <property name="text">
+             <string>🔍 Tìm kiếm (Ctrl+K)</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Theme Toggle Button -->
+          <item>
+           <widget class="QPushButton" name="btn_toggle_theme">
+            <property name="font">
+             <font><pointsize>14</pointsize></font>
+            </property>
+            <property name="text">
+             <string>🌙 Dark</string>
+            </property>
+           </widget>
+          </item>
+
+         </layout>
+        </widget>
+       </item>
+
+       <!-- ── Stacked Widget (Pages) ── -->
+       <item>
+        <widget class="QStackedWidget" name="stacked_main_content">
+
+         <!-- Page: Inventory Wrapper -->
+         <widget class="QWidget" name="page_inventory">
+          <layout class="QVBoxLayout" name="inv_layout">
+           <property name="leftMargin"><number>8</number></property>
+           <property name="topMargin"><number>8</number></property>
+           <property name="rightMargin"><number>8</number></property>
+           <property name="bottomMargin"><number>8</number></property>
+          </layout>
+         </widget>
+
+         <!-- Page: Shelf Wrapper -->
+         <widget class="QWidget" name="page_shelf">
+          <layout class="QVBoxLayout" name="shelf_layout">
+           <property name="leftMargin"><number>8</number></property>
+           <property name="topMargin"><number>8</number></property>
+           <property name="rightMargin"><number>8</number></property>
+           <property name="bottomMargin"><number>8</number></property>
+          </layout>
+         </widget>
+
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
