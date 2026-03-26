@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'loc_thuoc.ui'
+# Form implementation generated from reading ui file 'C:\Users\Desired\Desktop\ki2nam2\kithuatlaptrinh\DoAnKiThuatLaptrinh\KiThuatLapTrinhNhom3\Ui Qt\loc_thuoc.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #

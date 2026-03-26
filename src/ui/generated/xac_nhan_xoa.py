@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'xac_nhan_xoa.ui'
+# Form implementation generated from reading ui file 'C:\Users\Desired\Desktop\ki2nam2\kithuatlaptrinh\DoAnKiThuatLaptrinh\KiThuatLapTrinhNhom3\Ui Qt\xac_nhan_xoa.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -23,9 +23,15 @@ class Ui_dlg_confirm_delete(object):
         self.container_frame = QtWidgets.QFrame(parent=dlg_confirm_delete)
         self.container_frame.setStyleSheet("\n"
 "       QFrame#container_frame {\n"
-"           background-color: #FFFFFF;\n"
-"           border-radius: 20px;\n"
-"       }\n"
+"       background-color: #FFFFFF;\n"
+"       border-radius: 30px;\n"
+"       border: 2px solid #E2E8F0; /* Thêm viền màu xám nhạt để tách nền */\n"
+"   }\n"
+"\n"
+"   /* Đảm bảo các widget con bên trong không bị dính cái viền 2px của cha */\n"
+"   QLabel, QPushButton, QFrame#container_frame > * {\n"
+"       border: none;\n"
+"   }\n"
 "      ")
         self.container_frame.setObjectName("container_frame")
         self.content_layout = QtWidgets.QVBoxLayout(self.container_frame)

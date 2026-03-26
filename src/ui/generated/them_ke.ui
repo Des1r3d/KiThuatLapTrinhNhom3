@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dlg_add_shelf</class>
+ <widget class="QDialog" name="dlg_add_shelf">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>420</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>450</width>
+    <height>420</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>450</width>
+    <height>420</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Thêm kệ mới</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QDialog { background-color: #FFFFFF; }
+    QLabel { color: #64748B; font-weight: normal; font-size: 13px; }
+    QLineEdit {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding-left: 12px;
+        color: #1E293B;
+        font-size: 14px;
+    }
+    QLineEdit:focus { border: 1px solid #2563EB; background-color: #FFFFFF; }
+   </string>
+  </property>
+  <widget class="QLabel" name="lbl_title">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>30</y>
+     <width>371</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font-size: 20px; color: #475569; font-weight: bold;</string>
+   </property>
+   <property name="text">
+    <string>Thêm kệ</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="Line" name="line_header">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>75</y>
+     <width>370</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>335</y>
+     <width>371</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="layout_actions">
+    <property name="spacing">
+     <number>15</number>
+    </property>
+    <item>
+     <spacer name="spacer_h">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btn_secondary">
+      <property name="minimumSize">
+       <size>
+        <width>110</width>
+        <height>48</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: #F1F5F9; color: #475569; border-radius: 10px; font-weight: bold;</string>
+      </property>
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btn_primary">
+      <property name="minimumSize">
+       <size>
+        <width>110</width>
+        <height>48</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: #2563EB; color: white; border-radius: 10px; font-weight: bold;</string>
+      </property>
+      <property name="text">
+       <string>Save</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>95</y>
+     <width>371</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="lbl_id">
+        <property name="text">
+         <string>Khu</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="txt_shelf_id">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>VD: K-A1</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="grid_row_col">
+      <property name="horizontalSpacing">
+       <number>20</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>12</number>
+      </property>
+      <item row="1" column="1">
+       <widget class="QLabel" name="lbl_row">
+        <property name="text">
+         <string>Dãy</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbl_col">
+        <property name="text">
+         <string>Cột</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLineEdit" name="txt_shelf_col">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>VD: 1, 2, 3...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="txt_shelf_row">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>VD: A, B, C</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="lbl_capacity">
+        <property name="text">
+         <string>Sức chứa</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="txt_shelf_capacity">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

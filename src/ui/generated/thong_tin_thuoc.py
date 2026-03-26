@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'thong_tin_thuoc.ui'
+# Form implementation generated from reading ui file 'C:\Users\Desired\Desktop\ki2nam2\kithuatlaptrinh\DoAnKiThuatLaptrinh\KiThuatLapTrinhNhom3\Ui Qt\thong_tin_thuoc.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -175,7 +175,7 @@ class Ui_dlg_medicine_detail(object):
         self.label_static_4.setText(_translate("dlg_medicine_detail", "Vị trí kệ:"))
         self.lbl_data_shelf.setText(_translate("dlg_medicine_detail", "K-A1"))
         self.lbl_section_price.setText(_translate("dlg_medicine_detail", "GIÁ"))
-        self.label_static_5.setText(_translate("dlg_medicine_detail", "Giá bán:"))
+        self.label_static_5.setText(_translate("dlg_medicine_detail", "Giá:"))
         self.lbl_data_price.setText(_translate("dlg_medicine_detail", "15.000đ"))
         self.lbl_section_stock.setText(_translate("dlg_medicine_detail", "THÔNG TIN KHO"))
         self.btn_primary.setText(_translate("dlg_medicine_detail", "Chỉnh sửa"))
