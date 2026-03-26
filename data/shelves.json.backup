@@ -1,12 +1,5 @@
 [
   {
-    "id": "K-A1",
-    "zone": "K",
-    "column": "A",
-    "row": "1",
-    "capacity": "60"
-  },
-  {
     "id": "K-A2",
     "zone": "K",
     "column": "A",
@@ -33,5 +26,33 @@
     "column": "A",
     "row": "3",
     "capacity": "12"
+  },
+  {
+    "id": "K-H1",
+    "zone": "K",
+    "column": "H",
+    "row": "1",
+    "capacity": "30"
+  },
+  {
+    "id": "K-H2",
+    "zone": "K",
+    "column": "H",
+    "row": "2",
+    "capacity": "50"
+  },
+  {
+    "id": "K-G1",
+    "zone": "K",
+    "column": "G",
+    "row": "1",
+    "capacity": "300"
+  },
+  {
+    "id": "K-G2",
+    "zone": "K",
+    "column": "G",
+    "row": "2",
+    "capacity": "300"
   }
 ]

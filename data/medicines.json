@@ -45,30 +45,12 @@
     "image_path": ""
   },
   {
-    "id": "K-H1.002",
-    "name": "Zinc 50mg",
-    "quantity": 25,
-    "expiry_date": "2026-03-27",
-    "shelf_id": "K-H1",
-    "price": 24000.0,
-    "image_path": ""
-  },
-  {
     "id": "K-H2.001",
     "name": "Fluconazole 150mg",
     "quantity": 18,
     "expiry_date": "2026-03-22",
     "shelf_id": "K-H2",
     "price": 50000.0,
-    "image_path": ""
-  },
-  {
-    "id": "K-H2.002",
-    "name": "Ketoconazole 200mg",
-    "quantity": 30,
-    "expiry_date": "2026-02-20",
-    "shelf_id": "K-H2",
-    "price": 47000.0,
     "image_path": ""
   },
   {
