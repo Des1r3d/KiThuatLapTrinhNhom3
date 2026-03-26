@@ -13,7 +13,7 @@ from datetime import date
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QHeaderView, QMenu,
-    QMessageBox, QLabel
+    QLabel
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QAction
@@ -355,42 +355,14 @@ class InventoryView(QWidget):
 
     def confirm_delete(self, medicine_id: str, medicine_name: str):
         """
-        Show confirmation dialog before deleting.
+        Phát tín hiệu xóa — hộp thoại xác nhận thực sự được hiển thị
+        bởi main_window.delete_medicine() (ConfirmDeleteDialog).
 
         Args:
-            medicine_id: ID of medicine to delete
-            medicine_name: Name of medicine for confirmation message
+            medicine_id: ID thuốc cần xóa
+            medicine_name: Tên thuốc (không dùng ở đây, giữ lại chữ ký)
         """
-        # Find medicine to check quantity
-        medicine = next(
-            (m for m in self.medicines if m.id == medicine_id),
-            None
-        )
-
-        if medicine and medicine.quantity > 0:
-            # Strong confirmation for medicines with stock
-            reply = QMessageBox.question(
-                self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}' "
-                f"hiện đang còn {medicine.quantity} đơn vị trong kho?\n\n"
-                "Thao tác này không thể hoàn tác.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-        else:
-            # Regular confirmation
-            reply = QMessageBox.question(
-                self,
-                "Xác nhận xóa",
-                f"Bạn có chắc chắn muốn xóa thuốc '{medicine_name}'?\n\n"
-                "Thao tác này không thể hoàn tác.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-
-        if reply == QMessageBox.StandardButton.Yes:
-            self.delete_requested.emit(medicine_id)
+        self.delete_requested.emit(medicine_id)
 
     def update_count_label(self):
         """Update the count label with current medicine count."""

@@ -126,6 +126,22 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="lbl_desc">
+        <property name="styleSheet">
+         <string notr="true">color: #94A3B8; font-size: 14px; border: none;</string>
+        </property>
+        <property name="text">
+         <string>Sản phẩm đã được loại bỏ khỏi hệ thống quản lý.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="lbl_code">
         <property name="styleSheet">
          <string notr="true">color: #94A3B8; font-size: 13px; border: none;</string>

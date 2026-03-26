@@ -18,24 +18,6 @@
     "image_path": ""
   },
   {
-    "id": "K-B1.001",
-    "name": "Vitamin C 1000mg",
-    "quantity": 0,
-    "expiry_date": "2026-12-31",
-    "shelf_id": "K-B1",
-    "price": 25000.0,
-    "image_path": ""
-  },
-  {
-    "id": "K-B2.001",
-    "name": "Cetirizine 10mg",
-    "quantity": 3,
-    "expiry_date": "2027-06-15",
-    "shelf_id": "K-B2",
-    "price": 18000.0,
-    "image_path": ""
-  },
-  {
     "id": "K-A2.002",
     "name": "hello",
     "quantity": 12,
