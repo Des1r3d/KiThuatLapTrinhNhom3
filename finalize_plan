@@ -1,0 +1,98 @@
+# Kiểm tra & Cập nhật [projectcharts.md](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/docs/projectcharts.md) + Đánh giá tách biệt UI/Logic
+
+## Mục tiêu
+1. Xác định mọi thông tin sai lệch trong [docs/projectcharts.md](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/docs/projectcharts.md) so với codebase thực tế
+2. Đánh giá mức độ tuân thủ nguyên tắc **UI/Logic tách biệt (không hardcode UI)**
+3. Cập nhật [projectcharts.md](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/docs/projectcharts.md) cho chính xác
+
+---
+
+## Kết quả kiểm tra chi tiết
+
+### A. Sai lệch trong [projectcharts.md](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/docs/projectcharts.md)
+
+#### Sơ đồ #5 — Cấu trúc tệp (SAI NGHIÊM TRỌNG)
+
+Tài liệu hiện liệt kê tất cả các file UI logic ([dashboard.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/views/dashboard.py), [inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/views/inventory_view.py), [shelf_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/views/shelf_view.py), [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/medicine_dialog.py), v.v.) dưới **`src/ui/`** — nhưng thực tế:
+
+| Tài liệu ghi | Thực tế |
+|---|---|
+| `src/ui/dashboard.py` | `src/views/dashboard.py` |
+| `src/ui/inventory_view.py` | `src/views/inventory_view.py` |
+| `src/ui/shelf_view.py` | `src/views/shelf_view.py` |
+| `src/ui/medicine_dialog.py` | `src/dialogs/medicine_dialog.py` |
+| `src/ui/shelf_dialog.py` | `src/dialogs/shelf_dialog.py` |
+| `src/ui/medicine_detail_view.py` | `src/dialogs/medicine_detail_view.py` |
+| `src/ui/filter_dialog.py` | `src/dialogs/filter_dialog.py` |
+| `src/ui/notification_dialogs.py` | `src/dialogs/notification_dialogs.py` |
+| `src/ui/theme.py` | `src/ui/theme/` (package, 7 files) |
+
+> [!CAUTION]
+> `src/ui/` thực tế chỉ chứa: `main_window.py`, `theme/` (package), `generated/`. KHÔNG chứa views hay dialogs.
+
+#### Sơ đồ #4 — Class Diagram (THIẾU)
+
+- **Thiếu `DashboardManager`**: Lớp `DashboardManager` (trong `src/dashboard_manager.py`) là trình xử lý dữ liệu trung tâm cho Dashboard — bao gồm `DashboardStats`, `PieChartData`, `BarChartData`, `ExpiryItem`, `LowStockItem`. Không xuất hiện trong class diagram.
+- **`Theme` không đầy đủ**: Class diagram chỉ ghi 4 methods, thực tế `Theme` có nhiều hơn (`get_color()`, `get_alert_colors()`, `get_stat_card_style()`, `get_badge_style()`, `set_mode()`, v.v.) và là package 7 files.
+
+#### Sơ đồ #1 — Kiến trúc (THIẾU)
+
+- Không có `DashboardManager` trong lớp Business Logic
+- Không phản ánh `src/views/` và `src/dialogs/` riêng biệt
+
+#### Sơ đồ #6 — Tương tác UI (OK)
+
+- Về cơ bản chính xác, đã có `MedicineDetailView` → `edit_requested` / `delete_requested`
+
+---
+
+### B. Đánh giá UI/Logic tách biệt
+
+#### ✅ Đạt yêu cầu (dùng generated UI)
+
+| File | Cách dùng |
+|---|---|
+| `src/ui/main_window.py` | Import `Ui_MainWindow` / `Ui_MainWindow_dark` từ `generated/` |
+| `src/dialogs/medicine_dialog.py` | Import `Ui_dlg_medicine_detail` từ `generated/them_thuoc.py` |
+| `src/dialogs/shelf_dialog.py` | Import `Ui_dlg_shelf` từ `generated/them_ke.py` |
+| `src/dialogs/filter_dialog.py` | Import từ `generated/loc_thuoc.py` |
+| `src/dialogs/notification_dialogs.py` | Import từ `generated/xoa_thanh_cong.py`, `them_thanh_cong.py`, v.v. |
+| `src/dialogs/medicine_detail_view.py` | Import từ `generated/thong_tin_thuoc.py` |
+
+#### ⚠️ Chưa đạt (hardcode UI trong code)
+
+| File | Vấn đề |
+|---|---|
+| `src/views/dashboard.py` (552 dòng) | Xây dựng **toàn bộ** UI bằng code: tạo `QLabel`, `QFrame`, `QVBoxLayout`, `QHBoxLayout`, `QTableWidget`, `setStyleSheet()`, gọi `Theme.get_stat_card_style()` — KHÔNG dùng generated UI class nào |
+| `src/views/inventory_view.py` (461 dòng) | Xây dựng toàn bộ table, header, buttons bằng code. Tuy nhiên, **styling đúng**: dùng `Theme` tokens thay vì hardcode màu trực tiếp |
+| `src/views/shelf_view.py` (230~ dòng) | Tương tự `inventory_view.py` — xây UI bằng code, dùng `Theme` tokens |
+
+> [!IMPORTANT]
+> **`dashboard.py`** là file vi phạm nặng nhất: 552 dòng code hỗn hợp UI+rendering, dùng `setStyleSheet()` inline. Tuy nhiên, logic dữ liệu đã được tách sang `DashboardManager` (302 dòng) — đây là điểm tích cực.
+>
+> **`inventory_view.py`** và **`shelf_view.py`**: Dù xây UI bằng code, nhưng styling **đi qua `Theme`** tokens, không hardcode trực tiếp. Đây là mức chấp nhận được vì Qt chưa có generated UI tương ứng cho table views phức tạp.
+
+---
+
+## Proposed Changes
+
+### [MODIFY] [projectcharts.md](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/docs/projectcharts.md)
+
+Cập nhật 4 sơ đồ:
+
+1. **Sơ đồ #1 (Kiến trúc)**: Thêm `DashboardManager` vào lớp Business Logic. Tách `Views` và `Dialogs` riêng biệt trong UI Layer.
+
+2. **Sơ đồ #4 (Class Diagram)**: Thêm class `DashboardManager` với các dataclass phụ trợ (`DashboardStats`, `PieChartData`, `BarChartData`). Cập nhật `Theme` class.
+
+3. **Sơ đồ #5 (Cấu trúc tệp)**: Sửa hoàn toàn — tách `src/views/`, `src/dialogs/`, `src/ui/` đúng thực tế. Thêm `src/dashboard_manager.py`. Hiển thị `theme/` là package (7 files).
+
+4. **Mục giải thích**: Cập nhật lại text mô tả cho đúng kiến trúc thực tế.
+
+---
+
+## Verification Plan
+
+### Manual Verification
+- Mở file `docs/projectcharts.md` trong VS Code Markdown preview để xác nhận tất cả Mermaid diagrams render đúng
+- So sánh trực quan cây thư mục trong diagram #5 với kết quả `tree src/` thực tế
+

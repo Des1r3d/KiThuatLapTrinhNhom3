@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "K-B1.001",
+    "name": "a",
+    "quantity": 2,
+    "expiry_date": "2027-01-01",
+    "shelf_id": "K-B1",
+    "price": 2.0,
+    "image_path": ""
+  }
+]

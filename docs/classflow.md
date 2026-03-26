@@ -472,118 +472,120 @@ KẾT THÚC
 
 ### 6.2 Luồng Dashboard
 
-> **Vị trí:** `src/ui/views/dashboard.py`
+> **Vị trí:** `src/views/dashboard.py`
+> **Generated UI:** `src/ui/generated/dashboard_ui.py` (từ `Ui Qt/dashboard.ui`)
 
 #### Mục đích
 Hiển thị số liệu thống kê tổng quan và biểu đồ bằng Matplotlib.
+Sử dụng `Ui_DashboardWidget` (generated) cho layout — chỉ chứa mã render, logic nằm ở `DashboardManager`.
+
+#### Kiến trúc UI
+- **4 KPI Card Frames**: `card_total`, `card_expiring`, `card_expired`, `card_low_stock`
+  - Mỗi card: `lbl_*_title`, `lbl_*_value`, `lbl_*_subtitle` (defined in .ui)
+  - Styling: `Theme.get_stat_card_style()` áp dụng runtime
+- **2 Chart Placeholders**: `widget_pie_placeholder`, `widget_bar_placeholder` (QWidget)
+  - Được thay thế bằng `FigureCanvasQTAgg` tại runtime
+- **2 Alert Tables**: `tbl_expiry` (3 cột), `tbl_stock` (3 cột)
 
 #### Luồng khởi tạo
 ```
 BẮT ĐẦU
   ↓
-Tạo widget Dashboard
+Tạo Ui_DashboardWidget() → setupUi(self)
   ↓
-Lấy dữ liệu từ InventoryManager
+Thay thế widget_pie_placeholder bằng FigureCanvasQTAgg
   ↓
-Tạo FigureCanvasQTAgg (canvas Matplotlib)
+Thay thế widget_bar_placeholder bằng FigureCanvasQTAgg
   ↓
-Tạo biểu đồ:
-  - Biểu đồ tròn: Phân bổ hạn sử dụng
-  - Biểu đồ cột: Top 10 thuốc theo số lượng
+Cấu hình table headers (Stretch + ResizeToContents)
   ↓
-Nhúng canvas vào QVBoxLayout
+Áp dụng card stylesheet: Theme.get_stat_card_style(card_type)
   ↓
-Thêm nút làm mới → Tải lại biểu đồ
+Đặt objectName cho chart/alert frames (cho theme CSS)
+  ↓
+Gọi _apply_theme()
   ↓
 KẾT THÚC
 ```
 
-#### Luồng tạo biểu đồ
+#### Luồng tải dữ liệu (load_data)
 ```
-Lấy danh sách thuốc từ InventoryManager
+Nhận danh sách medicines từ MainWindow
   ↓
-Phân loại:
-  - Hết hạn (days_until_expiry < 0)
-  - Sắp hết hạn (0 <= days <= 30)
-  - Bình thường (days > 30)
+Ủy quyền cho DashboardManager:
+  - get_statistics() → DashboardStats
+  - get_pie_chart_data() → PieChartData
+  - get_bar_chart_data() → BarChartData
+  - get_expiring_medicines() → List[ExpiryItem]
+  - get_low_stock_medicines() → List[LowStockItem]
   ↓
-Tạo Figure Matplotlib
+Render KPI cards (_render_statistics)
   ↓
-Thêm subplot: Biểu đồ tròn
-  - Dữ liệu: [số_hết_hạn, số_sắp_hết, số_bình_thường]
-  - Nhãn: ["Hết hạn", "Sắp hết hạn", "Bình thường"]
-  - Màu: [đỏ, vàng, xanh]
+Render biểu đồ tròn (_render_pie_chart)
   ↓
-Thêm subplot: Biểu đồ cột
-  - Sắp xếp thuốc theo số lượng (giảm dần)
-  - Lấy top 10
-  - Trục X: Tên thuốc
-  - Trục Y: Số lượng
+Render biểu đồ cột (_render_bar_chart)
   ↓
-canvas.draw()
+Render bảng cảnh báo hết hạn (_render_expiry_table)
+  ↓
+Render bảng tồn kho thấp (_render_stock_table)
   ↓
 KẾT THÚC
 ```
 
 ### 6.3 Luồng InventoryView
 
-> **Vị trí:** `src/ui/views/inventory_view.py`
+> **Vị trí:** `src/views/inventory_view.py`
+> **Generated UI:** `src/ui/generated/inventory_view_ui.py` (từ `Ui Qt/inventory_view.ui`)
 
 #### Mục đích
-Hiển thị thuốc trong bảng có thể sắp xếp/lọc.
+Hiển thị thuốc trong bảng có thể sắp xếp/lọc. Sử dụng `Ui_InventoryView` (generated) cho layout.
+
+#### Widgets (defined trong .ui)
+- `lbl_title`, `btn_add`, `btn_filter`, `btn_clear_filter`, `lbl_count`
+- `tbl_medicines`: QTableWidget 7 cột (ID, TÊN THUỐC, SỐ LƯỢNG, HSD, KỆ, GIÁ, TRẠNG THÁI)
 
 #### Luồng khởi tạo
 ```
 BẮT ĐẦU
   ↓
-Tạo QTableView
+Tạo Ui_InventoryView() → setupUi(self)
   ↓
-Tạo QAbstractTableModel tùy chỉnh
+Cấu hình column resize modes (Stretch cho cột Tên)
   ↓
-Tải thuốc từ InventoryManager
-  ↓
-Thiết lập cột:
-  - Tên, Số lượng, Hạn dùng, Kệ, Trạng thái
-  ↓
-Bật sắp xếp
-  ↓
-Thiết lập mã màu:
-  - Đỏ nếu hết hạn
-  - Vàng nếu sắp hết hạn
-  - Xanh nếu bình thường
+Đặt row height = 42px
   ↓
 Kết nối tín hiệu:
-  - Double-click → Xem chi tiết thuốc
-  - Chuột phải → Menu ngữ cảnh (Sửa/Xóa)
+  - btn_add.clicked → add_requested signal
+  - btn_filter.clicked → filter_requested signal
+  - btn_clear_filter.clicked → clear_filters()
+  - tbl_medicines.itemDoubleClicked → detail_requested signal
+  - tbl_medicines.customContextMenuRequested → show_context_menu()
   ↓
 KẾT THÚC
 ```
 
 #### Luồng cập nhật dữ liệu
 ```
-InventoryManager phát tín hiệu (thuốc thêm/sửa/xóa)
+MainWindow gọi load_medicines(medicines)
   ↓
-InventoryView nhận tín hiệu
+Áp dụng bộ lọc hiện tại (nếu có)
   ↓
-Tải lại dữ liệu từ InventoryManager.medicines
+Xóa bảng, thêm từng hàng:
+  - Status badge (pill shape) với mã màu từ Theme.get_alert_colors()
+  - Hàng nào có trạng thái danger/warning → text color toàn hàng
   ↓
-Gọi model.layoutChanged()
-  ↓
-QTableView làm mới hiển thị
-  ↓
-Áp dụng lại sắp xếp/lọc
-  ↓
-Cập nhật thanh trạng thái (tổng số)
+Cập nhật lbl_count (hiện tổng/lọc)
   ↓
 KẾT THÚC
 ```
 
 ### 6.4 Luồng Hộp Thoại Thêm/Sửa
 
-> **Vị trí:** `src/ui/dialogs/medicine_dialog.py`
+> **Vị trí:** `src/dialogs/medicine_dialog.py`
+> **Generated UI:** `src/ui/generated/them_thuoc.py` (từ `Ui Qt/them_thuoc.ui`)
 
 #### Mục đích
-Form để tạo/chỉnh sửa mục thuốc.
+Form để tạo/chỉnh sửa mục thuốc. Sử dụng `Ui_dlg_medicine_detail` (generated) cho layout.
 
 #### Luồng khởi tạo
 ```
@@ -591,7 +593,9 @@ BẮT ĐẦU
   ↓
 Tạo QDialog
   ↓
-Tạo các trường form:
+Chọn UI class theo theme (light/dark)
+  ↓
+SetupUi → Các trường form:
   - QLineEdit: Tên, Hoạt chất, Giá
   - QSpinBox: Số lượng
   - QDateEdit: Hạn sử dụng
@@ -599,11 +603,6 @@ Tạo các trường form:
   ↓
 Nếu chế độ SỬA:
   - Điền sẵn dữ liệu thuốc hiện tại
-  ↓
-Kết nối kiểm tra:
-  - Số lượng >= 0
-  - Giá >= 0
-  - Ngày hợp lệ
   ↓
 Kết nối nút:
   - Lưu → validate_and_save()
@@ -642,6 +641,7 @@ KẾT THÚC
 ### 6.5 Luồng Modal Tìm Kiếm Toàn Cục
 
 > **Vị trí:** `src/ui/main_window.py` (SearchDialog nội tuyến)
+> **Generated UI:** `src/ui/generated/search.py` (từ `Ui Qt/search.ui`)
 
 #### Mục đích
 Tìm kiếm nhanh qua phím tắt Ctrl+K.
@@ -668,6 +668,47 @@ Chuyển đến InventoryView
 Đánh dấu thuốc đã chọn trong bảng
   ↓
 Đóng modal
+  ↓
+KẾT THÚC
+```
+
+### 6.6 Luồng ShelfView
+
+> **Vị trí:** `src/views/shelf_view.py`
+> **Generated UI:** `src/ui/generated/shelf_view_ui.py` (từ `Ui Qt/shelf_view.ui`)
+
+#### Mục đích
+Hiển thị và quản lý kệ thuốc. Sử dụng `Ui_ShelfView` (generated) cho layout.
+
+#### Widgets (defined trong .ui)
+- `lbl_title`, `btn_add`, `lbl_count`
+- `tbl_shelves`: QTableWidget 6 cột (ID Kệ, Dãy, Cột, Sức chứa, Đã dùng, Còn lại)
+
+#### Luồng khởi tạo
+```
+BẮT ĐẦU
+  ↓
+Tạo Ui_ShelfView() → setupUi(self)
+  ↓
+Cấu hình column resize modes
+  ↓
+Kết nối tín hiệu:
+  - btn_add.clicked → add_requested signal
+  - tbl_shelves.itemDoubleClicked → edit_requested signal
+  - tbl_shelves.customContextMenuRequested → show_context_menu()
+  ↓
+KẾT THÚC
+```
+
+#### Luồng tải dữ liệu
+```
+MainWindow gọi load_shelves(shelves, medicines_per_shelf)
+  ↓
+Xóa bảng, thêm từng hàng:
+  - Cột "Còn lại" = capacity - used
+  - Mã màu: đỏ nếu ≤ 0, cam nếu ≤ 20% capacity
+  ↓
+Cập nhật lbl_count
   ↓
 KẾT THÚC
 ```
@@ -993,18 +1034,19 @@ src/
 │   └── LowStockItem (dataclass)
 │
 ├── views/                            # ⚠️ Nằm trong src/, import: from src.views.xxx
-│   ├── dashboard.py                  # Dashboard (CHỈ render, logic ở DashboardManager)
-│   ├── inventory_view.py             # Bảng danh sách thuốc
-│   └── shelf_view.py                 # Quản lý kệ
+│   ├── dashboard.py                  # Dashboard (dùng Ui_DashboardWidget generated)
+│   ├── inventory_view.py             # Bảng thuốc (dùng Ui_InventoryView generated)
+│   └── shelf_view.py                 # Quản lý kệ (dùng Ui_ShelfView generated)
 │
 ├── dialogs/                          # ⚠️ Nằm trong src/, import: from src.dialogs.xxx
-│   ├── medicine_dialog.py            # Thêm/Sửa thuốc
-│   ├── shelf_dialog.py               # Thêm/Sửa kệ
-│   ├── filter_dialog.py              # Lọc thuốc
+│   ├── medicine_dialog.py            # Thêm/Sửa thuốc (dùng Ui_dlg_medicine_detail)
+│   ├── shelf_dialog.py               # Thêm/Sửa kệ (dùng Ui_dlg_shelf)
+│   ├── filter_dialog.py              # Lọc thuốc (dùng Ui_dlg_filter)
 │   ├── medicine_detail_view.py       # Xem chi tiết thuốc
 │   └── notification_dialogs.py       # Thông báo thành công/lỗi
 │
 └── ui/
+    ├── __init__.py               # Lazy imports (__getattr__) — tránh circular import
     ├── main_window.py
     │   ├── MainWindow
     │   └── SearchDialog
@@ -1021,6 +1063,9 @@ src/
     │
     └── generated/                # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
         ├── main_window_ui.py / main_window_ui_dark.py
+        ├── dashboard_ui.py               # ← MỚI (từ dashboard.ui)
+        ├── inventory_view_ui.py          # ← MỚI (từ inventory_view.ui)
+        ├── shelf_view_ui.py              # ← MỚI (từ shelf_view.ui)
         ├── them_thuoc.py / them_thuoc_dark.py
         ├── them_ke.py / them_ke_dark.py
         ├── loc_thuoc.py / loc_thuoc_dark.py

@@ -1,6 +1,7 @@
 """
 Shelf View — PHARMA.SYS Shelf Management Table.
 
+Uses Qt Designer-generated UI from shelf_view_ui.py for layout.
 Features:
 - Table displaying all shelves with columns:
   ID, Dãy, Cột, Sức chứa, Đã dùng, Còn lại
@@ -12,20 +13,21 @@ Features:
 from typing import List, Optional
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton, QHeaderView, QMenu,
-    QMessageBox, QLabel
+    QWidget, QTableWidgetItem, QMenu, QHeaderView,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QAction
 
 from src.models import Shelf
 from src.ui.theme import Theme
+from src.ui.generated.shelf_view_ui import Ui_ShelfView
 
 
 class ShelfView(QWidget):
     """
     Widget for displaying and managing shelves in a table.
+
+    Uses Ui_ShelfView from shelf_view_ui.py for layout.
 
     Features:
     - Table with shelf info and capacity usage
@@ -60,60 +62,12 @@ class ShelfView(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        """Setup shelf table UI components."""
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(12)
+        """Setup shelf table UI using Qt Designer generated class."""
+        self.ui = Ui_ShelfView()
+        self.ui.setupUi(self)
 
-        # Header
-        header_layout = QHBoxLayout()
-
-        title_label = QLabel("Quản lý kệ thuốc")
-        title_font = QFont()
-        title_font.setPointSize(Theme.FONT_SIZE_H2)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        header_layout.addWidget(title_label)
-
-        header_layout.addStretch()
-
-        # Add shelf button
-        self.add_button = QPushButton("+ Thêm kệ")
-        self.add_button.setFixedWidth(130)
-        self.add_button.clicked.connect(lambda: self.add_requested.emit())
-        header_layout.addWidget(self.add_button)
-
-        # Count label
-        self.count_label = QLabel("0 kệ")
-        self.count_label.setProperty("secondary", True)
-        header_layout.addWidget(self.count_label)
-
-        layout.addLayout(header_layout)
-
-        # Table
-        self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels([
-            "ID Kệ", "Dãy", "Cột", "Sức chứa", "Đã dùng", "Còn lại"
-        ])
-
-        # Table properties
-        self.table.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        self.table.setSelectionMode(
-            QTableWidget.SelectionMode.SingleSelection
-        )
-        self.table.setAlternatingRowColors(True)
-        self.table.setSortingEnabled(True)
-        self.table.verticalHeader().setVisible(False)
-        self.table.setShowGrid(False)
-        self.table.setEditTriggers(
-            QTableWidget.EditTrigger.NoEditTriggers
-        )
-
-        # Column widths
-        header = self.table.horizontalHeader()
+        # Configure column widths (not in .ui)
+        header = self.ui.tbl_shelves.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
@@ -122,20 +76,17 @@ class ShelfView(QWidget):
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
         # Row height
-        self.table.verticalHeader().setDefaultSectionSize(42)
+        self.ui.tbl_shelves.verticalHeader().setDefaultSectionSize(42)
 
         # Connect signals
-        self.table.itemDoubleClicked.connect(self.on_item_double_clicked)
-        self.table.setContextMenuPolicy(
+        self.ui.btn_add.clicked.connect(lambda: self.add_requested.emit())
+        self.ui.tbl_shelves.itemDoubleClicked.connect(self.on_item_double_clicked)
+        self.ui.tbl_shelves.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu
         )
-        self.table.customContextMenuRequested.connect(
+        self.ui.tbl_shelves.customContextMenuRequested.connect(
             self.show_context_menu
         )
-
-        layout.addWidget(self.table)
-
-        self.setLayout(layout)
 
     def load_shelves(
         self,
@@ -152,14 +103,14 @@ class ShelfView(QWidget):
         self.shelves = shelves
         self._medicines_per_shelf = medicines_per_shelf or {}
 
-        self.table.setSortingEnabled(False)
-        self.table.setRowCount(0)
+        self.ui.tbl_shelves.setSortingEnabled(False)
+        self.ui.tbl_shelves.setRowCount(0)
 
         for shelf in self.shelves:
             self.add_shelf_row(shelf)
 
-        self.table.setSortingEnabled(True)
-        self.count_label.setText(f"{len(shelves)} kệ")
+        self.ui.tbl_shelves.setSortingEnabled(True)
+        self.ui.lbl_count.setText(f"{len(shelves)} kệ")
 
     def add_shelf_row(self, shelf: Shelf):
         """
@@ -168,25 +119,25 @@ class ShelfView(QWidget):
         Args:
             shelf: Shelf object to add
         """
-        row = self.table.rowCount()
-        self.table.insertRow(row)
+        row = self.ui.tbl_shelves.rowCount()
+        self.ui.tbl_shelves.insertRow(row)
 
         # ID
         id_item = QTableWidgetItem(shelf.id)
         id_item.setFlags(id_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 0, id_item)
+        self.ui.tbl_shelves.setItem(row, 0, id_item)
 
         # Column (Dãy - letter)
         col_item = QTableWidgetItem(shelf.column)
         col_item.setFlags(col_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         col_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 1, col_item)
+        self.ui.tbl_shelves.setItem(row, 1, col_item)
 
         # Row (Cột - number)
         row_item = QTableWidgetItem(shelf.row)
         row_item.setFlags(row_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         row_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 2, row_item)
+        self.ui.tbl_shelves.setItem(row, 2, row_item)
 
         # Capacity
         try:
@@ -197,7 +148,7 @@ class ShelfView(QWidget):
         cap_item.setData(Qt.ItemDataRole.UserRole, cap)
         cap_item.setFlags(cap_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         cap_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 3, cap_item)
+        self.ui.tbl_shelves.setItem(row, 3, cap_item)
 
         # Used
         used = self._medicines_per_shelf.get(shelf.id, 0)
@@ -205,7 +156,7 @@ class ShelfView(QWidget):
         used_item.setData(Qt.ItemDataRole.UserRole, used)
         used_item.setFlags(used_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         used_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 4, used_item)
+        self.ui.tbl_shelves.setItem(row, 4, used_item)
 
         # Remaining
         remaining = cap - used
@@ -226,12 +177,12 @@ class ShelfView(QWidget):
             rem_font.setBold(True)
             rem_item.setFont(rem_font)
 
-        self.table.setItem(row, 5, rem_item)
+        self.ui.tbl_shelves.setItem(row, 5, rem_item)
 
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item."""
         row = item.row()
-        shelf_id = self.table.item(row, 0).text()
+        shelf_id = self.ui.tbl_shelves.item(row, 0).text()
         self.edit_requested.emit(shelf_id)
 
     def show_context_menu(self, position):
@@ -241,12 +192,12 @@ class ShelfView(QWidget):
         Args:
             position: Position where menu was requested
         """
-        item = self.table.itemAt(position)
+        item = self.ui.tbl_shelves.itemAt(position)
         if not item:
             return
 
         row = item.row()
-        shelf_id = self.table.item(row, 0).text()
+        shelf_id = self.ui.tbl_shelves.item(row, 0).text()
 
         menu = QMenu(self)
 
@@ -264,7 +215,7 @@ class ShelfView(QWidget):
         )
         menu.addAction(delete_action)
 
-        menu.exec(self.table.viewport().mapToGlobal(position))
+        menu.exec(self.ui.tbl_shelves.viewport().mapToGlobal(position))
 
     def get_selected_shelf_id(self) -> Optional[str]:
         """
@@ -273,7 +224,7 @@ class ShelfView(QWidget):
         Returns:
             Shelf ID if a row is selected, None otherwise
         """
-        current_row = self.table.currentRow()
+        current_row = self.ui.tbl_shelves.currentRow()
         if current_row >= 0:
-            return self.table.item(current_row, 0).text()
+            return self.ui.tbl_shelves.item(current_row, 0).text()
         return None
