@@ -1,10 +1,10 @@
 """
-Storage engine for atomic JSON file operations.
+Công cụ lưu trữ cho thao tác file JSON nguyên tử.
 
-This module handles reading and writing JSON files with:
-- Atomic writes (temp file -> rename) to prevent corruption
-- Backup/restore mechanism for data safety
-- Error handling for corrupted files
+Module này xử lý đọc và ghi file JSON với:
+- Ghi nguyên tử (file tạm -> đổi tên) để tránh hỏng dữ liệu
+- Cơ chế sao lưu/phục hồi để bảo vệ dữ liệu
+- Xử lý lỗi cho file bị hỏng
 """
 import json
 import os
@@ -15,113 +15,113 @@ from typing import Dict, Any
 
 class StorageEngine:
     """
-    Handles atomic JSON read/write operations with backup mechanism.
+    Xử lý thao tác đọc/ghi JSON nguyên tử với cơ chế sao lưu.
 
-    Flow for write_json():
-        1. Create backup of existing file (if exists)
-        2. Write data to temporary file (.tmp)
-        3. Rename temporary file to target filename (atomic operation)
-        4. Keep backup for recovery
+    Luồng write_json():
+        1. Tạo bản sao lưu file hiện tại (nếu có)
+        2. Ghi dữ liệu vào file tạm (.tmp)
+        3. Đổi tên file tạm thành tên file đích (thao tác nguyên tử)
+        4. Giữ bản sao lưu để phục hồi
 
-    Flow for read_json():
-        1. Check if file exists
-        2. Try to load JSON from file
-        3. If corrupted, attempt to restore from backup
-        4. Return parsed data or raise appropriate error
+    Luồng read_json():
+        1. Kiểm tra file tồn tại
+        2. Thử tải JSON từ file
+        3. Nếu bị hỏng, cố gắng phục hồi từ bản sao lưu
+        4. Trả về dữ liệu đã phân tích hoặc ném lỗi phù hợp
     """
 
     def write_json(self, filepath: str, data: Dict[str, Any]) -> None:
         """
-        Write data to JSON file using atomic write operation.
+        Ghi dữ liệu vào file JSON bằng thao tác ghi nguyên tử.
 
-        Args:
-            filepath: Path to JSON file
-            data: Dictionary to serialize
+        Tham số:
+            filepath: Đường dẫn tới file JSON
+            data: Dictionary để tuần tự hóa
 
-        Raises:
-            IOError: If write operation fails
-            OSError: If file operations fail
+        Ngoại lệ:
+            IOError: Nếu thao tác ghi thất bại
+            OSError: Nếu thao tác file thất bại
         """
         filepath_obj = Path(filepath)
         backup_path = Path(f"{filepath}.backup")
         temp_path = Path(f"{filepath}.tmp")
 
-        # Create parent directories if they don't exist
+        # Tạo thư mục cha nếu chưa tồn tại
         filepath_obj.parent.mkdir(parents=True, exist_ok=True)
 
-        # Step 1: Create backup of existing file
+        # Bước 1: Tạo bản sao lưu file hiện tại
         if filepath_obj.exists():
             shutil.copy2(filepath_obj, backup_path)
 
         try:
-            # Step 2: Write to temporary file
+            # Bước 2: Ghi vào file tạm
             with open(temp_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
-            # Step 3: Atomic rename
-            # On Windows, need to remove target first if it exists
+            # Bước 3: Đổi tên nguyên tử
+            # Trên Windows, cần xóa file đích trước nếu tồn tại
             if os.name == 'nt' and filepath_obj.exists():
                 filepath_obj.unlink()
 
             temp_path.rename(filepath_obj)
 
         except Exception as e:
-            # Restore from backup if write failed
+            # Phục hồi từ bản sao lưu nếu ghi thất bại
             if backup_path.exists() and not filepath_obj.exists():
                 shutil.copy2(backup_path, filepath_obj)
 
-            # Clean up temp file if it exists
+            # Dọn dẹp file tạm nếu tồn tại
             if temp_path.exists():
                 temp_path.unlink()
 
-            raise IOError(f"Failed to write JSON file {filepath}: {str(e)}") from e
+            raise IOError(f"Ghi file JSON thất bại {filepath}: {str(e)}") from e
 
     def read_json(self, filepath: str) -> Dict[str, Any]:
         """
-        Read data from JSON file with automatic backup recovery.
+        Đọc dữ liệu từ file JSON với phục hồi tự động từ bản sao lưu.
 
-        If the main file is corrupted, attempts to restore from backup.
+        Nếu file chính bị hỏng, cố gắng phục hồi từ bản sao lưu.
 
-        Args:
-            filepath: Path to JSON file
+        Tham số:
+            filepath: Đường dẫn tới file JSON
 
-        Returns:
-            Dictionary with loaded data
+        Trả về:
+            Dictionary với dữ liệu đã tải
 
-        Raises:
-            FileNotFoundError: If file doesn't exist and no backup found
-            json.JSONDecodeError: If JSON is malformed and no backup found
+        Ngoại lệ:
+            FileNotFoundError: Nếu file không tồn tại và không có bản sao lưu
+            json.JSONDecodeError: Nếu JSON bị lỗi và không có bản sao lưu
         """
         filepath_obj = Path(filepath)
         backup_path = Path(f"{filepath}.backup")
 
-        # Check if file exists
+        # Kiểm tra file tồn tại
         if not filepath_obj.exists():
-            raise FileNotFoundError(f"File not found: {filepath}")
+            raise FileNotFoundError(f"Không tìm thấy file: {filepath}")
 
         try:
-            # Try to read main file
+            # Thử đọc file chính
             with open(filepath_obj, 'r', encoding='utf-8') as f:
                 return json.load(f)
 
         except json.JSONDecodeError as e:
-            # Main file is corrupted, try backup
+            # File chính bị hỏng, thử bản sao lưu
             if backup_path.exists():
                 try:
                     with open(backup_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
 
-                    # Restore from backup
+                    # Phục hồi từ bản sao lưu
                     shutil.copy2(backup_path, filepath_obj)
                     return data
 
                 except json.JSONDecodeError:
-                    # Backup is also corrupted
+                    # Bản sao lưu cũng bị hỏng
                     raise json.JSONDecodeError(
-                        f"Both main file and backup are corrupted: {filepath}",
+                        f"Cả file chính và bản sao lưu đều bị hỏng: {filepath}",
                         e.doc,
                         e.pos
                     ) from e
             else:
-                # No backup available
+                # Không có bản sao lưu
                 raise

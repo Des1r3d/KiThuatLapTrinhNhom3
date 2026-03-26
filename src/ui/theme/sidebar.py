@@ -1,0 +1,10 @@
+"""
+Hằng số cấu hình sidebar (cố định cho CẢ HAI chế độ, từ Qt_designer).
+"""
+
+SIDEBAR_BG = '#1C2944'
+SIDEBAR_TEXT = '#FFFFFF'
+SIDEBAR_ICON_INACTIVE = '#FFFFFF'
+SIDEBAR_ACTIVE = '#1E40AF'
+SIDEBAR_ACTIVE_ACCENT = '#6CC1FC'
+SIDEBAR_LOGO_ACCENT = '#3B82F6'

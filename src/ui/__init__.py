@@ -1,27 +1,27 @@
 """
-UI package for Pharmacy Management System.
+Package UI cho Hệ Thống Quản Lý Kho Thuốc.
 
-This package contains all PyQt6 UI components:
-- MainWindow: Main application window
-- InventoryView: Medicine table view
-- MedicineDialog: Add/Edit medicine dialog
-- ShelfDialog: Add/Edit shelf dialog
-- MedicineDetailView: Read-only medicine detail view
-- FilterMedicineDialog: Medicine filter dialog
-- Dashboard: Statistics and charts
-- Theme: Color system and styling
-- Notification dialogs: Success/Error/Confirm dialogs
+Package này chứa tất cả thành phần giao diện PyQt6:
+- MainWindow: Cửa sổ ứng dụng chính
+- InventoryView: Bảng danh sách thuốc
+- MedicineDialog: Hộp thoại Thêm/Sửa thuốc
+- ShelfDialog: Hộp thoại Thêm/Sửa kệ
+- MedicineDetailView: Xem chi tiết thuốc (chỉ đọc)
+- FilterMedicineDialog: Hộp thoại lọc thuốc
+- Dashboard: Thống kê và biểu đồ
+- Theme: Hệ thống màu và kiểu dáng
+- Hộp thoại thông báo: Thành công/Lỗi/Xác nhận
 """
 
 from src.ui.main_window import MainWindow
-from src.ui.inventory_view import InventoryView
-from src.ui.medicine_dialog import MedicineDialog
-from src.ui.shelf_dialog import ShelfDialog
-from src.ui.medicine_detail_view import MedicineDetailView
-from src.ui.filter_dialog import FilterMedicineDialog
-from src.ui.dashboard import Dashboard
+from src.ui.views.inventory_view import InventoryView
+from src.ui.dialogs.medicine_dialog import MedicineDialog
+from src.ui.dialogs.shelf_dialog import ShelfDialog
+from src.ui.dialogs.medicine_detail_view import MedicineDetailView
+from src.ui.dialogs.filter_dialog import FilterMedicineDialog
+from src.ui.views.dashboard import Dashboard
 from src.ui.theme import Theme, ThemeMode
-from src.ui.notification_dialogs import (
+from src.ui.dialogs.notification_dialogs import (
     AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )

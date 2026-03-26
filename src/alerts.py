@@ -1,9 +1,9 @@
 """
-Alert System for Pharmacy Management System.
+Hệ thống Cảnh báo cho Hệ Thống Quản Lý Kho Thuốc.
 
-This module provides monitoring for:
-- Expiring medicines (within configurable threshold)
-- Low stock medicines (below configurable threshold)
+Module này cung cấp giám sát cho:
+- Thuốc sắp hết hạn (trong ngưỡng có thể cấu hình)
+- Thuốc tồn kho thấp (dưới ngưỡng có thể cấu hình)
 """
 from datetime import date
 from typing import List, Tuple
@@ -14,7 +14,7 @@ from src.models import Medicine
 
 
 class AlertType(Enum):
-    """Types of alerts in the system."""
+    """Các loại cảnh báo trong hệ thống."""
     EXPIRED = "expired"
     EXPIRING_SOON = "expiring_soon"
     LOW_STOCK = "low_stock"
@@ -24,39 +24,39 @@ class AlertType(Enum):
 @dataclass
 class Alert:
     """
-    Represents an alert for a medicine.
+    Đại diện một cảnh báo cho thuốc.
     
-    Attributes:
-        medicine: The medicine associated with the alert
-        alert_type: Type of the alert
-        message: Human-readable alert message
-        severity: Severity level (1=low, 3=high)
+    Thuộc tính:
+        medicine: Thuốc liên quan đến cảnh báo
+        alert_type: Loại cảnh báo
+        message: Thông báo cảnh báo dễ đọc
+        severity: Mức độ nghiêm trọng (1=thấp, 3=cao)
     """
     medicine: Medicine
     alert_type: AlertType
     message: str
-    severity: int  # 1 = low, 2 = medium, 3 = high
+    severity: int  # 1 = thấp, 2 = trung bình, 3 = cao
 
     '''
-    Checks for:
-        - Expired medicines (severity: 3)
-        - Expiring soon (severity: 2)
-        - Out of stock (severity: 3)
-        - Low stock (severity: 1)
+    Kiểm tra:
+        - Thuốc hết hạn (mức độ: 3)
+        - Sắp hết hạn (mức độ: 2)
+        - Hết hàng (mức độ: 3)
+        - Tồn kho thấp (mức độ: 1)
     '''
 class AlertSystem:
     """
-    System for monitoring inventory and generating alerts.
+    Hệ thống giám sát kho và tạo cảnh báo.
     
-    Monitors for:
-    - Expired medicines
-    - Medicines expiring within threshold
-    - Low stock items
-    - Out of stock items
+    Giám sát:
+    - Thuốc đã hết hạn
+    - Thuốc sắp hết hạn trong ngưỡng
+    - Tồn kho thấp
+    - Hết hàng
     
-    Attributes:
-        expiry_threshold: Days before expiry to trigger alert (default: 30)
-        low_stock_threshold: Quantity threshold for low stock (default: 5)
+    Thuộc tính:
+        expiry_threshold: Số ngày trước hạn để kích hoạt cảnh báo (mặc định: 30)
+        low_stock_threshold: Ngưỡng số lượng cho tồn kho thấp (mặc định: 5)
     """
     
     def __init__(
@@ -65,111 +65,111 @@ class AlertSystem:
         low_stock_threshold: int = 5
     ):
         """
-        Initialize AlertSystem with thresholds.
+        Khởi tạo AlertSystem với các ngưỡng.
         
-        Args:
-            expiry_threshold: Days before expiry to trigger alert
-            low_stock_threshold: Quantity below which to trigger alert
+        Tham số:
+            expiry_threshold: Số ngày trước hạn để kích hoạt cảnh báo
+            low_stock_threshold: Số lượng dưới ngưỡng để kích hoạt cảnh báo
         """
         self.expiry_threshold = expiry_threshold
         self.low_stock_threshold = low_stock_threshold
     
     def check_expiry(self, medicines: List[Medicine]) -> List[Medicine]:
         """
-        Find medicines that are expired or expiring soon.
+        Tìm thuốc đã hết hạn hoặc sắp hết hạn.
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            List of medicines with days_until_expiry <= threshold,
-            sorted by expiry date (soonest first)
+        Trả về:
+            Danh sách thuốc có days_until_expiry <= ngưỡng,
+            sắp xếp theo ngày hết hạn (sớm nhất trước)
         """
         expiring = [
             med for med in medicines
             if med.days_until_expiry() <= self.expiry_threshold
         ]
         
-        # Sort by expiry date (soonest first)
+        # Sắp xếp theo ngày hết hạn (sớm nhất trước)
         expiring.sort(key=lambda m: m.expiry_date)
         
         return expiring
     
     def check_low_stock(self, medicines: List[Medicine]) -> List[Medicine]:
         """
-        Find medicines with low stock levels.
+        Tìm thuốc có mức tồn kho thấp.
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            List of medicines with quantity <= threshold,
-            sorted by quantity (lowest first)
+        Trả về:
+            Danh sách thuốc có quantity <= ngưỡng,
+            sắp xếp theo số lượng (thấp nhất trước)
         """
         low_stock = [
             med for med in medicines
             if med.quantity <= self.low_stock_threshold
         ]
         
-        # Sort by quantity (lowest first)
+        # Sắp xếp theo số lượng (thấp nhất trước)
         low_stock.sort(key=lambda m: m.quantity)
         
         return low_stock
     
     def check_expired(self, medicines: List[Medicine]) -> List[Medicine]:
         """
-        Find already expired medicines.
+        Tìm thuốc đã hết hạn.
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            List of expired medicines (expiry_date < today),
-            sorted by expiry date (oldest first)
+        Trả về:
+            Danh sách thuốc hết hạn (expiry_date < hôm nay),
+            sắp xếp theo ngày hết hạn (cũ nhất trước)
         """
         expired = [med for med in medicines if med.is_expired()]
         
-        # Sort by expiry date (oldest first - most overdue)
+        # Sắp xếp theo ngày hết hạn (cũ nhất trước - quá hạn nhất)
         expired.sort(key=lambda m: m.expiry_date)
         
         return expired
     
     def check_out_of_stock(self, medicines: List[Medicine]) -> List[Medicine]:
         """
-        Find medicines that are completely out of stock.
+        Tìm thuốc hoàn toàn hết hàng.
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            List of medicines with quantity == 0, sorted by name
+        Trả về:
+            Danh sách thuốc có quantity == 0, sắp xếp theo tên
         """
         out_of_stock = [med for med in medicines if med.quantity == 0]
         
-        # Sort by name for easy reference
+        # Sắp xếp theo tên để dễ tra cứu
         out_of_stock.sort(key=lambda m: m.name)
         
         return out_of_stock
     
     def generate_alerts(self, medicines: List[Medicine]) -> List[Alert]:
         """
-        Generate all alerts for a list of medicines.
+        Tạo tất cả cảnh báo cho danh sách thuốc.
         
-        Checks for:
-        - Expired medicines (severity: 3)
-        - Expiring soon (severity: 2)
-        - Out of stock (severity: 3)
-        - Low stock (severity: 1)
+        Kiểm tra:
+        - Thuốc hết hạn (mức độ: 3)
+        - Sắp hết hạn (mức độ: 2)
+        - Hết hàng (mức độ: 3)
+        - Tồn kho thấp (mức độ: 1)
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            List of Alert objects, sorted by severity (highest first)
+        Trả về:
+            Danh sách đối tượng Alert, sắp xếp theo mức độ (cao nhất trước)
         """
         alerts: List[Alert] = []
         
-        # Check for expired medicines (highest priority)
+        # Kiểm tra thuốc hết hạn (ưu tiên cao nhất)
         for med in self.check_expired(medicines):
             days_overdue = abs(med.days_until_expiry())
             alerts.append(Alert(
@@ -179,7 +179,7 @@ class AlertSystem:
                 severity=3
             ))
         
-        # Check for expiring soon (exclude already expired)
+        # Kiểm tra sắp hết hạn (loại trừ đã hết hạn)
         for med in self.check_expiry(medicines):
             if not med.is_expired():
                 days_left = med.days_until_expiry()
@@ -190,7 +190,7 @@ class AlertSystem:
                     severity=2
                 ))
         
-        # Check for out of stock (highest priority)
+        # Kiểm tra hết hàng (ưu tiên cao nhất)
         for med in self.check_out_of_stock(medicines):
             alerts.append(Alert(
                 medicine=med,
@@ -199,7 +199,7 @@ class AlertSystem:
                 severity=3
             ))
         
-        # Check for low stock (exclude out of stock - already handled)
+        # Kiểm tra tồn kho thấp (loại trừ hết hàng - đã xử lý)
         for med in self.check_low_stock(medicines):
             if med.quantity > 0:
                 alerts.append(Alert(
@@ -209,20 +209,20 @@ class AlertSystem:
                     severity=1
                 ))
         
-        # Sort by severity (highest first)
+        # Sắp xếp theo mức độ (cao nhất trước)
         alerts.sort(key=lambda a: a.severity, reverse=True)
         
         return alerts
     
     def get_alert_summary(self, medicines: List[Medicine]) -> dict:
         """
-        Get summary statistics for alerts.
+        Lấy thống kê tóm tắt cho cảnh báo.
         
-        Args:
-            medicines: List of medicines to check
+        Tham số:
+            medicines: Danh sách thuốc cần kiểm tra
             
-        Returns:
-            Dictionary with counts for each alert type
+        Trả về:
+            Dictionary với số lượng cho mỗi loại cảnh báo
         """
         return {
             "expired": len(self.check_expired(medicines)),

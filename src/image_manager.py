@@ -1,138 +1,138 @@
 """
-Image Manager for Pharmacy Management System.
+Trình quản lý Ảnh cho Hệ Thống Quản Lý Kho Thuốc.
 
-Handles medicine image operations:
-- Copy images to local storage (data/images/)
-- Generate unique filenames based on medicine ID
-- Validate image files (format, size)
-- Delete images when medicines are removed
+Xử lý thao tác ảnh thuốc:
+- Sao chép ảnh vào lưu trữ cục bộ (data/images/)
+- Tạo tên file duy nhất dựa trên ID thuốc
+- Kiểm tra file ảnh (định dạng, kích thước)
+- Xóa ảnh khi thuốc bị loại bỏ
 """
 import os
 import shutil
 from pathlib import Path
 from typing import Optional, List
 
-# Supported image formats
+# Các định dạng ảnh được hỗ trợ
 SUPPORTED_FORMATS: List[str] = [".png", ".jpg", ".jpeg", ".bmp", ".webp"]
 
-# Maximum image file size in bytes (5MB)
+# Kích thước file ảnh tối đa (5MB)
 MAX_IMAGE_SIZE: int = 5 * 1024 * 1024
 
-# Default images directory
+# Thư mục ảnh mặc định
 DEFAULT_IMAGES_DIR: str = "data/images"
 
 
 class ImageManager:
     """
-    Manages medicine images in local filesystem.
+    Quản lý ảnh thuốc trong hệ thống file cục bộ.
 
-    Images are stored in a dedicated directory (data/images/) with
-    filenames based on medicine IDs for easy lookup.
+    Ảnh được lưu trong thư mục riêng (data/images/) với
+    tên file dựa trên ID thuốc để tra cứu dễ dàng.
 
-    Attributes:
-        images_dir: Path to images directory
+    Thuộc tính:
+        images_dir: Đường dẫn tới thư mục ảnh
     """
 
     def __init__(self, images_dir: str = DEFAULT_IMAGES_DIR):
         """
-        Initialize ImageManager.
+        Khởi tạo ImageManager.
 
-        Args:
-            images_dir: Path to directory where images will be stored
+        Tham số:
+            images_dir: Đường dẫn tới thư mục lưu ảnh
         """
         self.images_dir = images_dir
         self._ensure_directory()
 
     def _ensure_directory(self) -> None:
-        """Create images directory if it doesn't exist."""
+        """Tạo thư mục ảnh nếu chưa tồn tại."""
         Path(self.images_dir).mkdir(parents=True, exist_ok=True)
 
     def validate_image(self, source_path: str) -> None:
         """
-        Validate an image file before importing.
+        Kiểm tra file ảnh trước khi nhập.
 
-        Args:
-            source_path: Path to image file to validate
+        Tham số:
+            source_path: Đường dẫn tới file ảnh cần kiểm tra
 
-        Raises:
-            FileNotFoundError: If file doesn't exist
-            ValueError: If file format is unsupported
-            ValueError: If file size exceeds limit
+        Ngoại lệ:
+            FileNotFoundError: Nếu file không tồn tại
+            ValueError: Nếu định dạng file không được hỗ trợ
+            ValueError: Nếu kích thước file vượt giới hạn
         """
         path = Path(source_path)
 
         if not path.exists():
-            raise FileNotFoundError(f"Image file not found: {source_path}")
+            raise FileNotFoundError(f"Không tìm thấy file ảnh: {source_path}")
 
-        # Check format
+        # Kiểm tra định dạng
         suffix = path.suffix.lower()
         if suffix not in SUPPORTED_FORMATS:
             formats_str = ", ".join(SUPPORTED_FORMATS)
             raise ValueError(
-                f"Unsupported image format: '{suffix}'. "
-                f"Supported formats: {formats_str}"
+                f"Định dạng ảnh không được hỗ trợ: '{suffix}'. "
+                f"Các định dạng được hỗ trợ: {formats_str}"
             )
 
-        # Check file size
+        # Kiểm tra kích thước file
         file_size = path.stat().st_size
         if file_size > MAX_IMAGE_SIZE:
             max_mb = MAX_IMAGE_SIZE / (1024 * 1024)
             actual_mb = file_size / (1024 * 1024)
             raise ValueError(
-                f"Image file too large: {actual_mb:.1f}MB. "
-                f"Maximum allowed: {max_mb:.0f}MB"
+                f"File ảnh quá lớn: {actual_mb:.1f}MB. "
+                f"Tối đa cho phép: {max_mb:.0f}MB"
             )
 
     def save_image(self, source_path: str, medicine_id: str) -> str:
         """
-        Copy an image to the images directory with a medicine-ID-based name.
+        Sao chép ảnh vào thư mục ảnh với tên dựa trên ID thuốc.
 
-        Args:
-            source_path: Path to source image file
-            medicine_id: Medicine ID to use as filename base
+        Tham số:
+            source_path: Đường dẫn tới file ảnh nguồn
+            medicine_id: ID thuốc dùng làm tên file cơ sở
 
-        Returns:
-            Relative path to saved image (relative to images_dir parent)
+        Trả về:
+            Đường dẫn tương đối tới ảnh đã lưu (tương đối với thư mục cha images_dir)
 
-        Raises:
-            FileNotFoundError: If source file doesn't exist
-            ValueError: If image is invalid (format/size)
-            IOError: If copy operation fails
+        Ngoại lệ:
+            FileNotFoundError: Nếu file nguồn không tồn tại
+            ValueError: Nếu ảnh không hợp lệ (định dạng/kích thước)
+            IOError: Nếu thao tác sao chép thất bại
         """
         self.validate_image(source_path)
 
         source = Path(source_path)
         ext = source.suffix.lower()
 
-        # Generate filename: medicine_id + extension
-        # Sanitize medicine_id for filesystem safety
+        # Tạo tên file: medicine_id + phần mở rộng
+        # Làm sạch medicine_id cho an toàn hệ thống file
         safe_id = medicine_id.replace("/", "_").replace("\\", "_")
         filename = f"{safe_id}{ext}"
         dest_path = Path(self.images_dir) / filename
 
-        # Remove existing image for this medicine (different extension possible)
+        # Xóa ảnh hiện tại cho thuốc này (có thể khác phần mở rộng)
         self.delete_image(medicine_id)
 
         try:
             shutil.copy2(str(source), str(dest_path))
         except Exception as e:
-            raise IOError(f"Failed to save image: {str(e)}") from e
+            raise IOError(f"Lưu ảnh thất bại: {str(e)}") from e
 
-        # Return relative path from data/ parent
+        # Trả về đường dẫn tương đối từ thư mục cha data/
         return str(Path(self.images_dir).name / Path(filename))
 
     def delete_image(self, medicine_id: str) -> bool:
         """
-        Delete image(s) associated with a medicine ID.
+        Xóa ảnh liên quan tới ID thuốc.
 
-        Removes any file in images_dir matching the medicine ID
-        (regardless of extension).
+        Xóa bất kỳ file nào trong images_dir khớp với ID thuốc
+        (bất kể phần mở rộng).
 
-        Args:
-            medicine_id: Medicine ID whose image should be deleted
+        Tham số:
+            medicine_id: ID thuốc cần xóa ảnh
 
-        Returns:
-            True if an image was deleted, False if none found
+        Trả về:
+            True nếu đã xóa ảnh, False nếu không tìm thấy
         """
         safe_id = medicine_id.replace("/", "_").replace("\\", "_")
         deleted = False
@@ -150,13 +150,13 @@ class ImageManager:
 
     def get_image_path(self, medicine_id: str) -> Optional[str]:
         """
-        Get the absolute path to a medicine's image if it exists.
+        Lấy đường dẫn tuyệt đối tới ảnh thuốc nếu tồn tại.
 
-        Args:
-            medicine_id: Medicine ID to look up
+        Tham số:
+            medicine_id: ID thuốc cần tra cứu
 
-        Returns:
-            Absolute path to image file, or None if no image exists
+        Trả về:
+            Đường dẫn tuyệt đối tới file ảnh, hoặc None nếu không có ảnh
         """
         safe_id = medicine_id.replace("/", "_").replace("\\", "_")
 
@@ -169,18 +169,18 @@ class ImageManager:
 
     def get_image_path_from_relative(self, relative_path: str) -> Optional[str]:
         """
-        Resolve a relative image path to absolute path.
+        Chuyển đường dẫn ảnh tương đối thành đường dẫn tuyệt đối.
 
-        Args:
-            relative_path: Relative path stored in Medicine.image_path
+        Tham số:
+            relative_path: Đường dẫn tương đối lưu trong Medicine.image_path
 
-        Returns:
-            Absolute path if file exists, None otherwise
+        Trả về:
+            Đường dẫn tuyệt đối nếu file tồn tại, None nếu không
         """
         if not relative_path:
             return None
 
-        # Try relative to the images_dir parent
+        # Thử tương đối với thư mục cha images_dir
         abs_path = Path(self.images_dir).parent / relative_path
         if abs_path.exists():
             return str(abs_path.resolve())
@@ -189,29 +189,29 @@ class ImageManager:
 
     def image_exists(self, medicine_id: str) -> bool:
         """
-        Check if a medicine has an associated image.
+        Kiểm tra thuốc có ảnh liên quan không.
 
-        Args:
-            medicine_id: Medicine ID to check
+        Tham số:
+            medicine_id: ID thuốc cần kiểm tra
 
-        Returns:
-            True if image exists, False otherwise
+        Trả về:
+            True nếu ảnh tồn tại, False nếu không
         """
         return self.get_image_path(medicine_id) is not None
 
     def rename_image(self, old_medicine_id: str, new_medicine_id: str) -> Optional[str]:
         """
-        Rename a medicine's image file when its ID changes (e.g. shelf transfer).
+        Đổi tên file ảnh thuốc khi ID thay đổi (VD: chuyển kệ).
 
-        Finds the image associated with old_medicine_id, renames it to
-        match new_medicine_id, and returns the new relative path.
+        Tìm ảnh liên quan tới old_medicine_id, đổi tên để
+        khớp new_medicine_id, và trả về đường dẫn tương đối mới.
 
-        Args:
-            old_medicine_id: The original medicine ID
-            new_medicine_id: The new medicine ID
+        Tham số:
+            old_medicine_id: ID thuốc cũ
+            new_medicine_id: ID thuốc mới
 
-        Returns:
-            New relative image path, or None if no image was found
+        Trả về:
+            Đường dẫn ảnh tương đối mới, hoặc None nếu không tìm thấy ảnh
         """
         old_safe = old_medicine_id.replace("/", "_").replace("\\", "_")
         new_safe = new_medicine_id.replace("/", "_").replace("\\", "_")

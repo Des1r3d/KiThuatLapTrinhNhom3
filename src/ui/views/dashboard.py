@@ -1,40 +1,44 @@
 """
-Dashboard — PHARMA.SYS Statistics and Charts View.
+Dashboard — Giao diện Thống kê và Biểu đồ PHARMA.SYS.
 
-Features:
-- 4 colored KPI stat cards (Total, Expiring, Expired, Low Stock)
-- Donut chart for expiry distribution
-- Vertical bar chart for top medicines by stock
-- Approaching Expiry quick list
-- Low Stock Items quick list
+File này CHỈ chứa mã giao diện (UI).
+Logic xử lý dữ liệu nằm trong src/dashboard_manager.py.
+
+Tính năng:
+- 4 thẻ KPI màu (Tổng, Sắp hết hạn, Hết hạn, Tồn kho thấp)
+- Biểu đồ tròn (donut) phân bố hạn sử dụng
+- Biểu đồ cột top thuốc theo số lượng
+- Bảng cảnh báo thuốc sắp hết hạn
+- Bảng cảnh báo thuốc tồn kho thấp
 """
 from typing import List, Optional
-from datetime import date
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QGroupBox, QScrollArea, QFrame, QGridLayout,
+    QScrollArea, QFrame,
     QTableWidget, QTableWidgetItem, QHeaderView,
-    QPushButton, QSizePolicy
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 
 from src.models import Medicine
-from src.alerts import AlertSystem
+from src.dashboard_manager import (
+    DashboardManager, DashboardStats,
+    PieChartData, BarChartData,
+    ExpiryItem, LowStockItem
+)
 from src.ui.theme import Theme
 
 
 class StatCard(QFrame):
     """
-    KPI Card widget with colored background.
+    Widget thẻ KPI với nền màu.
 
-    Each card displays a number, label, icon, and optional subtitle.
-    Background color is determined by card_type.
+    Mỗi thẻ hiển thị số, nhãn, icon và phụ đề tùy chọn.
+    Màu nền được xác định bởi card_type.
     """
 
     def __init__(
@@ -48,28 +52,26 @@ class StatCard(QFrame):
         parent=None
     ):
         """
-        Initialize stat card.
+        Khởi tạo thẻ thống kê.
 
-        Args:
-            title: Card title
-            value: Statistic value to display
-            icon: Emoji icon
-            subtitle: Description subtitle
+        Tham số:
+            title: Tiêu đề thẻ
+            value: Giá trị thống kê hiển thị
+            icon: Icon emoji
+            subtitle: Phụ đề mô tả
             card_type: 'total', 'expiring', 'expired', 'low_stock'
-            theme: Theme instance
-            parent: Parent widget
+            theme: Thực thể Theme
+            parent: Widget cha
         """
         super().__init__(parent)
 
         self.theme = theme or Theme()
         self.card_type = card_type
-        self.title_text = title
-        self.subtitle_text = subtitle
 
-        self.setup_ui(title, value, icon, subtitle)
+        self._setup_ui(title, value, icon, subtitle)
 
-    def setup_ui(self, title: str, value: int, icon: str, subtitle: str):
-        """Setup card UI."""
+    def _setup_ui(self, title: str, value: int, icon: str, subtitle: str):
+        """Thiết lập giao diện thẻ."""
         layout = QVBoxLayout()
         layout.setContentsMargins(
             Theme.CARD_PADDING + 4,
@@ -79,7 +81,7 @@ class StatCard(QFrame):
         )
         layout.setSpacing(4)
 
-        # Top row: title + icon
+        # Hàng trên: tiêu đề + icon
         top_row = QHBoxLayout()
         title_label = QLabel(title)
         title_label.setStyleSheet(
@@ -97,7 +99,7 @@ class StatCard(QFrame):
         top_row.addWidget(icon_label)
         layout.addLayout(top_row)
 
-        # Value
+        # Giá trị
         self.value_label = QLabel(str(value))
         value_font = QFont()
         value_font.setPointSize(32)
@@ -108,7 +110,7 @@ class StatCard(QFrame):
         )
         layout.addWidget(self.value_label)
 
-        # Subtitle
+        # Phụ đề
         self.subtitle_label = QLabel(subtitle)
         self.subtitle_label.setStyleSheet(
             "color: rgba(255,255,255,0.7); font-size: 12px; "
@@ -120,11 +122,11 @@ class StatCard(QFrame):
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setMinimumHeight(120)
 
-        # Apply card color
+        # Áp dụng màu thẻ
         self.setStyleSheet(self.theme.get_stat_card_style(self.card_type))
 
     def update_value(self, value: int, subtitle: str = ""):
-        """Update the displayed value and subtitle."""
+        """Cập nhật giá trị và phụ đề hiển thị."""
         self.value_label.setText(str(value))
         if subtitle:
             self.subtitle_label.setText(subtitle)
@@ -132,40 +134,42 @@ class StatCard(QFrame):
 
 class Dashboard(QWidget):
     """
-    Dashboard widget with KPI cards, charts, and alert lists.
+    Widget Dashboard với thẻ KPI, biểu đồ và bảng cảnh báo.
 
-    Features:
-    - 4 colored summary statistic cards
-    - Donut chart showing expiry distribution
-    - Bar chart showing top 10 medicines by stock
-    - Quick alert lists (approaching expiry, low stock)
+    CHỈ chứa mã giao diện. Mọi logic xử lý dữ liệu được
+    ủy quyền cho DashboardManager (src/dashboard_manager.py).
+
+    Tính năng:
+    - 4 thẻ thống kê tổng quan màu sắc
+    - Biểu đồ tròn phân bố hạn sử dụng
+    - Biểu đồ cột top 10 thuốc theo số lượng
+    - Bảng cảnh báo nhanh (sắp hết hạn, tồn kho thấp)
     """
 
     def __init__(self, parent=None, theme: Optional[Theme] = None):
         """
-        Initialize Dashboard.
+        Khởi tạo Dashboard.
 
-        Args:
-            parent: Parent widget
-            theme: Theme instance for styling
+        Tham số:
+            parent: Widget cha
+            theme: Thực thể Theme cho kiểu dáng
         """
         super().__init__(parent)
 
         self.theme = theme or Theme()
-        self.alert_system = AlertSystem()
-        self.medicines: List[Medicine] = []
+        self.manager = DashboardManager()
 
-        self.setup_ui()
-        self.apply_theme()
+        self._setup_ui()
+        self._apply_theme()
 
-    def setup_ui(self):
-        """Setup dashboard UI components."""
-        # Main scroll area
+    def _setup_ui(self):
+        """Thiết lập các thành phần giao diện Dashboard."""
+        # Vùng cuộn chính
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
 
-        # Main widget
+        # Widget chính
         main_widget = QWidget()
         layout = QVBoxLayout(main_widget)
         layout.setSpacing(Theme.SPACING_BASE * 3)
@@ -176,7 +180,7 @@ class Dashboard(QWidget):
             Theme.SPACING_BASE * 3
         )
 
-        # ── 4 KPI Cards ──
+        # ── 4 Thẻ KPI ──
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(Theme.SPACING_BASE * 2)
 
@@ -204,11 +208,11 @@ class Dashboard(QWidget):
 
         layout.addLayout(cards_layout)
 
-        # ── Charts Row ──
+        # ── Hàng biểu đồ ──
         charts_layout = QHBoxLayout()
         charts_layout.setSpacing(Theme.SPACING_BASE * 2)
 
-        # Donut chart - Expiry Status
+        # Biểu đồ tròn - Trạng thái hạn sử dụng
         pie_container = QFrame()
         pie_container.setFrameShape(QFrame.Shape.NoFrame)
         pie_container.setObjectName("chart_card")
@@ -222,12 +226,13 @@ class Dashboard(QWidget):
         pie_title.setFont(pie_title_font)
         pie_layout.addWidget(pie_title)
 
-        self.pie_chart_canvas = self.create_pie_chart()
+        self.pie_chart_canvas = self._create_canvas(figsize=(5, 3.5))
+        self.pie_ax = self.pie_chart_canvas.figure.add_subplot(111)
         pie_layout.addWidget(self.pie_chart_canvas)
 
         charts_layout.addWidget(pie_container, 2)
 
-        # Bar chart - Top 10
+        # Biểu đồ cột - Top 10
         bar_container = QFrame()
         bar_container.setFrameShape(QFrame.Shape.NoFrame)
         bar_container.setObjectName("chart_card")
@@ -241,18 +246,19 @@ class Dashboard(QWidget):
         bar_title.setFont(bar_title_font)
         bar_layout.addWidget(bar_title)
 
-        self.bar_chart_canvas = self.create_bar_chart()
+        self.bar_chart_canvas = self._create_canvas(figsize=(6, 3.5))
+        self.bar_ax = self.bar_chart_canvas.figure.add_subplot(111)
         bar_layout.addWidget(self.bar_chart_canvas)
 
         charts_layout.addWidget(bar_container, 3)
 
         layout.addLayout(charts_layout)
 
-        # ── Alert Quick Lists Row ──
+        # ── Hàng bảng cảnh báo ──
         alerts_layout = QHBoxLayout()
         alerts_layout.setSpacing(Theme.SPACING_BASE * 2)
 
-        # Approaching Expiry table
+        # Bảng thuốc sắp hết hạn
         expiry_container = QFrame()
         expiry_container.setFrameShape(QFrame.Shape.NoFrame)
         expiry_container.setObjectName("alert_card")
@@ -267,28 +273,15 @@ class Dashboard(QWidget):
         expiry_title.setFont(expiry_title_font)
         expiry_header.addWidget(expiry_title)
         expiry_header.addStretch()
-
         expiry_inner.addLayout(expiry_header)
 
-        self.expiry_table = QTableWidget()
-        self.expiry_table.setColumnCount(3)
-        self.expiry_table.setHorizontalHeaderLabels([
-            "Tên thuốc", "HSD", "Vị trí kệ"
-        ])
-        self.expiry_table.verticalHeader().setVisible(False)
-        self.expiry_table.setAlternatingRowColors(True)
-        self.expiry_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.expiry_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.expiry_table.setMaximumHeight(200)
-        header_e = self.expiry_table.horizontalHeader()
-        header_e.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_e.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header_e.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.expiry_table = self._create_alert_table(
+            ["Tên thuốc", "HSD", "Vị trí kệ"]
+        )
         expiry_inner.addWidget(self.expiry_table)
-
         alerts_layout.addWidget(expiry_container)
 
-        # Low Stock table
+        # Bảng thuốc tồn kho thấp
         stock_container = QFrame()
         stock_container.setFrameShape(QFrame.Shape.NoFrame)
         stock_container.setObjectName("alert_card")
@@ -303,142 +296,97 @@ class Dashboard(QWidget):
         stock_title.setFont(stock_title_font)
         stock_header.addWidget(stock_title)
         stock_header.addStretch()
-
         stock_inner.addLayout(stock_header)
 
-        self.stock_table = QTableWidget()
-        self.stock_table.setColumnCount(3)
-        self.stock_table.setHorizontalHeaderLabels([
-            "Tên thuốc", "Vị trí kệ", "Số lượng"
-        ])
-        self.stock_table.verticalHeader().setVisible(False)
-        self.stock_table.setAlternatingRowColors(True)
-        self.stock_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.stock_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.stock_table.setMaximumHeight(200)
-        header_s = self.stock_table.horizontalHeader()
-        header_s.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header_s.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header_s.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.stock_table = self._create_alert_table(
+            ["Tên thuốc", "Vị trí kệ", "Số lượng"]
+        )
         stock_inner.addWidget(self.stock_table)
-
         alerts_layout.addWidget(stock_container)
 
         layout.addLayout(alerts_layout)
-
         layout.addStretch()
 
         scroll.setWidget(main_widget)
 
-        # Main layout
+        # Bố cục ngoài cùng
         main_outer = QVBoxLayout()
         main_outer.setContentsMargins(0, 0, 0, 0)
         main_outer.addWidget(scroll)
         self.setLayout(main_outer)
 
-    def create_pie_chart(self) -> FigureCanvasQTAgg:
-        """
-        Create donut chart for expiry distribution.
+    # ── Phương thức trợ giúp tạo widget ──
 
-        Returns:
-            Matplotlib canvas widget
-        """
-        fig = Figure(figsize=(5, 3.5), dpi=100)
+    def _create_canvas(self, figsize=(5, 3.5)) -> FigureCanvasQTAgg:
+        """Tạo canvas Matplotlib với kích thước chỉ định."""
+        fig = Figure(figsize=figsize, dpi=100)
         fig.subplots_adjust(left=0.05, right=0.95, top=0.92, bottom=0.05)
-        self.pie_ax = fig.add_subplot(111)
+        return FigureCanvasQTAgg(fig)
 
-        canvas = FigureCanvasQTAgg(fig)
-        return canvas
+    def _create_alert_table(self, headers: list) -> QTableWidget:
+        """Tạo bảng cảnh báo với tiêu đề cột cho trước."""
+        table = QTableWidget()
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.verticalHeader().setVisible(False)
+        table.setAlternatingRowColors(True)
+        table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        table.setMaximumHeight(200)
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for col in range(1, len(headers)):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+        return table
 
-    def create_bar_chart(self) -> FigureCanvasQTAgg:
-        """
-        Create bar chart for top medicines by quantity.
-
-        Returns:
-            Matplotlib canvas widget
-        """
-        fig = Figure(figsize=(6, 3.5), dpi=100)
-        self.bar_ax = fig.add_subplot(111)
-
-        canvas = FigureCanvasQTAgg(fig)
-        return canvas
+    # ── Tải dữ liệu (gọi DashboardManager rồi render) ──
 
     def load_data(self, medicines: List[Medicine]):
         """
-        Load medicine data and update dashboard.
+        Tải dữ liệu thuốc và cập nhật toàn bộ dashboard.
 
-        Args:
-            medicines: List of Medicine objects
+        Ủy quyền xử lý dữ liệu cho DashboardManager,
+        sau đó hiển thị kết quả lên giao diện.
+
+        Tham số:
+            medicines: Danh sách đối tượng Medicine
         """
-        self.medicines = medicines
-        self.update_statistics()
-        self.update_charts()
-        self.update_alert_lists()
+        # Lấy dữ liệu đã xử lý từ DashboardManager
+        stats = self.manager.get_statistics(medicines)
+        pie_data = self.manager.get_pie_chart_data(
+            medicines,
+            chart_colors=(Theme.CHART_GREEN, Theme.CHART_ORANGE, Theme.CHART_RED)
+        )
+        bar_data = self.manager.get_bar_chart_data(medicines)
+        expiry_items = self.manager.get_expiring_medicines(medicines)
+        low_stock_items = self.manager.get_low_stock_medicines(medicines)
 
-    def update_statistics(self):
-        """Update statistic cards with current data."""
-        summary = self.alert_system.get_alert_summary(self.medicines)
+        # Render dữ liệu lên giao diện
+        self._render_statistics(stats)
+        self._render_pie_chart(pie_data)
+        self._render_bar_chart(bar_data)
+        self._render_expiry_table(expiry_items)
+        self._render_stock_table(low_stock_items)
 
-        total = summary['total_medicines']
-        expired = summary['expired']
-        expiring = summary['expiring_soon']
-        low_stock_count = summary['low_stock'] + summary['out_of_stock']
+    # ── Render thẻ KPI ──
 
-        self.total_card.update_value(total)
-        self.expired_card.update_value(expired)
-        self.expiring_card.update_value(expiring)
-        self.low_stock_card.update_value(low_stock_count)
+    def _render_statistics(self, stats: DashboardStats):
+        """Cập nhật giá trị các thẻ thống kê."""
+        self.total_card.update_value(stats.total)
+        self.expired_card.update_value(stats.expired)
+        self.expiring_card.update_value(stats.expiring)
+        self.low_stock_card.update_value(stats.low_stock)
 
-    def update_charts(self):
-        """Update all charts with current data."""
-        self.update_pie_chart()
-        self.update_bar_chart()
+    # ── Render biểu đồ tròn ──
 
-    def update_pie_chart(self):
-        """Update expiry distribution donut chart."""
+    def _render_pie_chart(self, data: PieChartData):
+        """Vẽ biểu đồ tròn (donut) từ dữ liệu đã xử lý."""
         self.pie_ax.clear()
 
         bg_color = self.theme.get_color('surface')
         text_color = self.theme.get_color('text_primary')
 
-        if not self.medicines:
-            self.pie_ax.text(
-                0.5, 0.5, 'Không có dữ liệu',
-                ha='center', va='center',
-                fontsize=14, color='gray',
-                transform=self.pie_ax.transAxes
-            )
-            self.pie_ax.set_facecolor(bg_color)
-            self.pie_chart_canvas.figure.patch.set_facecolor(bg_color)
-            self.pie_chart_canvas.draw()
-            return
-
-        # Categorize medicines
-        expired = len([m for m in self.medicines if m.is_expired()])
-        expiring = len([
-            m for m in self.medicines
-            if not m.is_expired() and m.days_until_expiry() <= 30
-        ])
-        normal = len(self.medicines) - expired - expiring
-
-        # Data
-        sizes = [normal, expiring, expired]
-        labels = ['Bình thường', 'Sắp hết hạn', 'Đã hết hạn']
-        colors = [
-            Theme.CHART_GREEN,
-            Theme.CHART_ORANGE,
-            Theme.CHART_RED
-        ]
-
-        # Remove zero slices
-        sizes_f, labels_f, colors_f = [], [], []
-        for i, size in enumerate(sizes):
-            if size > 0:
-                sizes_f.append(size)
-                labels_f.append(f'{labels[i]}\n({size})')
-                colors_f.append(colors[i])
-
-        if not sizes_f:
+        if not data.has_data:
             self.pie_ax.text(
                 0.5, 0.5, 'Không có dữ liệu',
                 ha='center', va='center',
@@ -446,11 +394,10 @@ class Dashboard(QWidget):
                 transform=self.pie_ax.transAxes
             )
         else:
-            # Donut chart (with center hole)
             wedges, texts, autotexts = self.pie_ax.pie(
-                sizes_f,
-                labels=labels_f,
-                colors=colors_f,
+                data.sizes,
+                labels=data.labels,
+                colors=data.colors,
                 autopct='%1.0f%%',
                 startangle=90,
                 pctdistance=0.75,
@@ -467,15 +414,16 @@ class Dashboard(QWidget):
         self.pie_chart_canvas.figure.patch.set_facecolor(bg_color)
         self.pie_chart_canvas.draw()
 
-    def update_bar_chart(self):
-        """Update top medicines by quantity bar chart."""
+    # ── Render biểu đồ cột ──
+
+    def _render_bar_chart(self, data: BarChartData):
+        """Vẽ biểu đồ cột từ dữ liệu đã xử lý."""
         self.bar_ax.clear()
 
         bg_color = self.theme.get_color('surface')
-        text_color = self.theme.get_color('text_primary')
         secondary_color = self.theme.get_color('text_secondary')
 
-        if not self.medicines:
+        if not data.has_data:
             self.bar_ax.text(
                 0.5, 0.5, 'Không có dữ liệu',
                 ha='center', va='center',
@@ -487,51 +435,32 @@ class Dashboard(QWidget):
             self.bar_chart_canvas.draw()
             return
 
-        # Sort and take top 10
-        sorted_meds = sorted(
-            self.medicines,
-            key=lambda m: m.quantity,
-            reverse=True
-        )[:10]
-
-        if not sorted_meds:
-            self.bar_ax.set_facecolor(bg_color)
-            self.bar_chart_canvas.figure.patch.set_facecolor(bg_color)
-            self.bar_chart_canvas.draw()
-            return
-
-        # Prepare data
-        names = [m.name[:15] + '...' if len(m.name) > 15 else m.name
-                 for m in sorted_meds]
-        quantities = [m.quantity for m in sorted_meds]
-
-        # Vertical bar chart with primary blue
+        # Vẽ cột
         bars = self.bar_ax.bar(
-            range(len(names)), quantities,
+            range(len(data.names)), data.quantities,
             color=Theme.CHART_BLUE,
             width=0.6,
             edgecolor='none',
             zorder=3
         )
 
-        # Rounded bar tops effect
         for bar in bars:
             bar.set_linewidth(0)
 
-        self.bar_ax.set_xticks(range(len(names)))
+        self.bar_ax.set_xticks(range(len(data.names)))
         self.bar_ax.set_xticklabels(
-            names, rotation=45, ha='right',
+            data.names, rotation=45, ha='right',
             fontsize=8, color=secondary_color
         )
         self.bar_ax.tick_params(axis='y', colors=secondary_color, labelsize=9)
 
-        # Clean up axes
+        # Dọn dẹp trục
         self.bar_ax.spines['top'].set_visible(False)
         self.bar_ax.spines['right'].set_visible(False)
         self.bar_ax.spines['left'].set_color(self.theme.get_color('border'))
         self.bar_ax.spines['bottom'].set_color(self.theme.get_color('border'))
 
-        # Add grid
+        # Thêm lưới
         self.bar_ax.yaxis.grid(True, alpha=0.3, color=self.theme.get_color('border'))
         self.bar_ax.set_axisbelow(True)
 
@@ -540,36 +469,25 @@ class Dashboard(QWidget):
         self.bar_chart_canvas.figure.tight_layout()
         self.bar_chart_canvas.draw()
 
-    def update_alert_lists(self):
-        """Update the approaching expiry and low stock quick lists."""
-        self._update_expiry_list()
-        self._update_stock_list()
+    # ── Render bảng cảnh báo ──
 
-    def _update_expiry_list(self):
-        """Update approaching expiry table."""
+    def _render_expiry_table(self, items: list):
+        """Cập nhật bảng thuốc sắp hết hạn."""
         self.expiry_table.setRowCount(0)
 
-        # Get medicines expiring soon (not already expired), sorted by days left
-        expiring = [
-            m for m in self.medicines
-            if not m.is_expired() and m.days_until_expiry() <= 30
-        ]
-        expiring.sort(key=lambda m: m.days_until_expiry())
-
-        for m in expiring[:5]:  # Show top 5
+        for item in items:
             row = self.expiry_table.rowCount()
             self.expiry_table.insertRow(row)
 
-            name_item = QTableWidgetItem(m.name)
+            name_item = QTableWidgetItem(item.name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.expiry_table.setItem(row, 0, name_item)
 
-            date_item = QTableWidgetItem(m.expiry_date.strftime("%Y-%m-%d"))
+            date_item = QTableWidgetItem(item.expiry_date)
             date_item.setFlags(date_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.expiry_table.setItem(row, 1, date_item)
 
-            days_left = m.days_until_expiry()
-            days_item = QTableWidgetItem(f"{days_left}")
+            days_item = QTableWidgetItem(str(item.days_left))
             days_item.setFlags(days_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             days_item.setForeground(QColor(Theme.CHART_ORANGE))
             days_font = days_item.font()
@@ -577,30 +495,23 @@ class Dashboard(QWidget):
             days_item.setFont(days_font)
             self.expiry_table.setItem(row, 2, days_item)
 
-    def _update_stock_list(self):
-        """Update low stock items table."""
+    def _render_stock_table(self, items: list):
+        """Cập nhật bảng thuốc tồn kho thấp."""
         self.stock_table.setRowCount(0)
 
-        # Get low stock medicines (quantity <= 5), sorted by quantity
-        low_stock = [
-            m for m in self.medicines
-            if m.quantity <= 5
-        ]
-        low_stock.sort(key=lambda m: m.quantity)
-
-        for m in low_stock[:5]:  # Show top 5
+        for item in items:
             row = self.stock_table.rowCount()
             self.stock_table.insertRow(row)
 
-            name_item = QTableWidgetItem(m.name)
+            name_item = QTableWidgetItem(item.name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.stock_table.setItem(row, 0, name_item)
 
-            shelf_item = QTableWidgetItem(m.shelf_id)
+            shelf_item = QTableWidgetItem(item.shelf_id)
             shelf_item.setFlags(shelf_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.stock_table.setItem(row, 1, shelf_item)
 
-            qty_item = QTableWidgetItem(str(m.quantity))
+            qty_item = QTableWidgetItem(str(item.quantity))
             qty_item.setFlags(qty_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             qty_item.setForeground(QColor(Theme.CHART_RED))
             qty_font = qty_item.font()
@@ -608,11 +519,13 @@ class Dashboard(QWidget):
             qty_item.setFont(qty_font)
             self.stock_table.setItem(row, 2, qty_item)
 
-    def apply_theme(self):
-        """Apply theme stylesheet."""
+    # ── Áp dụng chủ đề ──
+
+    def _apply_theme(self):
+        """Áp dụng stylesheet chủ đề."""
         c = self.theme
 
-        # Card containers styling
+        # Kiểu cho các container thẻ
         card_style = (
             f"QFrame#chart_card, QFrame#alert_card {{"
             f"  background-color: {c.get_color('surface')};"
@@ -622,7 +535,7 @@ class Dashboard(QWidget):
         )
         self.setStyleSheet(card_style)
 
-        # Update chart background colors
+        # Cập nhật màu nền biểu đồ
         bg_color = c.get_color('surface')
         text_color = c.get_color('text_primary')
 

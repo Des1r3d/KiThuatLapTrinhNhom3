@@ -3,7 +3,7 @@
 > **Dự án:** Hệ Thống Quản Lý Kho Thuốc  
 > **Phiên bản:** 1.0.0 Beta  
 > **Môn học:** Kỹ Thuật Lập Trình — Nhóm 3  
-> **Ngày cập nhật context:** 26/03/2026 (cập nhật lần 3)
+> **Ngày cập nhật context:** 26/03/2026 (cập nhật lần 5 — tách DashboardManager)
 
 ---
 
@@ -30,7 +30,7 @@
 | Fuzzy Search     | TheFuzz ≥ 0.22.0 + python-Levenshtein |
 | Data Storage     | JSON files (atomic writes)     |
 | UI Design        | Qt Designer (.ui files)        |
-| Testing          | pytest (~107 tests)            |
+| Testing          | pytest (~152 tests)            |
 
 ---
 
@@ -38,36 +38,52 @@
 
 ```
 KiThuatLapTrinhNhom3/
-├── app.py                      # 🚀 Entry point (QApplication setup)
-├── requirements.txt            # Dependencies
-├── run.bat                     # Windows launcher script
-├── run_tests.bat               # Test runner
+├── app.py                      # 🚀 Điểm vào (QApplication setup)
+├── requirements.txt            # Các phụ thuộc
+├── run.bat                     # Script khởi chạy Windows
+├── run_tests.bat               # Script chạy test
 │
-├── src/                        # 📦 Source code
-│   ├── __init__.py             # Package exports (Medicine, Shelf, etc.)
-│   ├── models.py               # Data models: Medicine, Shelf
-│   ├── storage.py              # StorageEngine: atomic JSON read/write
-│   ├── inventory_manager.py    # InventoryManager: CRUD, validation, sort
-│   ├── alerts.py               # AlertSystem: expiry & stock alerts
-│   ├── search_engine.py        # SearchEngine: fuzzy search
-│   ├── image_manager.py        # ImageManager: medicine images
+├── src/                        # 📦 Mã nguồn
+│   ├── __init__.py             # Xuất package (Medicine, Shelf, v.v.)
+│   ├── models.py               # Model dữ liệu: Medicine, Shelf
+│   ├── storage.py              # StorageEngine: đọc/ghi JSON nguyên tử
+│   ├── inventory_manager.py    # InventoryManager: CRUD, validate, sắp xếp
+│   ├── alerts.py               # AlertSystem: cảnh báo hết hạn & tồn kho
+│   ├── search_engine.py        # SearchEngine: tìm kiếm mờ
+│   ├── image_manager.py        # ImageManager: ảnh thuốc
+│   ├── dashboard_manager.py    # DashboardManager: xử lý dữ liệu dashboard
 │   │
-│   └── ui/                     # 🎨 UI Components
-│       ├── __init__.py          # UI package exports
-│       ├── main_window.py       # MainWindow + SearchDialog (business logic only)
-│       ├── dashboard.py         # Dashboard view (stats + charts)
-│       ├── inventory_view.py    # Medicine table view
-│       ├── shelf_view.py        # Shelf management view
-│       ├── medicine_dialog.py   # Add/Edit medicine dialog
-│       ├── shelf_dialog.py      # Add/Edit shelf dialog
-│       ├── medicine_detail_view.py  # Read-only detail view
-│       ├── filter_dialog.py     # Filter medicines dialog
-│       ├── notification_dialogs.py  # Success/Error/Confirm dialogs
-│       ├── theme.py             # Theme system (Light/Dark)
+│   └── ui/                     # 🎨 Giao diện người dùng
+│       ├── __init__.py          # Xuất các thành phần UI
+│       ├── main_window.py       # MainWindow + SearchDialog (chỉ logic xử lý)
 │       │
-│       └── generated/           # ⚠️ AUTO-GENERATED — DO NOT EDIT
-│           ├── main_window_ui.py      # Light mode main window
-│           ├── main_window_ui_dark.py # Dark mode main window
+│       ├── theme/               # 🎨 Hệ thống chủ đề (tách module)
+│       │   ├── __init__.py      # Xuất Theme, ThemeMode
+│       │   ├── colors.py        # Bảng màu Light/Dark
+│       │   ├── tokens.py        # Khoảng cách, bo góc, font chữ
+│       │   ├── sidebar.py       # Hằng số sidebar
+│       │   ├── cards.py         # Màu thẻ thống kê & biểu đồ
+│       │   ├── core.py          # Lớp Theme, enum ThemeMode
+│       │   ├── stylesheets.py   # Tạo stylesheet Qt
+│       │   └── badges.py        # Hàm trợ giúp huy hiệu/cảnh báo
+│       │
+│       ├── views/               # 📊 Các trang chính (CHỈ UI)
+│       │   ├── __init__.py      # Xuất Dashboard, InventoryView, ShelfView
+│       │   ├── dashboard.py     # Giao diện dashboard (render thẻ KPI + biểu đồ)
+│       │   ├── inventory_view.py# Bảng danh sách thuốc
+│       │   └── shelf_view.py    # Trang quản lý kệ
+│       │
+│       ├── dialogs/             # 💬 Các hộp thoại
+│       │   ├── __init__.py      # Xuất tất cả dialog
+│       │   ├── medicine_dialog.py   # Thêm/Sửa thuốc
+│       │   ├── shelf_dialog.py      # Thêm/Sửa kệ
+│       │   ├── filter_dialog.py     # Lọc thuốc
+│       │   ├── medicine_detail_view.py  # Xem chi tiết thuốc
+│       │   └── notification_dialogs.py  # Thông báo thành công/lỗi/xác nhận
+│       │
+│       └── generated/           # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
+│           ├── main_window_ui.py      # Giao diện chính (sáng)
+│           ├── main_window_ui_dark.py # Giao diện chính (tối)
 │           ├── search.py / search_dark.py
 │           ├── loc_thuoc.py / loc_thuoc_dark.py
 │           ├── ke_day.py
@@ -79,13 +95,13 @@ KiThuatLapTrinhNhom3/
 │           ├── xoa_thanh_cong.py / xoa_thanh_cong_dark.py
 │           └── thong_tin_thuoc.py / thong_tin_thuoc_dark.py
 │
-├── data/                       # 💾 Data storage
-│   ├── medicines.json           # Medicine database
-│   ├── medicines.json.backup    # Auto backup
-│   ├── shelves.json             # Shelf database
-│   ├── shelves.json.backup      # Auto backup
-│   ├── settings.json            # App settings (theme, thresholds)
-│   └── images/                  # Medicine images
+├── data/                       # 💾 Lưu trữ dữ liệu
+│   ├── medicines.json           # CSDL thuốc
+│   ├── medicines.json.backup    # Sao lưu tự động
+│   ├── shelves.json             # CSDL kệ
+│   ├── shelves.json.backup      # Sao lưu tự động
+│   ├── settings.json            # Cài đặt (theme, ngưỡng)
+│   └── images/                  # Ảnh thuốc
 │
 ├── tests/                      # 🧪 Unit tests
 │   ├── test_models.py
@@ -95,7 +111,7 @@ KiThuatLapTrinhNhom3/
 │   ├── test_search.py
 │   └── test_image_manager.py
 │
-├── docs/                       # 📚 Documentation
+├── docs/                       # 📚 Tài liệu
 │   ├── PROGRESS.md
 │   ├── QUICKSTART.md
 │   ├── SCREENSHOTS.md
@@ -105,14 +121,14 @@ KiThuatLapTrinhNhom3/
 │   ├── design_guideline.md
 │   └── classDiagram.drawio.png
 │
-├── design-ui/                  # 🎨 Design assets & guidelines
+├── design-ui/                  # 🎨 Tài sản thiết kế
 │   ├── PHARMA_SYS_Color_System.md
 │   ├── Structure.md
 │   ├── guideline.md
 │   ├── ui_flow.md
-│   └── design-ui/Qt_designer/  # .ui files & Logo.png
+│   └── design-ui/Qt_designer/  # File .ui & Logo.png
 │
-└── Ui Qt/                      # Qt Designer raw .ui files (Light + Dark pairs)
+└── Ui Qt/                      # File .ui gốc Qt Designer (cặp Sáng + Tối)
     ├── main_window.ui / main_window_dark.ui
     ├── them_thuoc.ui / them_thuoc_dark.ui
     ├── them_ke.ui / them_ke_dark.ui
@@ -138,29 +154,29 @@ KiThuatLapTrinhNhom3/
 ```python
 @dataclass
 class Medicine:
-    id: str            # Format: "{shelf_id}.{seq:03d}" (e.g., "K-A1.001")
+    id: str            # Định dạng: "{shelf_id}.{seq:03d}" (VD: "K-A1.001")
     name: str          # Tên thuốc
     quantity: int      # Số lượng (≥ 0)
     expiry_date: date  # Hạn sử dụng
     shelf_id: str      # FK → Shelf.id
     price: float       # Giá (≥ 0)
-    image_path: str    # Relative path to image
+    image_path: str    # Đường dẫn tương đối tới ảnh
 ```
 
 **Phương thức quan trọng:**
 - `is_expired()` → bool: so sánh `expiry_date` với `date.today()`
 - `days_until_expiry()` → int: số ngày còn lại (âm = đã hết hạn)
-- `to_dict()` / `from_dict()`: serialization JSON
+- `to_dict()` / `from_dict()`: chuyển đổi JSON
 
 ### Shelf ([models.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/models.py#L104-L157))
 
 ```python
 @dataclass
 class Shelf:
-    id: str        # Format: "{zone}-{column}{row}" (e.g., "K-A1")
-    zone: str      # Khu, e.g., "K"
-    column: str    # Cột, e.g., "A"
-    row: str       # Dãy, e.g., "1"
+    id: str        # Định dạng: "{zone}-{column}{row}" (VD: "K-A1")
+    zone: str      # Khu, VD: "K"
+    column: str    # Cột, VD: "A"
+    row: str       # Dãy, VD: "1"
     capacity: str  # Sức chứa tối đa
 ```
 
@@ -170,7 +186,7 @@ class Shelf:
 
 ```mermaid
 graph TB
-    A[app.py<br>Entry Point] --> B[MainWindow]
+    A[app.py<br>Điểm vào] --> B[MainWindow]
     
     B --> C[InventoryManager]
     B --> D[SearchEngine]
@@ -181,16 +197,17 @@ graph TB
     C --> H["Medicine / Shelf<br>(Dataclass Models)"]
     G --> I["JSON Files<br>(data/)"]
     
-    B --> J[Dashboard]
+    B --> J[Dashboard View]
+    J --> DM[DashboardManager]
+    DM --> N[AlertSystem]
     B --> K[InventoryView]
     B --> L[ShelfView]
     B --> M[Dialogs]
     
-    N[AlertSystem] -.-> C
-    
     style A fill:#3B82F6,color:#fff
     style B fill:#2563EB,color:#fff
     style C fill:#10B981,color:#fff
+    style DM fill:#10B981,color:#fff
     style G fill:#FF8800,color:#fff
     style I fill:#FFAD00,color:#000
 ```
@@ -199,13 +216,13 @@ graph TB
 
 | Pattern | Mô tả |
 |---------|--------|
-| **MVC** | Models (`models.py`) — Views (`ui/`) — Controller (`inventory_manager.py`) |
+| **MVC** | Models (`models.py`) — Views (`ui/views/`, `ui/dialogs/`) — Controller (`inventory_manager.py`, `dashboard_manager.py`) |
 | **Repository** | `StorageEngine` trừu tượng hóa file I/O |
 | **Immutable Update** | `update_medicine()` tạo object mới thay vì mutate |
 | **Atomic Write** | Ghi file qua temp → rename, có backup recovery |
-| **Signal/Slot** | Qt event system cho UI communication |
+| **Signal/Slot** | Hệ thống sự kiện Qt cho giao tiếp UI |
 | **Observer** | Dashboard + InventoryView lắng nghe sự thay đổi data |
-| **Dual UI Generation** | Mỗi dialog/window có 2 phiên bản generated (light + dark), chọn tại runtime |
+| **Dual UI Generation** | Mỗi dialog/window có 2 phiên bản generated (sáng + tối), chọn tại runtime |
 
 ---
 
@@ -217,23 +234,23 @@ Bộ điều khiển trung tâm cho tất cả thao tác CRUD:
 
 | Method | Chức năng |
 |--------|-----------|
-| `load_data()` | Load medicines & shelves từ JSON |
-| `save_data()` / `save_shelves()` | Persist data atomically |
-| `add_medicine(med)` | Thêm thuốc, auto-gen ID, validate capacity |
-| `update_medicine(id, changes)` | Cập nhật (immutable), re-gen ID nếu đổi kệ |
+| `load_data()` | Tải thuốc & kệ từ JSON |
+| `save_data()` / `save_shelves()` | Lưu dữ liệu nguyên tử |
+| `add_medicine(med)` | Thêm thuốc, tự tạo ID, kiểm tra sức chứa |
+| `update_medicine(id, changes)` | Cập nhật (bất biến), tạo lại ID nếu đổi kệ |
 | `remove_medicine(id)` | Xóa thuốc |
 | `sort_medicines(field, asc)` | Sắp xếp theo id/name/quantity/expiry_date/price |
 | `add_shelf() / update_shelf() / remove_shelf()` | CRUD kệ |
 | `get_shelf_remaining_capacity()` | Tính sức chứa còn lại |
 
-**ID Generation Logic:**
-- Format: `{shelf_id}.{seq:03d}` → VD: `K-A1.001`, `K-A1.002`
-- Khi đổi kệ → auto sinh ID mới theo kệ mới
+**Logic tạo ID:**
+- Định dạng: `{shelf_id}.{seq:03d}` → VD: `K-A1.001`, `K-A1.002`
+- Khi đổi kệ → tự động sinh ID mới theo kệ mới
 
 ### AlertSystem ([alerts.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/alerts.py))
 
-| Alert Type | Điều kiện | Severity |
-|------------|-----------|----------|
+| Loại cảnh báo | Điều kiện | Mức độ |
+|------------|-----------|------------|
 | `EXPIRED` | `expiry_date <= today` | 3 (cao) |
 | `EXPIRING_SOON` | `days_until_expiry <= 30` và chưa hết hạn | 2 |
 | `OUT_OF_STOCK` | `quantity == 0` | 3 (cao) |
@@ -241,25 +258,44 @@ Bộ điều khiển trung tâm cho tất cả thao tác CRUD:
 
 ### SearchEngine ([search_engine.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/search_engine.py))
 
-- Fuzzy matching bằng `thefuzz.fuzz.ratio()` + `partial_ratio()`
-- Lấy score cao nhất giữa 2 phương pháp
-- Ngưỡng mặc định: **70%** match score
+- Khớp mờ bằng `thefuzz.fuzz.ratio()` + `partial_ratio()`
+- Lấy điểm cao nhất giữa 2 phương pháp
+- Ngưỡng mặc định: **70%** điểm khớp
 - Hỗ trợ: `search()`, `search_by_name()`, `get_suggestions()`
 
 ### ImageManager ([image_manager.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/image_manager.py))
 
 - Lưu ảnh vào `data/images/` với tên = medicine ID
-- Validate: format (.png, .jpg, .jpeg, .bmp, .webp) + size (max 5MB)
-- Tự đổi tên ảnh khi medicine thay đổi kệ (ID thay đổi)
+- Kiểm tra: định dạng (.png, .jpg, .jpeg, .bmp, .webp) + kích thước (tối đa 5MB)
+- Tự đổi tên ảnh khi thuốc thay đổi kệ (ID thay đổi)
+
+### DashboardManager ([dashboard_manager.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dashboard_manager.py))
+
+Bộ xử lý dữ liệu trung tâm cho trang Dashboard. Tách toàn bộ logic nghiệp vụ khỏi tầng view.
+
+| Method | Chức năng |
+|--------|-----------|
+| `get_statistics(medicines)` | Tính thống kê KPI (tổng, hết hạn, sắp hết hạn, tồn kho thấp) |
+| `get_pie_chart_data(medicines)` | Chuẩn bị dữ liệu biểu đồ tròn (phân loại thuốc) |
+| `get_bar_chart_data(medicines)` | Chuẩn bị dữ liệu biểu đồ cột (top N thuốc theo số lượng) |
+| `get_expiring_medicines(medicines)` | Lọc danh sách thuốc sắp hết hạn |
+| `get_low_stock_medicines(medicines)` | Lọc danh sách thuốc tồn kho thấp |
+
+**Dataclass trung gian:**
+- `DashboardStats` — Các chỉ số KPI
+- `PieChartData` — Dữ liệu biểu đồ tròn (sizes, labels, colors)
+- `BarChartData` — Dữ liệu biểu đồ cột (names, quantities)
+- `ExpiryItem` — Mục thuốc sắp hết hạn (name, expiry_date, days_left)
+- `LowStockItem` — Mục thuốc tồn kho thấp (name, shelf_id, quantity)
 
 ---
 
-## 7. UI Components
+## 7. Thành Phần UI
 
 ### MainWindow ([main_window.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/main_window.py))
 
-Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (Light) hoặc `main_window_ui_dark.py` (Dark).
-`main_window.py` chỉ chứa **business logic** — không định nghĩa widget thủ công.
+Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (Sáng) hoặc `main_window_ui_dark.py` (Tối).
+`main_window.py` chỉ chứa **logic xử lý** — không định nghĩa widget thủ công.
 
 ```
 ┌──────────────────────────────────────────┐
@@ -277,27 +313,27 @@ Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (Ligh
 └──────────────────────────────────────────┘
 ```
 
-**Window title:** `KTLT_Nhom3_QuanLyKhoThuoc` (định nghĩa trong `Ui Qt/main_window.ui`, compile bằng `pyuic6`)
+**Tiêu đề cửa sổ:** `KTLT_Nhom3_QuanLyKhoThuoc` (định nghĩa trong `Ui Qt/main_window.ui`, compile bằng `pyuic6`)
 
-**3 pages (QStackedWidget):**
+**3 trang (QStackedWidget):**
 - `PAGE_DASHBOARD = 0` → Dashboard
 - `PAGE_INVENTORY = 1` → InventoryView
 - `PAGE_SHELVES = 2` → ShelfView
 
 **Phím tắt:**
-- `Ctrl+K` → Search dialog
+- `Ctrl+K` → Hộp thoại tìm kiếm
 
-**Theme Toggle (page persistence):**
+**Chuyển đổi chủ đề (giữ trang):**
 - Khi chuyển theme, `toggle_theme()` lưu `currentIndex()` **trước khi** rebuild UI
 - Sau khi `_build_ui()` + `refresh_all()`, gọi `navigate_to(saved_index, btn)` để khôi phục trang đang xem
 - Đảm bảo người dùng không bị nhảy về Dashboard khi chuyển Light ↔ Dark
 
-### InventoryView ([inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/inventory_view.py))
+### InventoryView ([inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/views/inventory_view.py))
 
 Bảng danh sách thuốc với các tính năng:
 - Nút **`+ Thêm thuốc`** (`objectName=btn_add_medicine`) phát signal `add_requested` → kết nối với `MainWindow.show_add_medicine()`
 - Nút **Lọc** → phát `filter_requested`
-- Context menu (chuột phải) → Chỉnh sửa / Xóa thuốc
+- Menu ngữ cảnh (chuột phải) → Chỉnh sửa / Xóa thuốc
 - Double-click hàng → xem chi tiết thuốc
 
 **Signals:**
@@ -306,27 +342,39 @@ add_requested    = pyqtSignal()    # Thêm thuốc mới
 edit_requested   = pyqtSignal(str) # Chỉnh sửa (medicine_id)
 delete_requested = pyqtSignal(str) # Xóa (medicine_id)
 detail_requested = pyqtSignal(str) # Xem chi tiết
-filter_requested = pyqtSignal()    # Mở filter dialog
+filter_requested = pyqtSignal()    # Mở hộp thoại lọc
 ```
 
 ### Các Dialog quan trọng:
 
 | Dialog | File | Chức năng |
 |--------|------|-----------|
-| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_dialog.py) | Add/Edit thuốc (dùng `them_thuoc` / `them_thuoc_dark` generated UI) |
-| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/shelf_dialog.py) | Add/Edit kệ (dùng `them_ke` / `them_ke_dark` generated UI) |
-| `SearchDialog` | main_window.py (inline) | Fuzzy search (dùng `search` / `search_dark` generated UI) |
-| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/filter_dialog.py) | Lọc thuốc (dùng `loc_thuoc` / `loc_thuoc_dark` generated UI) |
-| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_detail_view.py) | Xem chi tiết thuốc (dùng `thong_tin_thuoc` / `thong_tin_thuoc_dark`) |
-| Notification Dialogs | [notification_dialogs.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/notification_dialogs.py) | Thêm/Sửa/Xóa thành công, Xác nhận xóa, Kệ đầy |
+| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/medicine_dialog.py) | Thêm/Sửa thuốc (dùng `them_thuoc` / `them_thuoc_dark` generated UI) |
+| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/shelf_dialog.py) | Thêm/Sửa kệ (dùng `them_ke` / `them_ke_dark` generated UI) |
+| `SearchDialog` | main_window.py (nội tuyến) | Tìm kiếm mờ (dùng `search` / `search_dark` generated UI) |
+| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/filter_dialog.py) | Lọc thuốc (dùng `loc_thuoc` / `loc_thuoc_dark` generated UI) |
+| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/medicine_detail_view.py) | Xem chi tiết thuốc (dùng `thong_tin_thuoc` / `thong_tin_thuoc_dark`) |
+| Notification Dialogs | [notification_dialogs.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/notification_dialogs.py) | Thêm/Sửa/Xóa thành công, Xác nhận xóa, Kệ đầy |
 
 ---
 
-## 8. Theme System
+## 8. Hệ Thống Chủ Đề
 
-### [theme.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/theme.py)
+### [theme/](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/theme/)
 
-| Thuộc tính | Light Mode | Dark Mode |
+Hệ thống chủ đề đã được tách thành package gồm 7 module:
+
+| Module | Nội dung |
+|--------|----------|
+| `colors.py` | Bảng màu `LIGHT_COLORS` và `DARK_COLORS` |
+| `tokens.py` | Khoảng cách, bo góc, font chữ |
+| `sidebar.py` | Hằng số sidebar (cố định cả 2 mode) |
+| `cards.py` | Màu thẻ thống kê & biểu đồ |
+| `core.py` | Lớp `Theme`, enum `ThemeMode` |
+| `stylesheets.py` | Hàm tạo stylesheet Qt |
+| `badges.py` | Hàm trợ giúp huy hiệu/cảnh báo |
+
+| Thuộc tính | Chế độ Sáng | Chế độ Tối |
 |------------|------------|-----------|
 | Background | `#F4F6F8` | `#1F2933` |
 | Surface | `#FFFFFF` | `#273947` |
@@ -337,67 +385,67 @@ filter_requested = pyqtSignal()    # Mở filter dialog
 | Sidebar BG | `#1C2944` (cố định cả 2 mode) | |
 
 **Design tokens:**
-- Spacing: 8px base grid
-- Border radius: 8px (pill: 10px)
+- Khoảng cách: lưới 8px
+- Bo góc: 8px (dạng viên: 10px)
 - Font: Segoe UI / Inter, sans-serif
-- Font sizes: H1=20, H2=16, Body=14, Table=13, Caption=12, Badge=11
+- Cỡ chữ: H1=20, H2=16, Body=14, Table=13, Caption=12, Badge=11
 
-**Stat card colors:** Blue (`#3B82F6`), Orange (`#FF8800`), Red (`#EF4444`), Amber (`#FFAD00`)
+**Màu thẻ thống kê:** Xanh (`#3B82F6`), Cam (`#FF8800`), Đỏ (`#EF4444`), Vàng (`#FFAD00`)
 
-**Dual UI approach:**
-- Mỗi form/dialog có 2 file `.ui` (light + dark) trong `Ui Qt/`
+**Cách tiếp cận Dual UI:**
+- Mỗi form/dialog có 2 file `.ui` (sáng + tối) trong `Ui Qt/`
 - Compile bằng `pyuic6` thành 2 file `.py` trong `src/ui/generated/`
-- Tại runtime, business logic chọn đúng generated class dựa trên `theme.mode`
+- Tại runtime, logic xử lý chọn đúng class generated dựa trên `theme.mode`
 
-**Stylesheet notes (Dark Mode fixes):**
+**Ghi chú stylesheet (sửa lỗi Dark Mode):**
 - `QTableWidget` có `alternate-background-color: {table_row_alt}` — tránh Qt dùng màu trắng hệ thống
 - `QMenu::item` có `color: {text_primary}` — tránh chữ chìm trong context menu dark mode
 
 ---
 
-## 9. Data Flow
+## 9. Luồng Dữ Liệu
 
 ```mermaid
 sequenceDiagram
-    participant U as User
+    participant U as Người dùng
     participant MW as MainWindow
     participant IM as InventoryManager
     participant SE as StorageEngine
     participant JSON as JSON Files
 
     U->>MW: Click "Thêm thuốc"
-    MW->>MW: Show MedicineDialog
-    U->>MW: Fill form → Submit
+    MW->>MW: Hiện MedicineDialog
+    U->>MW: Điền form → Gửi
     MW->>IM: add_medicine(medicine)
     IM->>IM: _generate_id(shelf_id)
-    IM->>IM: Validate (capacity, shelf)
+    IM->>IM: Kiểm tra (sức chứa, kệ)
     IM->>SE: write_json(filepath, data)
-    SE->>JSON: Backup → Write temp → Rename
-    IM-->>MW: Return added Medicine
+    SE->>JSON: Sao lưu → Ghi temp → Đổi tên
+    IM-->>MW: Trả về Medicine đã thêm
     MW->>MW: refresh_all()
-    MW->>MW: Show AddSuccessDialog
+    MW->>MW: Hiện AddSuccessDialog
 ```
 
-### Theme Toggle Flow
+### Luồng Chuyển Đổi Chủ Đề
 
 ```mermaid
 sequenceDiagram
-    participant U as User
+    participant U as Người dùng
     participant MW as MainWindow
     participant UI as Generated UI
 
-    U->>MW: Click theme toggle button
-    MW->>MW: Save current page index
+    U->>MW: Click nút chuyển chủ đề
+    MW->>MW: Lưu chỉ mục trang hiện tại
     MW->>MW: theme.toggle_mode()
-    MW->>UI: _build_ui() → Load light/dark Ui_MainWindow
-    MW->>MW: refresh_all() → Reload data into views
-    MW->>MW: navigate_to(saved_index) → Restore page
-    MW->>MW: Update dashboard theme & charts
+    MW->>UI: _build_ui() → Tải Ui_MainWindow sáng/tối
+    MW->>MW: refresh_all() → Tải lại dữ liệu vào views
+    MW->>MW: navigate_to(saved_index) → Khôi phục trang
+    MW->>MW: Cập nhật chủ đề dashboard & biểu đồ
 ```
 
 ---
 
-## 10. Settings
+## 10. Cài Đặt
 
 File: [data/settings.json](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/data/settings.json)
 
@@ -412,20 +460,20 @@ File: [data/settings.json](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptr
 
 ---
 
-## 11. Testing
+## 11. Kiểm Thử
 
 Chạy tests: `pytest tests/ -v`
 
-| Test File | Coverage |
-|-----------|----------|
-| `test_models.py` | Medicine & Shelf dataclasses, validation, serialization |
-| `test_storage.py` | Atomic write, backup/restore, corruption recovery |
-| `test_inventory.py` | CRUD operations, ID generation, capacity validation |
-| `test_alerts.py` | Expiry/stock alerts, severity sorting |
-| `test_search.py` | Fuzzy matching, threshold, suggestions |
-| `test_image_manager.py` | Image CRUD, validation, rename |
+| File Test | Phạm vi |
+|-----------|---------|
+| `test_models.py` | Dataclass Medicine & Shelf, kiểm tra, chuyển đổi dữ liệu |
+| `test_storage.py` | Ghi nguyên tử, sao lưu/phục hồi, xử lý file hỏng |
+| `test_inventory.py` | Thao tác CRUD, tạo ID, kiểm tra sức chứa |
+| `test_alerts.py` | Cảnh báo hết hạn/tồn kho, sắp xếp theo mức độ |
+| `test_search.py` | Khớp mờ, ngưỡng, gợi ý |
+| `test_image_manager.py` | CRUD ảnh, kiểm tra, đổi tên |
 
-**Tổng: ~107 tests**
+**Tổng: ~152 tests**
 
 ---
 
@@ -452,15 +500,16 @@ run.bat
 
 > [!NOTE]
 > - Logo nằm tại: `design-ui/design-ui/Qt_designer/Logo.png`
-> - Sidebar background (`#1C2944`) giữ nguyên cho cả Light và Dark mode
+> - Sidebar background (`#1C2944`) giữ nguyên cho cả chế độ Sáng và Tối
 > - Medicine ID tự động thay đổi khi chuyển kệ (shelf)
-> - StorageEngine tự backup trước khi ghi, tự restore khi file bị corrupt
-> - Window title được định nghĩa trong `Ui Qt/main_window.ui` → compiled vào `main_window_ui.py`
-> - Theme toggle giữ nguyên trang hiện tại (page index) — không nhảy về Dashboard
+> - StorageEngine tự sao lưu trước khi ghi, tự phục hồi khi file bị hỏng
+> - Tiêu đề cửa sổ được định nghĩa trong `Ui Qt/main_window.ui` → compiled vào `main_window_ui.py`
+> - Chuyển đổi chủ đề giữ nguyên trang hiện tại (page index) — không nhảy về Dashboard
 
 > [!IMPORTANT]
-> - Capacity check: khi thêm/sửa thuốc, hệ thống kiểm tra sức chứa còn lại của kệ
+> - Kiểm tra sức chứa: khi thêm/sửa thuốc, hệ thống kiểm tra sức chứa còn lại của kệ
 > - sort_medicines() trả về **bản sao**, không thay đổi list gốc
 > - `Shelf.capacity` đang lưu kiểu `str` (cần cast int khi tính toán)
-> - Kiến trúc UI/Logic tách biệt: `inventory_view.py` chỉ emit signal, `main_window.py` xử lý logic
-> - Mỗi dialog/form cần **2 generated files** (light + dark) — khi thêm UI mới phải tạo cả 2 phiên bản
+> - Kiến trúc UI/Logic tách biệt: `inventory_view.py` chỉ phát signal, `main_window.py` xử lý logic
+> - Mỗi dialog/form cần **2 generated files** (sáng + tối) — khi thêm UI mới phải tạo cả 2 phiên bản
+> - Hệ thống theme đã tách module: import qua `from src.ui.theme import Theme, ThemeMode` (backward-compatible)

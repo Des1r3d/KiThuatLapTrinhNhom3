@@ -1,1024 +1,1053 @@
-# ClassFlow Documentation - Pharmacy Management System
+# Tài Liệu ClassFlow — Hệ Thống Quản Lý Kho Thuốc
 
-This document describes the detailed flow and interaction patterns for each class in the Pharmacy Management System.
+Tài liệu này mô tả chi tiết luồng xử lý và mẫu tương tác của từng lớp (class) trong Hệ Thống Quản Lý Kho Thuốc.
 
-## Table of Contents
-1. [Medicine Class Flow](#1-medicine-class-flow)
-2. [Shelf Class Flow](#2-shelf-class-flow)
-3. [InventoryManager Flow](#3-inventorymanager-flow)
-4. [StorageEngine Flow](#4-storageengine-flow)
-5. [SearchEngine Flow](#5-searchengine-flow)
-6. [UI Components Flow](#6-ui-components-flow)
-7. [Integration Flows](#7-integration-flows)
-8. [Error Handling Flow](#8-error-handling-flow)
+## Mục Lục
+1. [Lớp Medicine](#1-lớp-medicine)
+2. [Lớp Shelf](#2-lớp-shelf)
+3. [Luồng InventoryManager](#3-luồng-inventorymanager)
+4. [Luồng StorageEngine](#4-luồng-storageengine)
+5. [Luồng SearchEngine](#5-luồng-searchengine)
+6. [Luồng DashboardManager](#6-luồng-dashboardmanager)
+7. [Luồng Thành Phần UI](#7-luồng-thành-phần-ui)
+8. [Luồng Tích Hợp](#8-luồng-tích-hợp)
+9. [Luồng Xử Lý Lỗi](#9-luồng-xử-lý-lỗi)
 
 ---
 
-## 1. Medicine Class Flow
+## 1. Lớp Medicine
 
-### Purpose
-Core data model representing a medicine item in inventory.
+### Mục đích
+Model dữ liệu chính đại diện cho một mục thuốc trong kho.
 
-### Attributes
-- `id: str` - Unique identifier (auto-generated if empty)
-- `name: str` - Medicine name
-- `quantity: int` - Stock quantity (must be >= 0)
-- `expiry_date: date` - Expiration date
-- `shelf_id: str` - Reference to storage location
-- `price: float` - Unit price
+### Thuộc tính
+- `id: str` - Mã định danh duy nhất (tự sinh nếu rỗng)
+- `name: str` - Tên thuốc
+- `quantity: int` - Số lượng tồn kho (phải >= 0)
+- `expiry_date: date` - Ngày hết hạn
+- `shelf_id: str` - Tham chiếu tới vị trí lưu trữ
+- `price: float` - Đơn giá
 
-### Method Flow
+### Luồng phương thức
 
 #### `is_expired() -> bool`
 ```
-START
+BẮT ĐẦU
   ↓
-Get current date
+Lấy ngày hiện tại
   ↓
-Compare expiry_date with today
+So sánh expiry_date với hôm nay
   ↓
-Return True if expiry_date < today
+Trả về True nếu expiry_date < hôm nay
   ↓
-END
+KẾT THÚC
 ```
 
 #### `days_until_expiry() -> int`
 ```
-START
+BẮT ĐẦU
   ↓
-Get current date
+Lấy ngày hiện tại
   ↓
-Calculate delta = expiry_date - today
+Tính delta = expiry_date - hôm nay
   ↓
-Return delta.days (negative if expired)
+Trả về delta.days (âm nếu đã hết hạn)
   ↓
-END
+KẾT THÚC
 ```
 
 #### `to_dict() -> dict`
 ```
-START
+BẮT ĐẦU
   ↓
-Create empty dictionary
+Tạo dictionary rỗng
   ↓
-For each attribute:
-  - Convert to JSON-serializable type
-  - Handle date → ISO string conversion
+Với mỗi thuộc tính:
+  - Chuyển đổi sang kiểu JSON-serializable
+  - Xử lý date → chuỗi ISO
   ↓
-Return dictionary
+Trả về dictionary
   ↓
-END
+KẾT THÚC
 ```
 
 #### `from_dict(data: dict) -> Medicine`
 ```
-START
+BẮT ĐẦU
   ↓
-Validate required fields exist
+Kiểm tra các trường bắt buộc tồn tại
   ↓
-Parse date string → date object
+Phân tích chuỗi ngày → đối tượng date
   ↓
-Create Medicine instance
+Tạo thực thể Medicine
   ↓
-Validate constraints (qty >= 0)
+Kiểm tra ràng buộc (qty >= 0)
   ↓
-Return Medicine object
+Trả về đối tượng Medicine
   ↓
-END
+KẾT THÚC
 ```
 
-### State Transitions
+### Chuyển đổi trạng thái
 ```
-[New] → [Valid] → [In Inventory]
+[Mới] → [Hợp lệ] → [Trong kho]
            ↓
-      [Expired] (when expiry_date < today)
+      [Hết hạn] (khi expiry_date < hôm nay)
            ↓
-      [Low Stock] (when quantity < threshold)
+      [Tồn kho thấp] (khi quantity < ngưỡng)
 ```
 
 ---
 
-## 2. Shelf Class Flow
+## 2. Lớp Shelf
 
-### Purpose
-Represents physical storage location in pharmacy.
+### Mục đích
+Đại diện cho vị trí lưu trữ vật lý trong nhà thuốc.
 
-### Attributes
-- `id: str` - Shelf identifier
-- `row: str` - Row position
-- `column: str` - Column position
-- `capacity: str` - Maximum capacity
+### Thuộc tính
+- `id: str` - Mã kệ
+- `row: str` - Vị trí hàng
+- `column: str` - Vị trí cột
+- `capacity: str` - Sức chứa tối đa
 
-### Method Flow
+### Luồng phương thức
 
 #### `to_dict() -> dict`
 ```
-START
+BẮT ĐẦU
   ↓
-Convert all attributes to dictionary
+Chuyển đổi tất cả thuộc tính thành dictionary
   ↓
-Return dictionary
+Trả về dictionary
   ↓
-END
+KẾT THÚC
 ```
 
 #### `from_dict(data: dict) -> Shelf`
 ```
-START
+BẮT ĐẦU
   ↓
-Validate required fields
+Kiểm tra các trường bắt buộc
   ↓
-Create Shelf instance
+Tạo thực thể Shelf
   ↓
-Return Shelf object
+Trả về đối tượng Shelf
   ↓
-END
+KẾT THÚC
 ```
 
-### Usage in System
+### Sử dụng trong hệ thống
 ```
-User selects shelf (Dropdown in Add/Edit Dialog)
+Người dùng chọn kệ (Dropdown trong Dialog Thêm/Sửa)
   ↓
-InventoryManager validates shelf_id exists
+InventoryManager kiểm tra shelf_id tồn tại
   ↓
-Medicine.shelf_id references Shelf.id
+Medicine.shelf_id tham chiếu Shelf.id
   ↓
-Display location in Inventory Table
+Hiển thị vị trí trong Bảng kho
 ```
 
 ---
 
-## 3. InventoryManager Flow
+## 3. Luồng InventoryManager
 
-### Purpose
-Central controller for all inventory operations. Manages CRUD operations and business logic.
+### Mục đích
+Bộ điều khiển trung tâm cho tất cả thao tác kho. Quản lý CRUD và logic nghiệp vụ.
 
-### Dependencies
-- `StorageEngine` - For persistence
-- `Medicine` - Data model
-- `SearchEngine` - For search operations
+### Phụ thuộc
+- `StorageEngine` - Để lưu trữ bền vững
+- `Medicine` - Model dữ liệu
+- `SearchEngine` - Cho thao tác tìm kiếm
 
-### Method Flows
+### Luồng phương thức
 
 #### `load_data()`
 ```
-START
+BẮT ĐẦU
   ↓
-Call StorageEngine.read_json('medicines.json')
+Gọi StorageEngine.read_json('medicines.json')
   ↓
-Get list of dictionaries
+Nhận danh sách dictionaries
   ↓
-For each dict:
+Với mỗi dict:
   - Medicine.from_dict(dict)
-  - Add to self.medicines list
+  - Thêm vào self.medicines
   ↓
-Handle FileNotFoundError → Initialize empty list
+Xử lý FileNotFoundError → Khởi tạo danh sách rỗng
   ↓
-Handle JSONDecodeError → Log error, use backup
+Xử lý JSONDecodeError → Ghi log, dùng bản sao lưu
   ↓
-END
+KẾT THÚC
 ```
 
 #### `save_data()`
 ```
-START
+BẮT ĐẦU
   ↓
-For each Medicine in self.medicines:
-  - Call medicine.to_dict()
-  - Collect into list
+Với mỗi Medicine trong self.medicines:
+  - Gọi medicine.to_dict()
+  - Thu thập vào danh sách
   ↓
-Call StorageEngine.write_json('medicines.json', data)
+Gọi StorageEngine.write_json('medicines.json', data)
   ↓
-Handle errors → Rollback to previous state
+Xử lý lỗi → Khôi phục trạng thái trước
   ↓
-END
+KẾT THÚC
 ```
 
 #### `add_medicine(medicine: Medicine)`
 ```
-START
+BẮT ĐẦU
   ↓
-Validate medicine data
+Kiểm tra dữ liệu thuốc
   ↓
-Check if medicine.id is empty
+Kiểm tra medicine.id có rỗng không
   ↓
-  YES → Generate unique ID (UUID or timestamp-based)
+  CÓ → Tự sinh ID duy nhất
   ↓
-Validate quantity >= 0
+Kiểm tra quantity >= 0
   ↓
-Validate expiry_date >= today (warning if past)
+Kiểm tra expiry_date >= hôm nay (cảnh báo nếu đã qua)
   ↓
-Validate shelf_id exists
+Kiểm tra shelf_id tồn tại
   ↓
-Append to self.medicines
+Thêm vào self.medicines
   ↓
-Call save_data()
+Gọi save_data()
   ↓
-Emit signal → UI updates table
+Phát tín hiệu → UI cập nhật bảng
   ↓
-END
+KẾT THÚC
 ```
 
 #### `remove_medicine(medicine_id: str)`
 ```
-START
+BẮT ĐẦU
   ↓
-Find medicine by ID in self.medicines
+Tìm thuốc theo ID trong self.medicines
   ↓
-  NOT FOUND → Raise ValueError
+  KHÔNG TÌM THẤY → Ném ValueError
   ↓
-Remove from list
+Xóa khỏi danh sách
   ↓
-Call save_data()
+Gọi save_data()
   ↓
-Emit signal → UI updates table
+Phát tín hiệu → UI cập nhật bảng
   ↓
-END
+KẾT THÚC
 ```
 
 #### `update_medicine(medicine_id: str, changes: dict)`
 ```
-START
+BẮT ĐẦU
   ↓
-Find medicine by ID
+Tìm thuốc theo ID
   ↓
-  NOT FOUND → Raise ValueError
+  KHÔNG TÌM THẤY → Ném ValueError
   ↓
-Create new Medicine object (immutable pattern)
+Tạo đối tượng Medicine mới (mẫu bất biến)
   ↓
-Apply changes to new object
+Áp dụng thay đổi vào đối tượng mới
   ↓
-Validate new object
+Kiểm tra đối tượng mới
   ↓
-Replace old object in list
+Thay thế đối tượng cũ trong danh sách
   ↓
-Call save_data()
+Gọi save_data()
   ↓
-Emit signal → UI updates
+Phát tín hiệu → UI cập nhật
   ↓
-END
+KẾT THÚC
 ```
 
 #### `check_expiry(days_threshold: int = 30) -> List[Medicine]`
 ```
-START
+BẮT ĐẦU
   ↓
-Initialize empty result list
+Khởi tạo danh sách kết quả rỗng
   ↓
-For each medicine in self.medicines:
-  - Calculate days_until_expiry()
-  - If days <= days_threshold:
-    → Add to result list
+Với mỗi thuốc trong self.medicines:
+  - Tính days_until_expiry()
+  - Nếu days <= days_threshold:
+    → Thêm vào danh sách kết quả
   ↓
-Sort by expiry_date (soonest first)
+Sắp xếp theo expiry_date (sớm nhất trước)
   ↓
-Return result list
+Trả về danh sách kết quả
   ↓
-END
+KẾT THÚC
 ```
 
 #### `check_low_stock(threshold: int = 5) -> List[Medicine]`
 ```
-START
+BẮT ĐẦU
   ↓
-Initialize empty result list
+Khởi tạo danh sách kết quả rỗng
   ↓
-For each medicine in self.medicines:
-  - If quantity <= threshold:
-    → Add to result list
+Với mỗi thuốc trong self.medicines:
+  - Nếu quantity <= threshold:
+    → Thêm vào danh sách kết quả
   ↓
-Sort by quantity (lowest first)
+Sắp xếp theo quantity (thấp nhất trước)
   ↓
-Return result list
+Trả về danh sách kết quả
   ↓
-END
+KẾT THÚC
 ```
 
 ---
 
-## 4. StorageEngine Flow
+## 4. Luồng StorageEngine
 
-### Purpose
-Handles atomic JSON file operations with error handling.
+### Mục đích
+Xử lý thao tác file JSON nguyên tử với xử lý lỗi.
 
-### Method Flows
+### Luồng phương thức
 
 #### `read_json(filepath: str) -> dict`
 ```
-START
+BẮT ĐẦU
   ↓
-Check if file exists
+Kiểm tra file tồn tại
   ↓
-  NO → Raise FileNotFoundError
+  KHÔNG → Ném FileNotFoundError
   ↓
-Open file in read mode
+Mở file ở chế độ đọc
   ↓
-Try: json.load(file)
+Thử: json.load(file)
   ↓
-  JSONDecodeError → Check for backup file
+  JSONDecodeError → Kiểm tra file sao lưu
     ↓
-    Backup exists? → Load backup
+    Có bản sao lưu? → Tải bản sao lưu
     ↓
-    No backup → Raise error
+    Không có? → Ném lỗi
   ↓
-Return parsed data
+Trả về dữ liệu đã phân tích
   ↓
-END
+KẾT THÚC
 ```
 
 #### `write_json(filepath: str, data: dict)`
 ```
-START
+BẮT ĐẦU
   ↓
-Create backup of existing file (if exists)
+Tạo bản sao lưu file hiện tại (nếu có)
   ↓
-Generate temp filename: filepath + '.tmp'
+Tạo tên file tạm: filepath + '.tmp'
   ↓
-Open temp file in write mode
+Mở file tạm ở chế độ ghi
   ↓
 json.dump(data, file, indent=2)
   ↓
-Close temp file
+Đóng file tạm
   ↓
-Atomic rename: temp → filepath
+Đổi tên nguyên tử: temp → filepath
   ↓
-  SUCCESS → Delete backup
+  THÀNH CÔNG → Xóa bản sao lưu
   ↓
-  FAILURE → Restore from backup, raise error
+  THẤT BẠI → Khôi phục từ bản sao lưu, ném lỗi
   ↓
-END
+KẾT THÚC
 ```
 
-### Error Handling
+### Xử lý lỗi
 ```
-Write Operation:
+Thao tác ghi:
   ↓
-Create backup → Write to .tmp → Rename
+Sao lưu → Ghi vào .tmp → Đổi tên
   ↓               ↓               ↓
-  FAIL          FAIL            FAIL
+  LỖI           LỖI            LỖI
   ↓               ↓               ↓
-Log error    Restore backup  Restore backup
+Ghi log    Khôi phục sao lưu  Khôi phục sao lưu
   ↓               ↓               ↓
-Raise       Raise           Raise
+Ném lỗi   Ném lỗi           Ném lỗi
 ```
 
 ---
 
-## 5. SearchEngine Flow
+## 5. Luồng SearchEngine
 
-### Purpose
-Fuzzy search implementation using TheFuzz library.
+### Mục đích
+Triển khai tìm kiếm mờ sử dụng thư viện TheFuzz.
 
-### Dependencies
-- `thefuzz` library (fuzzy matching)
-- `Medicine` list from InventoryManager
+### Phụ thuộc
+- Thư viện `thefuzz` (khớp mờ)
+- Danh sách `Medicine` từ InventoryManager
 
-### Method Flows
+### Luồng phương thức
 
 #### `index_data(medicines: List[Medicine])`
 ```
-START
+BẮT ĐẦU
   ↓
-Clear existing index
+Xóa chỉ mục hiện tại
   ↓
-For each medicine:
-  - Extract name
-  - Store in index dict: {id: name}
+Với mỗi thuốc:
+  - Trích xuất tên
+  - Lưu vào dict chỉ mục: {id: name}
   ↓
-Cache index for fast lookup
+Cache chỉ mục để tra cứu nhanh
   ↓
-END
+KẾT THÚC
 ```
 
 #### `search(query: str, limit: int = 5) -> List[Tuple[Medicine, int]]`
 ```
-START
+BẮT ĐẦU
   ↓
-Normalize query (lowercase, strip whitespace)
+Chuẩn hóa truy vấn (viết thường, cắt khoảng trắng)
   ↓
-Initialize results list
+Khởi tạo danh sách kết quả
   ↓
-For each medicine in index:
-  - Calculate fuzzy score for name (fuzz.ratio)
-  - Use name_score
+Với mỗi thuốc trong chỉ mục:
+  - Tính điểm khớp mờ cho tên (fuzz.ratio)
+  - Sử dụng name_score
   ↓
-Filter results: score >= 80
+Lọc kết quả: score >= 80
   ↓
-Sort by score (descending)
+Sắp xếp theo điểm (giảm dần)
   ↓
-Take top 'limit' results
+Lấy 'limit' kết quả đầu
   ↓
-Return List[(Medicine object, score)]
+Trả về List[(đối tượng Medicine, score)]
   ↓
-END
+KẾT THÚC
 ```
 
-### Fuzzy Matching Algorithm
+### Thuật toán khớp mờ
 ```
-Input: query = "paracetamol"
+Đầu vào: query = "paracetamol"
   ↓
-For medicine.name = "Paracetamol 500mg":
+Với medicine.name = "Paracetamol 500mg":
   - fuzz.ratio("paracetamol", "paracetamol 500mg") → 85
   ↓
-For medicine.name = "Aspirin":
+Với medicine.name = "Aspirin":
   - fuzz.ratio("paracetamol", "aspirin") → 30
   ↓
-Filter: Keep only score >= 80
+Lọc: Chỉ giữ score >= 80
   ↓
-Result: [("Paracetamol 500mg", 85)]
+Kết quả: [("Paracetamol 500mg", 85)]
 ```
 
 ---
 
-## 6. UI Components Flow
 
-### 6.1 MainWindow Flow
+### 6.1 Luồng MainWindow
 
-#### Initialization
+> **Vị trí:** `src/ui/main_window.py`
+
+#### Khởi tạo
 ```
-START
+BẮT ĐẦU
   ↓
-Create QMainWindow
+Tạo QMainWindow
   ↓
-Setup sidebar navigation (QListWidget)
+Thiết lập điều hướng sidebar (QListWidget)
   ↓
-Create QStackedWidget for main area
+Tạo QStackedWidget cho vùng chính
   ↓
-Add pages: Dashboard, InventoryView, Settings
+Thêm trang: Dashboard, InventoryView, ShelfView
   ↓
-Setup keyboard shortcuts:
-  - Ctrl+K → Open search modal
-  - Ctrl+N → Open add medicine dialog
-  - Ctrl+D → Toggle theme
+Thiết lập phím tắt:
+  - Ctrl+K → Mở modal tìm kiếm
   ↓
-Connect signals:
-  - Sidebar item clicked → Change page
-  - Menu actions → Open dialogs
+Kết nối tín hiệu:
+  - Mục sidebar được nhấn → Chuyển trang
+  - Các hành động menu → Mở hộp thoại
   ↓
-Load user settings (theme, window size)
+Tải cài đặt người dùng (chủ đề, kích thước cửa sổ)
   ↓
-Show window
+Hiện cửa sổ
   ↓
-END
-```
-
-### 6.2 Dashboard Flow
-
-#### Purpose
-Display overview statistics and charts using Matplotlib.
-
-#### Initialization Flow
-```
-START
-  ↓
-Create Dashboard widget
-  ↓
-Get data from InventoryManager
-  ↓
-Create FigureCanvasQTAgg (Matplotlib canvas)
-  ↓
-Generate charts:
-  - Pie chart: Expiry distribution
-  - Bar chart: Top 10 medicines by quantity
-  ↓
-Embed canvas in QVBoxLayout
-  ↓
-Add refresh button → Reload charts
-  ↓
-END
+KẾT THÚC
 ```
 
-#### Chart Generation Flow
+### 6.2 Luồng Dashboard
+
+> **Vị trí:** `src/ui/views/dashboard.py`
+
+#### Mục đích
+Hiển thị số liệu thống kê tổng quan và biểu đồ bằng Matplotlib.
+
+#### Luồng khởi tạo
 ```
-Get medicines from InventoryManager
+BẮT ĐẦU
   ↓
-Categorize:
-  - Expired (days_until_expiry < 0)
-  - Expiring soon (0 <= days <= 30)
-  - Normal (days > 30)
+Tạo widget Dashboard
   ↓
-Create Matplotlib Figure
+Lấy dữ liệu từ InventoryManager
   ↓
-Add subplot: Pie chart
-  - Data: [expired_count, expiring_count, normal_count]
-  - Labels: ["Hết hạn", "Sắp hết hạn", "Bình thường"]
-  - Colors: [red, yellow, green]
+Tạo FigureCanvasQTAgg (canvas Matplotlib)
   ↓
-Add subplot: Bar chart
-  - Sort medicines by quantity (descending)
-  - Take top 10
-  - X-axis: Medicine names
-  - Y-axis: Quantities
+Tạo biểu đồ:
+  - Biểu đồ tròn: Phân bổ hạn sử dụng
+  - Biểu đồ cột: Top 10 thuốc theo số lượng
+  ↓
+Nhúng canvas vào QVBoxLayout
+  ↓
+Thêm nút làm mới → Tải lại biểu đồ
+  ↓
+KẾT THÚC
+```
+
+#### Luồng tạo biểu đồ
+```
+Lấy danh sách thuốc từ InventoryManager
+  ↓
+Phân loại:
+  - Hết hạn (days_until_expiry < 0)
+  - Sắp hết hạn (0 <= days <= 30)
+  - Bình thường (days > 30)
+  ↓
+Tạo Figure Matplotlib
+  ↓
+Thêm subplot: Biểu đồ tròn
+  - Dữ liệu: [số_hết_hạn, số_sắp_hết, số_bình_thường]
+  - Nhãn: ["Hết hạn", "Sắp hết hạn", "Bình thường"]
+  - Màu: [đỏ, vàng, xanh]
+  ↓
+Thêm subplot: Biểu đồ cột
+  - Sắp xếp thuốc theo số lượng (giảm dần)
+  - Lấy top 10
+  - Trục X: Tên thuốc
+  - Trục Y: Số lượng
   ↓
 canvas.draw()
   ↓
-END
+KẾT THÚC
 ```
 
-### 6.3 InventoryView Flow
+### 6.3 Luồng InventoryView
 
-#### Purpose
-Display medicines in sortable/filterable table.
+> **Vị trí:** `src/ui/views/inventory_view.py`
 
-#### Initialization Flow
+#### Mục đích
+Hiển thị thuốc trong bảng có thể sắp xếp/lọc.
+
+#### Luồng khởi tạo
 ```
-START
+BẮT ĐẦU
   ↓
-Create QTableView
+Tạo QTableView
   ↓
-Create custom QAbstractTableModel
+Tạo QAbstractTableModel tùy chỉnh
   ↓
-Load medicines from InventoryManager
+Tải thuốc từ InventoryManager
   ↓
-Convert to Pandas DataFrame
+Thiết lập cột:
+  - Tên, Số lượng, Hạn dùng, Kệ, Trạng thái
   ↓
-Set DataFrame as model backend
+Bật sắp xếp
   ↓
-Configure columns:
-  - Name, Quantity, Expiry Date, Shelf, Status
+Thiết lập mã màu:
+  - Đỏ nếu hết hạn
+  - Vàng nếu sắp hết hạn
+  - Xanh nếu bình thường
   ↓
-Enable sorting
+Kết nối tín hiệu:
+  - Double-click → Xem chi tiết thuốc
+  - Chuột phải → Menu ngữ cảnh (Sửa/Xóa)
   ↓
-Setup color coding:
-  - Red row if expired
-  - Yellow row if expiring soon
-  - Green row if normal
-  ↓
-Connect signals:
-  - Double-click → Open edit dialog
-  - Right-click → Context menu (Edit/Delete)
-  ↓
-END
+KẾT THÚC
 ```
 
-#### Data Update Flow
+#### Luồng cập nhật dữ liệu
 ```
-InventoryManager emits signal (medicine added/updated/deleted)
+InventoryManager phát tín hiệu (thuốc thêm/sửa/xóa)
   ↓
-InventoryView receives signal
+InventoryView nhận tín hiệu
   ↓
-Reload DataFrame from InventoryManager.medicines
+Tải lại dữ liệu từ InventoryManager.medicines
   ↓
-Call model.layoutChanged()
+Gọi model.layoutChanged()
   ↓
-QTableView refreshes display
+QTableView làm mới hiển thị
   ↓
-Reapply sorting/filtering
+Áp dụng lại sắp xếp/lọc
   ↓
-Update status bar (total count)
+Cập nhật thanh trạng thái (tổng số)
   ↓
-END
-```
-
-### 6.4 Add/Edit Dialog Flow
-
-#### Purpose
-Form for creating/editing medicine entries.
-
-#### Initialization Flow
-```
-START
-  ↓
-Create QDialog
-  ↓
-Create form fields:
-  - QLineEdit: Name, Active Ingredient, Price
-  - QSpinBox: Quantity
-  - QDateEdit: Expiry Date
-  - QComboBox: Shelf (populate from shelves.json)
-  ↓
-If EDIT mode:
-  - Pre-fill fields with existing medicine data
-  ↓
-Connect validators:
-  - Quantity >= 0
-  - Price >= 0
-  - Date is valid
-  ↓
-Connect buttons:
-  - Save → validate_and_save()
-  - Cancel → close()
-  ↓
-END
+KẾT THÚC
 ```
 
-#### Save Flow
+### 6.4 Luồng Hộp Thoại Thêm/Sửa
+
+> **Vị trí:** `src/ui/dialogs/medicine_dialog.py`
+
+#### Mục đích
+Form để tạo/chỉnh sửa mục thuốc.
+
+#### Luồng khởi tạo
 ```
-User clicks Save button
+BẮT ĐẦU
   ↓
-Validate all fields
+Tạo QDialog
   ↓
-  INVALID → Show error message, return
+Tạo các trường form:
+  - QLineEdit: Tên, Hoạt chất, Giá
+  - QSpinBox: Số lượng
+  - QDateEdit: Hạn sử dụng
+  - QComboBox: Kệ (lấy từ shelves.json)
   ↓
-Create Medicine object from form data
+Nếu chế độ SỬA:
+  - Điền sẵn dữ liệu thuốc hiện tại
   ↓
-If ADD mode:
-  - Call InventoryManager.add_medicine()
+Kết nối kiểm tra:
+  - Số lượng >= 0
+  - Giá >= 0
+  - Ngày hợp lệ
   ↓
-If EDIT mode:
-  - Call InventoryManager.update_medicine()
+Kết nối nút:
+  - Lưu → validate_and_save()
+  - Hủy → close()
   ↓
-InventoryManager saves to JSON
-  ↓
-InventoryManager emits signal
-  ↓
-Dialog closes
-  ↓
-InventoryView updates automatically
-  ↓
-END
+KẾT THÚC
 ```
 
-### 6.5 Global Search Modal Flow
-
-#### Purpose
-Quick search accessible via Ctrl+K.
-
-#### Activation Flow
+#### Luồng lưu
 ```
-User presses Ctrl+K
+Người dùng nhấn nút Lưu
   ↓
-Create/Show search modal (QDialog)
+Kiểm tra tất cả trường
   ↓
-Focus on QLineEdit
+  KHÔNG HỢP LỆ → Hiện thông báo lỗi, quay lại
   ↓
-User types query
+Tạo đối tượng Medicine từ dữ liệu form
   ↓
-On text changed:
-  - Call SearchEngine.search(query)
-  - Display results in QListWidget
-  - Show score for each result
+Nếu chế độ THÊM:
+  - Gọi InventoryManager.add_medicine()
   ↓
-User selects result
+Nếu chế độ SỬA:
+  - Gọi InventoryManager.update_medicine()
   ↓
-Navigate to InventoryView
+InventoryManager lưu vào JSON
   ↓
-Highlight selected medicine in table
+InventoryManager phát tín hiệu
   ↓
-Close modal
+Hộp thoại đóng
   ↓
-END
+InventoryView tự động cập nhật
+  ↓
+KẾT THÚC
+```
+
+### 6.5 Luồng Modal Tìm Kiếm Toàn Cục
+
+> **Vị trí:** `src/ui/main_window.py` (SearchDialog nội tuyến)
+
+#### Mục đích
+Tìm kiếm nhanh qua phím tắt Ctrl+K.
+
+#### Luồng kích hoạt
+```
+Người dùng nhấn Ctrl+K
+  ↓
+Tạo/Hiện modal tìm kiếm (QDialog)
+  ↓
+Focus vào QLineEdit
+  ↓
+Người dùng gõ truy vấn
+  ↓
+Khi text thay đổi:
+  - Gọi SearchEngine.search(query)
+  - Hiển thị kết quả trong QListWidget
+  - Hiện điểm cho mỗi kết quả
+  ↓
+Người dùng chọn kết quả
+  ↓
+Chuyển đến InventoryView
+  ↓
+Đánh dấu thuốc đã chọn trong bảng
+  ↓
+Đóng modal
+  ↓
+KẾT THÚC
 ```
 
 ---
 
-## 7. Integration Flows
+## 8. Luồng Tích Hợp
 
-### 7.1 Complete Add Medicine Flow (All Layers)
-
-```
-[UI Layer]
-User clicks "Add Medicine" button (Ctrl+N)
-  ↓
-MainWindow opens AddMedicineDialog
-  ↓
-User fills form and clicks Save
-  ↓
-Dialog validates input
-  ↓
-
-[Business Logic Layer]
-Dialog creates Medicine object
-  ↓
-Calls InventoryManager.add_medicine(medicine)
-  ↓
-InventoryManager validates:
-  - Auto-generate ID if empty
-  - Check quantity >= 0
-  - Validate shelf_id exists
-  ↓
-InventoryManager appends to medicines list
-  ↓
-
-[Data Layer]
-InventoryManager calls save_data()
-  ↓
-Converts medicines to list of dicts
-  ↓
-Calls StorageEngine.write_json()
-  ↓
-StorageEngine performs atomic write:
-  - Create backup
-  - Write to .tmp file
-  - Rename .tmp → medicines.json
-  ↓
-
-[Back to UI Layer]
-InventoryManager emits 'medicine_added' signal
-  ↓
-InventoryView receives signal
-  ↓
-InventoryView reloads data
-  ↓
-Table updates with new medicine
-  ↓
-Status bar shows updated count
-  ↓
-Dialog closes
-  ↓
-END
-```
-
-### 7.2 Search Flow (All Layers)
+### 8.1 Luồng Thêm Thuốc Hoàn Chỉnh (Tất Cả Tầng)
 
 ```
-[UI Layer]
-User presses Ctrl+K
+[Tầng UI]
+Người dùng nhấn nút "Thêm thuốc"
   ↓
-SearchModal opens
+MainWindow mở MedicineDialog
   ↓
-User types "paracet"
+Người dùng điền form và nhấn Lưu
   ↓
-SearchModal text changed event
-  ↓
-
-[Business Logic Layer]
-Calls SearchEngine.search("paracet")
-  ↓
-SearchEngine performs fuzzy matching:
-  - Compare against all medicine names
-  - Calculate scores
-  - Filter score >= 80
-  - Sort by score
-  ↓
-Returns List[(Medicine, score)]
+Dialog kiểm tra đầu vào
   ↓
 
-[Back to UI Layer]
-SearchModal displays results:
+[Tầng Logic Nghiệp Vụ]
+Dialog tạo đối tượng Medicine
+  ↓
+Gọi InventoryManager.add_medicine(medicine)
+  ↓
+InventoryManager kiểm tra:
+  - Tự sinh ID nếu rỗng
+  - Kiểm tra quantity >= 0
+  - Kiểm tra shelf_id tồn tại
+  ↓
+InventoryManager thêm vào danh sách thuốc
+  ↓
+
+[Tầng Dữ Liệu]
+InventoryManager gọi save_data()
+  ↓
+Chuyển đổi thuốc thành danh sách dict
+  ↓
+Gọi StorageEngine.write_json()
+  ↓
+StorageEngine thực hiện ghi nguyên tử:
+  - Tạo bản sao lưu
+  - Ghi vào file .tmp
+  - Đổi tên .tmp → medicines.json
+  ↓
+
+[Quay lại Tầng UI]
+InventoryManager phát tín hiệu 'medicine_added'
+  ↓
+InventoryView nhận tín hiệu
+  ↓
+InventoryView tải lại dữ liệu
+  ↓
+Bảng cập nhật với thuốc mới
+  ↓
+Thanh trạng thái hiện số lượng mới
+  ↓
+Hộp thoại đóng
+  ↓
+KẾT THÚC
+```
+
+### 8.2 Luồng Tìm Kiếm (Tất Cả Tầng)
+
+```
+[Tầng UI]
+Người dùng nhấn Ctrl+K
+  ↓
+SearchModal mở
+  ↓
+Người dùng gõ "paracet"
+  ↓
+Sự kiện text changed của SearchModal
+  ↓
+
+[Tầng Logic Nghiệp Vụ]
+Gọi SearchEngine.search("paracet")
+  ↓
+SearchEngine thực hiện khớp mờ:
+  - So sánh với tất cả tên thuốc
+  - Tính điểm
+  - Lọc score >= 80
+  - Sắp xếp theo điểm
+  ↓
+Trả về List[(Medicine, score)]
+  ↓
+
+[Quay lại Tầng UI]
+SearchModal hiển thị kết quả:
   - "Paracetamol 500mg (95%)"
   - "Paracetamol Extra (88%)"
   ↓
-User selects first result
+Người dùng chọn kết quả đầu
   ↓
-SearchModal emits 'medicine_selected' signal
+SearchModal phát tín hiệu 'medicine_selected'
   ↓
-MainWindow switches to InventoryView
+MainWindow chuyển sang InventoryView
   ↓
-InventoryView highlights selected medicine
+InventoryView đánh dấu thuốc đã chọn
   ↓
-SearchModal closes
+SearchModal đóng
   ↓
-END
+KẾT THÚC
 ```
 
-### 7.3 Dashboard Refresh Flow
+### 8.3 Luồng Làm Mới Dashboard
 
 ```
-[UI Layer]
-Dashboard widget shown
+[Tầng UI]
+Widget Dashboard được hiển thị
   ↓
-Dashboard requests data
-  ↓
-
-[Business Logic Layer]
-Calls InventoryManager.check_expiry(30)
-  ↓
-Returns list of expiring medicines
-  ↓
-Calls InventoryManager.check_low_stock(5)
-  ↓
-Returns list of low stock medicines
+Dashboard gọi load_data(medicines)
   ↓
 
-[Back to UI Layer]
-Dashboard processes data:
-  - Count expired, expiring, normal
-  - Get top 10 by quantity
+[Tầng Logic Nghiệp Vụ - DashboardManager]
+Gọi get_statistics(medicines) → DashboardStats
   ↓
-Dashboard generates Matplotlib charts
+Gọi get_pie_chart_data(medicines) → PieChartData
   ↓
-Embeds charts in canvas
+Gọi get_bar_chart_data(medicines) → BarChartData
   ↓
-Display to user
+Gọi get_expiring_medicines(medicines) → List[ExpiryItem]
   ↓
-END
+Gọi get_low_stock_medicines(medicines) → List[LowStockItem]
+  ↓
+
+[Quay lại Tầng UI - Dashboard View]
+Render thẻ KPI với DashboardStats
+  ↓
+Render biểu đồ tròn với PieChartData
+  ↓
+Render biểu đồ cột với BarChartData
+  ↓
+Điền bảng sắp hết hạn với List[ExpiryItem]
+  ↓
+Điền bảng tồn kho thấp với List[LowStockItem]
+  ↓
+KẾT THÚC
 ```
 
 ---
 
-## 8. Error Handling Flow
+## 9. Luồng Xử Lý Lỗi
 
-### 8.1 Data Layer Errors
+### 9.1 Lỗi Tầng Dữ Liệu
 
-#### File Not Found
+#### Không tìm thấy file
 ```
 StorageEngine.read_json('medicines.json')
   ↓
-FileNotFoundError raised
+Ném FileNotFoundError
   ↓
-Check for backup file
+Kiểm tra file sao lưu
   ↓
-  Backup exists? → Load backup, warn user
+  Có sao lưu? → Tải bản sao lưu, cảnh báo người dùng
   ↓
-  No backup? → Return empty list, log warning
+  Không có? → Trả về danh sách rỗng, ghi log cảnh báo
   ↓
-InventoryManager initializes with empty medicines list
+InventoryManager khởi tạo với danh sách thuốc rỗng
   ↓
-UI displays "No medicines found" message
+UI hiển thị "Không tìm thấy thuốc"
 ```
 
-#### JSON Decode Error
+#### Lỗi giải mã JSON
 ```
 StorageEngine.read_json('medicines.json')
   ↓
-JSONDecodeError raised (corrupted file)
+Ném JSONDecodeError (file bị hỏng)
   ↓
-Check for backup file
+Kiểm tra file sao lưu
   ↓
-  Backup exists? → Load backup, warn user
+  Có sao lưu? → Tải bản sao lưu, cảnh báo người dùng
   ↓
-  No backup? → Show error dialog, exit gracefully
+  Không có? → Hiện hộp thoại lỗi, thoát an toàn
   ↓
-Log error with stack trace
+Ghi log lỗi với stack trace
 ```
 
-#### Write Error
+#### Lỗi ghi file
 ```
 StorageEngine.write_json()
   ↓
-IOError during write (disk full, permission denied)
+IOError khi ghi (đĩa đầy, từ chối quyền)
   ↓
-Rollback: Restore from backup
+Khôi phục: Phục hồi từ bản sao lưu
   ↓
-Show error dialog to user
+Hiện hộp thoại lỗi cho người dùng
   ↓
-Log error details
+Ghi log chi tiết lỗi
   ↓
-Keep current in-memory state (don't lose changes)
+Giữ trạng thái bộ nhớ hiện tại (không mất thay đổi)
 ```
 
-### 8.2 Business Logic Errors
+### 9.2 Lỗi Logic Nghiệp Vụ
 
-#### Invalid Medicine Data
+#### Dữ liệu thuốc không hợp lệ
 ```
 InventoryManager.add_medicine(medicine)
   ↓
-Validation fails (quantity < 0)
+Kiểm tra thất bại (quantity < 0)
   ↓
-Raise ValueError with message
+Ném ValueError với thông báo
   ↓
-Dialog catches exception
+Dialog bắt ngoại lệ
   ↓
-Show error message to user: "Quantity must be >= 0"
+Hiện thông báo lỗi: "Số lượng phải >= 0"
   ↓
-Focus on invalid field
+Focus vào trường không hợp lệ
   ↓
-User corrects and retries
+Người dùng chỉnh sửa và thử lại
 ```
 
-#### Duplicate ID
+#### ID trùng lặp
 ```
 InventoryManager.add_medicine(medicine)
   ↓
-Check if medicine.id already exists
+Kiểm tra medicine.id đã tồn tại
   ↓
-  EXISTS → Raise ValueError("Duplicate ID")
+  TỒN TẠI → Ném ValueError("ID trùng lặp")
   ↓
-Dialog shows error
+Dialog hiện lỗi
   ↓
-Auto-generate new ID
+Tự sinh ID mới
   ↓
-Retry
+Thử lại
 ```
 
-### 8.3 UI Layer Errors
+### 9.3 Lỗi Tầng UI
 
-#### Invalid Form Input
+#### Đầu vào form không hợp lệ
 ```
-User enters invalid date
+Người dùng nhập ngày không hợp lệ
   ↓
-QDateEdit validation fails
+Kiểm tra QDateEdit thất bại
   ↓
-Show inline error message
+Hiện thông báo lỗi nội tuyến
   ↓
-Disable Save button until fixed
+Vô hiệu hóa nút Lưu cho đến khi sửa
 ```
 
-#### Search No Results
+#### Tìm kiếm không có kết quả
 ```
 SearchEngine.search(query)
   ↓
-Returns empty list (no matches >= 80%)
+Trả về danh sách rỗng (không khớp >= 80%)
   ↓
-SearchModal displays: "No results found"
+SearchModal hiển thị: "Không tìm thấy kết quả"
   ↓
-Suggest user to try different keywords
+Gợi ý người dùng thử từ khóa khác
 ```
 
 ---
 
-## 9. State Machine Diagrams
+## 10. Sơ Đồ Máy Trạng Thái
 
-### 9.1 Application State
+### 10.1 Trạng thái ứng dụng
 ```
-[Startup]
+[Khởi động]
   ↓
-[Loading Data] → FAIL → [Error State] → [Recovery]
-  ↓                                         ↓
-[Ready]                                 [Loading Data]
+[Đang tải dữ liệu] → LỖI → [Trạng thái lỗi] → [Phục hồi]
+  ↓                                                  ↓
+[Sẵn sàng]                                    [Đang tải dữ liệu]
   ↓
-[Idle] ←→ [Searching] ←→ [Displaying Results]
+[Chờ] ←→ [Đang tìm kiếm] ←→ [Hiển thị kết quả]
   ↓
-[Editing] → [Saving] → FAIL → [Error Dialog] → [Editing]
+[Đang chỉnh sửa] → [Đang lưu] → LỖI → [Hộp thoại lỗi] → [Đang chỉnh sửa]
   ↓           ↓
-[Idle]     SUCCESS
+[Chờ]     THÀNH CÔNG
               ↓
-           [Idle]
+           [Chờ]
 ```
 
-### 9.2 Medicine Object State
+### 10.2 Trạng thái đối tượng Medicine
 ```
-[New] → [Validated] → [Persisted]
-                          ↓
-                      [In Inventory]
-                          ↓
-                    [Normal Status]
-                          ↓
-              ┌───────────┴───────────┐
-              ↓                       ↓
-        [Expiring Soon]          [Low Stock]
-              ↓                       ↓
-          [Expired]              [Out of Stock]
-              ↓                       ↓
-          [Removed]              [Removed]
+[Mới] → [Đã kiểm tra] → [Đã lưu]
+                           ↓
+                       [Trong kho]
+                           ↓
+                     [Trạng thái bình thường]
+                           ↓
+               ┌───────────┴───────────┐
+               ↓                       ↓
+         [Sắp hết hạn]          [Tồn kho thấp]
+               ↓                       ↓
+           [Hết hạn]              [Hết hàng]
+               ↓                       ↓
+           [Đã xóa]              [Đã xóa]
 ```
 
 ---
 
-## 10. File Structure and Class Mapping
+## 11. Cấu Trúc File và Ánh Xạ Lớp
 
-### Planned File Organization
+### Tổ chức file hiện tại
 ```
 src/
 ├── models.py
-│   ├── Medicine (T-102)
-│   └── Shelf (T-102)
+│   ├── Medicine
+│   └── Shelf
 │
 ├── storage.py
-│   └── StorageEngine (T-103)
+│   └── StorageEngine
 │
 ├── inventory_manager.py
-│   └── InventoryManager (T-201)
+│   └── InventoryManager
 │
 ├── search_engine.py
-│   └── SearchEngine (T-203)
+│   └── SearchEngine
 │
 ├── alerts.py
-│   └── AlertSystem (T-202)
+│   └── AlertSystem
 │
-├── main.py
-│   └── Application entry point
+├── image_manager.py
+│   └── ImageManager
+│
+├── dashboard_manager.py              # Xử lý dữ liệu dashboard
+│   ├── DashboardManager
+│   ├── DashboardStats (dataclass)
+│   ├── PieChartData (dataclass)
+│   ├── BarChartData (dataclass)
+│   ├── ExpiryItem (dataclass)
+│   └── LowStockItem (dataclass)
 │
 └── ui/
     ├── main_window.py
-    │   └── MainWindow (T-301)
+    │   ├── MainWindow
+    │   └── SearchDialog
     │
-    ├── inventory_view.py
-    │   ├── InventoryTableModel
-    │   └── InventoryView (T-302)
+    ├── theme/                    # Hệ thống chủ đề (đã tách module)
+    │   ├── __init__.py           # Xuất Theme, ThemeMode
+    │   ├── colors.py             # Bảng màu LIGHT_COLORS, DARK_COLORS
+    │   ├── tokens.py             # Khoảng cách, bo góc, font chữ
+    │   ├── sidebar.py            # Hằng số sidebar
+    │   ├── cards.py              # Màu thẻ thống kê & biểu đồ
+    │   ├── core.py               # Lớp Theme, enum ThemeMode
+    │   ├── stylesheets.py        # Hàm tạo stylesheet Qt
+    │   └── badges.py             # Hàm huy hiệu/cảnh báo
     │
-    ├── dialogs.py
-    │   ├── AddMedicineDialog (T-303)
-    │   └── EditMedicineDialog (T-303)
+    ├── views/                    # Các trang chính (CHỈ UI)
+    │   ├── dashboard.py          # Dashboard (CHỈ render, logic ở DashboardManager)
+    │   ├── inventory_view.py     # Bảng danh sách thuốc
+    │   └── shelf_view.py         # Quản lý kệ
     │
-    ├── dashboard.py
-    │   └── Dashboard (T-304)
+    ├── dialogs/                  # Các hộp thoại
+    │   ├── medicine_dialog.py    # Thêm/Sửa thuốc
+    │   ├── shelf_dialog.py       # Thêm/Sửa kệ
+    │   ├── filter_dialog.py      # Lọc thuốc
+    │   ├── medicine_detail_view.py # Xem chi tiết thuốc
+    │   └── notification_dialogs.py # Thông báo thành công/lỗi
     │
-    └── search_modal.py
-        └── SearchModal (Global search)
+    └── generated/                # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
+        ├── main_window_ui.py / main_window_ui_dark.py
+        ├── them_thuoc.py / them_thuoc_dark.py
+        └── ...
 ```
 
 ---
 
-## 11. Cross-Reference with Tickets
+## 12. Tham Chiếu Chéo Với Tickets
 
-| Ticket | Component | ClassFlow Section |
-|--------|-----------|-------------------|
-| T-101 | Project Setup | N/A (Infrastructure) |
-| T-102 | Data Models | 1. Medicine Class, 2. Shelf Class |
-| T-103 | Storage Engine | 4. StorageEngine Flow |
-| T-201 | Inventory Manager | 3. InventoryManager Flow |
-| T-202 | Alert System | 3. InventoryManager (check_expiry, check_low_stock) |
-| T-203 | Search Engine | 5. SearchEngine Flow |
-| T-301 | Main Window | 6.1 MainWindow Flow |
-| T-302 | Inventory View | 6.3 InventoryView Flow |
-| T-303 | Add/Edit Dialog | 6.4 Add/Edit Dialog Flow |
-| T-304 | Dashboard | 6.2 Dashboard Flow |
-| T-305 | Theme Toggle | 6.1 MainWindow (keyboard shortcuts) |
+| Ticket | Thành phần | Phần ClassFlow |
+|--------|-----------|----------------|
+| T-101 | Thiết lập dự án | N/A (Hạ tầng) |
+| T-102 | Model dữ liệu | 1. Lớp Medicine, 2. Lớp Shelf |
+| T-103 | Storage Engine | 4. Luồng StorageEngine |
+| T-201 | Quản lý kho | 3. Luồng InventoryManager |
+| T-202 | Hệ thống cảnh báo | 3. InventoryManager (check_expiry, check_low_stock) |
+| T-203 | Search Engine | 5. Luồng SearchEngine |
+| T-204 | Dashboard Manager | 6. Luồng DashboardManager |
+| T-301 | Cửa sổ chính | 7.1 Luồng MainWindow |
+| T-302 | Bảng kho | 7.3 Luồng InventoryView |
+| T-303 | Hộp thoại Thêm/Sửa | 7.4 Luồng Hộp Thoại Thêm/Sửa |
+| T-304 | Dashboard View | 7.2 Luồng Dashboard (CHỈ UI) |
+| T-305 | Chuyển đổi chủ đề | 7.1 MainWindow (phím tắt) |
 
 ---
 
-## Summary
+## Tóm Tắt
 
-This ClassFlow document provides:
-1. ✅ Detailed flow for each class
-2. ✅ Input/Output specifications
-3. ✅ Dependencies and interactions
-4. ✅ Method execution sequences
-5. ✅ State transitions
-6. ✅ Error handling strategies
-7. ✅ Integration flows across all three layers
-8. ✅ Mapping to actual file structure and tickets
+Tài liệu ClassFlow này cung cấp:
+1. ✅ Luồng chi tiết cho từng lớp
+2. ✅ Đặc tả đầu vào/đầu ra
+3. ✅ Phụ thuộc và tương tác
+4. ✅ Trình tự thực thi phương thức
+5. ✅ Chuyển đổi trạng thái
+6. ✅ Chiến lược xử lý lỗi
+7. ✅ Luồng tích hợp xuyên suốt ba tầng
+8. ✅ Ánh xạ với cấu trúc file thực tế và tickets
 
-This documentation should be used as a blueprint during implementation phases to ensure all components follow the designed flow patterns.
+Tài liệu này nên được sử dụng làm bản thiết kế trong các giai đoạn triển khai để đảm bảo tất cả thành phần tuân theo mẫu luồng đã thiết kế.

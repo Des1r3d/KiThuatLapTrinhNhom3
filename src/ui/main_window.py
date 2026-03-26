@@ -1,16 +1,16 @@
 """
-Main Window — PHARMA.SYS Application.
+Cửa sổ chính — Ứng dụng PHARMA.SYS.
 
-The central hub for the Pharmacy Management System.
-Features:
-- Dark sidebar with navigation (Dashboard, Inventory, Shelves)
-- Theme toggle (Light/Dark mode)
-- Search dialog (Ctrl+K)
-- Full CRUD for medicines and shelves
-- Custom notification dialogs
+Trung tâm điều khiển cho Hệ Thống Quản Lý Kho Thuốc.
+Tính năng:
+- Sidebar tối với điều hướng (Dashboard, Kho, Kệ)
+- Chuyển đổi chủ đề (chế độ Sáng/Tối)
+- Hộp thoại tìm kiếm (Ctrl+K)
+- CRUD đầy đủ cho thuốc và kệ
+- Hộp thoại thông báo tùy chỉnh
 
-This file contains ONLY business logic.
-UI layout is defined in src/ui/generated/main_window_ui.py (Ui_MainWindow).
+File này chỉ chứa LOGIC XỬ LÝ.
+Bố cục giao diện được định nghĩa trong src/ui/generated/main_window_ui.py (Ui_MainWindow).
 """
 import os
 from typing import Optional, List
@@ -28,14 +28,14 @@ from src.inventory_manager import InventoryManager
 from src.image_manager import ImageManager
 from src.search_engine import SearchEngine
 from src.ui.theme import Theme, ThemeMode
-from src.ui.dashboard import Dashboard
-from src.ui.inventory_view import InventoryView
-from src.ui.shelf_view import ShelfView
-from src.ui.medicine_dialog import MedicineDialog
-from src.ui.shelf_dialog import ShelfDialog
-from src.ui.medicine_detail_view import MedicineDetailView
-from src.ui.filter_dialog import FilterMedicineDialog
-from src.ui.notification_dialogs import (
+from src.ui.views.dashboard import Dashboard
+from src.ui.views.inventory_view import InventoryView
+from src.ui.views.shelf_view import ShelfView
+from src.ui.dialogs.medicine_dialog import MedicineDialog
+from src.ui.dialogs.shelf_dialog import ShelfDialog
+from src.ui.dialogs.medicine_detail_view import MedicineDetailView
+from src.ui.dialogs.filter_dialog import FilterMedicineDialog
+from src.ui.dialogs.notification_dialogs import (
     AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
@@ -47,10 +47,10 @@ from src.ui.generated.main_window_ui_dark import Ui_MainWindow as Ui_MainWindow_
 
 class SearchDialog(QFrame):
     """
-    Search dialog using generated UI from search.py.
+    Hộp thoại tìm kiếm sử dụng UI generated từ search.py.
 
-    Provides fuzzy search for medicines with real-time results.
-    Has a close button & supports Escape key to close.
+    Cung cấp tìm kiếm mờ cho thuốc với kết quả thời gian thực.
+    Có nút đóng & hỗ trợ phím Escape để đóng.
     """
 
     def __init__(
@@ -67,7 +67,7 @@ class SearchDialog(QFrame):
         self.theme = theme or Theme()
         self.selected_medicine_id: Optional[str] = None
 
-        # Choose UI class based on theme mode
+        # Chọn lớp UI dựa trên chế độ chủ đề
         if self.theme.mode == ThemeMode.DARK:
             self.ui = Ui_dlg_search_dark()
         else:
@@ -79,7 +79,7 @@ class SearchDialog(QFrame):
             self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
         )
 
-        # Add close button to search bar
+        # Thêm nút đóng vào thanh tìm kiếm
         c = self.theme._current_colors
         self.btn_close = QPushButton("Đóng")
         self.btn_close.setFixedSize(60, 30)
@@ -91,11 +91,11 @@ class SearchDialog(QFrame):
         self.btn_close.clicked.connect(self._on_close)
         self.ui.layout_h_search.addWidget(self.btn_close)
 
-        # Connect search
+        # Kết nối tìm kiếm
         self.ui.txt_search.textChanged.connect(self._on_search)
         self.ui.list_results.itemClicked.connect(self._on_select)
 
-        # Allow Escape key to close
+        # Cho phép phím Escape để đóng
         close_shortcut = QShortcut(QKeySequence("Escape"), self.dialog)
         close_shortcut.activated.connect(self._on_close)
 
@@ -147,7 +147,7 @@ class MainWindow(QMainWindow):
     - Signal/Slot connections
     """
 
-    # Navigation page indices
+    # Chỉ mục trang điều hướng
     PAGE_DASHBOARD = 0
     PAGE_INVENTORY = 1
     PAGE_SHELVES = 2
@@ -156,29 +156,29 @@ class MainWindow(QMainWindow):
         """Initialize Main Window."""
         super().__init__()
 
-        # Core services
+        # Dịch vụ cốt lõi
         self.theme = Theme(ThemeMode.LIGHT)
         self.inventory_manager = InventoryManager()
         self.image_manager = ImageManager()
         self.search_engine = SearchEngine()
 
-        # Load data
+        # Tải dữ liệu
         self.inventory_manager.load_data()
         self.search_engine.index_data(self.inventory_manager.medicines)
 
-        # Track search dialog state
+        # Theo dõi trạng thái hộp thoại tìm kiếm
         self._search_dialog: Optional[SearchDialog] = None
 
-        # Build the full UI (generated + views + signals)
+        # Xây dựng UI đầy đủ (generated + views + tín hiệu)
         self._build_ui()
 
-        # Load data into views
+        # Tải dữ liệu vào views
         self.refresh_all()
 
-        # Set default page
+        # Đặt trang mặc định
         self.navigate_to(self.PAGE_DASHBOARD, self.ui.btn_nav_dashboard)
 
-        # Center window on screen
+        # Canh giữa cửa sổ trên màn hình
         self._center_on_screen()
 
     def _build_ui(self):
@@ -186,26 +186,26 @@ class MainWindow(QMainWindow):
         Build (or rebuild) the entire UI from the appropriate generated file.
         Selects light or dark Ui_MainWindow based on current theme mode.
         """
-        # Clear any existing stylesheet before applying new UI
+        # Xóa stylesheet hiện tại trước khi áp dụng UI mới
         self.setStyleSheet("")
         app = QApplication.instance()
         if app:
             app.setStyleSheet("")
 
-        # Choose UI class based on theme mode
+        # Chọn lớp UI dựa trên chế độ chủ đề
         if self.theme.mode == ThemeMode.DARK:
             self.ui = Ui_MainWindow_dark()
         else:
             self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Additional UI setup (logo, views, connections)
+        # Thiết lập UI bổ sung (logo, views, kết nối)
         self._setup_logo()
         self._setup_views()
         self._connect_signals()
         self._setup_shortcuts()
 
-    # ── UI Initialization (connecting generated UI to business logic) ──
+    # ── Khởi tạo UI (kết nối UI generated với logic xử lý) ──
 
     def _setup_logo(self):
         """Load and set the logo image on the sidebar."""
@@ -221,23 +221,23 @@ class MainWindow(QMainWindow):
 
     def _setup_views(self):
         """Create view widgets and add them to the stacked widget."""
-        # Dashboard page
+        # Trang Dashboard
         self.dashboard = Dashboard(theme=self.theme)
         self.ui.stacked_main_content.addWidget(self.dashboard)
 
-        # Inventory page
+        # Trang Kho thuốc
         self.inventory_view = InventoryView(theme=self.theme)
         self.ui.inv_layout.addWidget(self.inventory_view)
         self.ui.stacked_main_content.addWidget(self.ui.page_inventory)
 
-        # Shelf page
+        # Trang Kệ
         self.shelf_view = ShelfView(theme=self.theme)
         self.ui.shelf_layout.addWidget(self.shelf_view)
         self.ui.stacked_main_content.addWidget(self.ui.page_shelf)
 
     def _connect_signals(self):
         """Connect all signals to slots (business logic wiring)."""
-        # Navigation buttons
+        # Nút điều hướng
         self.ui.btn_nav_dashboard.clicked.connect(
             lambda: self.navigate_to(self.PAGE_DASHBOARD, self.ui.btn_nav_dashboard)
         )
@@ -248,18 +248,18 @@ class MainWindow(QMainWindow):
             lambda: self.navigate_to(self.PAGE_SHELVES, self.ui.btn_nav_shelf)
         )
 
-        # Header buttons
+        # Nút tiêu đề
         self.ui.btn_search.clicked.connect(self.show_search)
         self.ui.btn_toggle_theme.clicked.connect(self.toggle_theme)
 
-        # Inventory view signals
+        # Tín hiệu bảng kho
         self.inventory_view.add_requested.connect(self.show_add_medicine)
         self.inventory_view.edit_requested.connect(self.show_edit_medicine)
         self.inventory_view.delete_requested.connect(self.delete_medicine)
         self.inventory_view.detail_requested.connect(self.show_medicine_detail)
         self.inventory_view.filter_requested.connect(self.show_filter_dialog)
 
-        # Shelf view signals
+        # Tín hiệu trang kệ
         self.shelf_view.add_requested.connect(self.show_add_shelf)
         self.shelf_view.edit_requested.connect(self.show_edit_shelf)
         self.shelf_view.delete_requested.connect(self.delete_shelf)
@@ -279,7 +279,7 @@ class MainWindow(QMainWindow):
             window_geometry.moveCenter(center_point)
             self.move(window_geometry.topLeft())
 
-    # ── Navigation ──
+    # ── Điều hướng ──
 
     def navigate_to(self, page_index: int, button: QPushButton):
         """
@@ -363,23 +363,23 @@ class MainWindow(QMainWindow):
         btn = btn_map.get(index, self.ui.btn_nav_dashboard)
         self.navigate_to(index, btn)
 
-    # ── Data Refresh ──
+    # ── Làm mới dữ liệu ──
 
     def refresh_all(self):
         """Refresh all views with current data."""
         medicines = self.inventory_manager.get_all_medicines()
         shelves = self.inventory_manager.get_all_shelves()
 
-        # Update search index
+        # Cập nhật chỉ mục tìm kiếm
         self.search_engine.index_data(medicines)
 
-        # Dashboard
+        # Trang tổng quan
         self.dashboard.load_data(medicines)
 
-        # Inventory view
+        # Bảng kho thuốc
         self.inventory_view.load_medicines(medicines)
 
-        # Shelf view — calculate used per shelf
+        # Trang kệ — tính đã dùng mỗi kệ
         medicines_per_shelf = {}
         for med in medicines:
             medicines_per_shelf[med.shelf_id] = (
@@ -387,7 +387,7 @@ class MainWindow(QMainWindow):
             )
         self.shelf_view.load_shelves(shelves, medicines_per_shelf)
 
-    # ── Medicine CRUD ──
+    # ── CRUD Thuốc ──
 
     def show_add_medicine(self):
         """Show dialog to add a new medicine."""
@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
             data = dialog.get_data()
             if data:
                 try:
-                    # Handle image
+                    # Xử lý ảnh
                     image_path = ""
                     if "image_path" in data and data["image_path"]:
                         temp_image = data.pop("image_path")
@@ -414,7 +414,7 @@ class MainWindow(QMainWindow):
                         temp_image = None
 
                     medicine = Medicine(
-                        id="",  # Auto-generate
+                        id="",  # Tự sinh
                         name=data["name"],
                         quantity=data["quantity"],
                         expiry_date=data["expiry_date"],
@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
 
                     added = self.inventory_manager.add_medicine(medicine)
 
-                    # Save image with generated ID
+                    # Lưu ảnh với ID đã sinh
                     if temp_image:
                         relative_path = self.image_manager.save_image(
                             temp_image, added.id
@@ -437,7 +437,7 @@ class MainWindow(QMainWindow):
 
                     self.refresh_all()
 
-                    # Show success dialog
+                    # Hiện hộp thoại thành công
                     success = AddSuccessDialog(
                         self,
                         medicine_name=added.name,
@@ -488,7 +488,7 @@ class MainWindow(QMainWindow):
             data = dialog.get_data()
             if data:
                 try:
-                    # Handle image update
+                    # Xử lý cập nhật ảnh
                     if "image_path" in data:
                         img_path = data["image_path"]
                         if img_path and not img_path.startswith("images"):
@@ -501,7 +501,7 @@ class MainWindow(QMainWindow):
                         medicine_id, data
                     )
 
-                    # If shelf changed, ID changed — move image to new ID
+                    # Nếu đổi kệ, ID thay đổi — chuyển ảnh sang ID mới
                     if updated.id != medicine_id:
                         new_img_path = self.image_manager.rename_image(
                             medicine_id, updated.id
@@ -514,7 +514,7 @@ class MainWindow(QMainWindow):
 
                     self.refresh_all()
 
-                    # Show success dialog with the updated ID
+                    # Hiện hộp thoại thành công với ID đã cập nhật
                     success = EditSuccessDialog(
                         self,
                         medicine_name=updated.name,
@@ -570,7 +570,7 @@ class MainWindow(QMainWindow):
             except ValueError as e:
                 QMessageBox.warning(self, "Lỗi", str(e))
 
-    # ── Shelf CRUD ──
+    # ── CRUD Kệ ──
 
     def show_add_shelf(self):
         """Show dialog to add a new shelf."""
@@ -673,7 +673,7 @@ class MainWindow(QMainWindow):
             except ValueError as e:
                 QMessageBox.warning(self, "Lỗi", str(e))
 
-    # ── Search ──
+    # ── Tìm kiếm ──
 
     def show_search(self):
         """Show/toggle search dialog."""
@@ -692,12 +692,12 @@ class MainWindow(QMainWindow):
         result = search.exec()
         self._search_dialog = None
 
-        if result == 1:  # Accepted
+        if result == 1:  # Đã chấp nhận
             if search.selected_medicine_id:
                 self.navigate_to(self.PAGE_INVENTORY, self.ui.btn_nav_inventory)
                 self.show_medicine_detail(search.selected_medicine_id)
 
-    # ── Medicine Detail ──
+    # ── Chi tiết thuốc ──
 
     def show_medicine_detail(self, medicine_id: str):
         """
@@ -724,7 +724,7 @@ class MainWindow(QMainWindow):
         detail.delete_requested.connect(self.delete_medicine)
         detail.exec()
 
-    # ── Filter ──
+    # ── Lọc ──
 
     def show_filter_dialog(self):
         """Show filter dialog for inventory."""
@@ -740,11 +740,11 @@ class MainWindow(QMainWindow):
             filters = dialog.get_filters()
             self.inventory_view.set_filters(filters)
 
-    # ── Theme ──
+    # ── Chủ đề ──
 
     def toggle_theme(self):
         """Toggle between Light and Dark modes by rebuilding UI."""
-        # Save current page index BEFORE rebuilding UI
+        # Lưu chỉ mục trang hiện tại TRƯỚC KHI xây lại UI
         current_index = self.ui.stacked_main_content.currentIndex()
 
         new_mode = self.theme.toggle_mode()
@@ -754,7 +754,7 @@ class MainWindow(QMainWindow):
         else:
             self.ui.btn_toggle_theme.setText("🌙 Dark")
 
-        # Rebuild the entire UI with the new theme's generated file
+        # Xây lại toàn bộ UI với file generated của chủ đề mới
         self._build_ui()
 
         # Reload data into rebuilt views
