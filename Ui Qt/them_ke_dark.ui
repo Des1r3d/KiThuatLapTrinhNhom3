@@ -10,19 +10,19 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>420</height>
+    <height>460</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>450</width>
-    <height>420</height>
+    <height>460</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>450</width>
-    <height>420</height>
+    <height>460</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -78,13 +78,13 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QWidget" name="layoutWidget_buttons">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>335</y>
+     <y>390</y>
      <width>371</width>
-     <height>61</height>
+     <height>55</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="layout_actions">
