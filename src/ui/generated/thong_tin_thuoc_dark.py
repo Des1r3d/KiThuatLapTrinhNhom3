@@ -36,7 +36,6 @@ class Ui_dlg_medicine_detail(object):
         self.main_layout.addWidget(self.lbl_header_title)
         self.line_separator = QtWidgets.QFrame(parent=dlg_medicine_detail)
         self.line_separator.setStyleSheet("background-color: #9AA5B1;\n"
-"stroke-width: 1px;\n"
 "")
         self.line_separator.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.line_separator.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)

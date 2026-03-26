@@ -44,6 +44,16 @@ class Ui_dlg_search(object):
         self.txt_search = QtWidgets.QLineEdit(parent=self.frame_search)
         self.txt_search.setObjectName("txt_search")
         self.layout_h_search.addWidget(self.txt_search)
+        self.btn_close = QtWidgets.QPushButton(parent=self.frame_search)
+        self.btn_close.setMinimumSize(QtCore.QSize(60, 30))
+        self.btn_close.setMaximumSize(QtCore.QSize(60, 30))
+        self.btn_close.setStyleSheet(
+            "QPushButton { background-color: #1E3A5F; color: #E4E7EB; border: 1px solid #3E4C59;"
+            " border-radius: 6px; font-size: 12px; }"
+            " QPushButton:hover { border-color: #2563EB; color: #2563EB; }"
+        )
+        self.btn_close.setObjectName("btn_close")
+        self.layout_h_search.addWidget(self.btn_close)
         self.main_layout.addWidget(self.frame_search)
         self.list_results = QtWidgets.QListWidget(parent=dlg_search)
         self.list_results.setObjectName("list_results")
@@ -55,3 +65,4 @@ class Ui_dlg_search(object):
         _translate = QtCore.QCoreApplication.translate
         self.lbl_icon.setText(_translate("dlg_search", "🔍"))
         self.txt_search.setPlaceholderText(_translate("dlg_search", "Tìm kiếm thuốc..."))
+        self.btn_close.setText(_translate("dlg_search", "Đóng"))

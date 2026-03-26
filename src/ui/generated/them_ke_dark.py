@@ -36,7 +36,7 @@ class Ui_dlg_add_shelf(object):
         self.lbl_title.setObjectName("lbl_title")
         self.line_header = QtWidgets.QFrame(parent=dlg_add_shelf)
         self.line_header.setGeometry(QtCore.QRect(40, 75, 370, 16))
-        self.line_header.setStyleSheet("stroke: #9AA5B1;")
+        self.line_header.setStyleSheet("color: #9AA5B1;")
         self.line_header.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.line_header.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.line_header.setObjectName("line_header")

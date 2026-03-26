@@ -28,6 +28,7 @@ from src.inventory_manager import InventoryManager
 from src.image_manager import ImageManager
 from src.search_engine import SearchEngine
 from src.ui.theme import Theme, ThemeMode
+from src.ui.theme.sidebar import SIDEBAR_INACTIVE_STYLE, SIDEBAR_ACTIVE_STYLE
 from src.views.dashboard import Dashboard
 from src.views.inventory_view import InventoryView
 from src.views.shelf_view import ShelfView
@@ -79,17 +80,8 @@ class SearchDialog(QFrame):
             self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
         )
 
-        # Thêm nút đóng vào thanh tìm kiếm
-        c = self.theme._current_colors
-        self.btn_close = QPushButton("Đóng")
-        self.btn_close.setFixedSize(60, 30)
-        self.btn_close.setStyleSheet(f"""
-            QPushButton {{ background-color: {c['cancel_btn_bg']}; color: {c['text_primary']};
-                border: 1px solid {c['border']}; border-radius: 6px; font-size: 12px; }}
-            QPushButton:hover {{ border-color: {c['primary']}; color: {c['primary']}; }}
-        """)
-        self.btn_close.clicked.connect(self._on_close)
-        self.ui.layout_h_search.addWidget(self.btn_close)
+        # Kết nối nút đóng (đã được định nghĩa trong UI generated)
+        self.ui.btn_close.clicked.connect(self._on_close)
 
         # Kết nối tìm kiếm
         self.ui.txt_search.textChanged.connect(self._on_search)
@@ -314,39 +306,11 @@ class MainWindow(QMainWindow):
             self.ui.btn_nav_setting,
         ]
 
-        inactive_style = """
-            QPushButton {
-                background-color: transparent;
-                color: #FFFFFF;
-                text-align: left;
-                padding: 12px 20px;
-                border: none;
-                font-family: 'Segoe UI', 'Inter', sans-serif;
-                font-size: 16px;
-            }
-            QPushButton:hover { background-color: #1E40AF; }
-        """
-
-        active_style = """
-            QPushButton {
-                background-color: #1E40AF;
-                color: #FFFFFF;
-                text-align: left;
-                padding: 12px 20px;
-                border: none;
-                border-left: 4px solid #6CC1FC;
-                border-radius: 4px;
-                font-family: 'Segoe UI', 'Inter', sans-serif;
-                font-size: 16px;
-                font-weight: bold;
-            }
-        """
-
         for btn in buttons:
             if btn == active_btn:
-                btn.setStyleSheet(active_style)
+                btn.setStyleSheet(SIDEBAR_ACTIVE_STYLE)
             else:
-                btn.setStyleSheet(inactive_style)
+                btn.setStyleSheet(SIDEBAR_INACTIVE_STYLE)
 
     def switch_page(self, index: int):
         """

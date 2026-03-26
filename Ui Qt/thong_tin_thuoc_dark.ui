@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>dlg_medicine_detail</class>
  <widget class="QDialog" name="dlg_medicine_detail">
@@ -72,7 +72,6 @@ QDialog {
     <widget class="Line" name="line_separator">
      <property name="styleSheet">
       <string notr="true">background-color: #9AA5B1;
-stroke-width: 1px;
 </string>
      </property>
      <property name="orientation">

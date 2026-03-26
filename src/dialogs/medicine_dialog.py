@@ -89,11 +89,12 @@ class MedicineDialog(QDialog):
             self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
 
-        # ── Mode-specific setup ──
+        # ── Mode-specific setup (layout cố định, khớp Qt Designer) ──
+        self.ui.txt_medicine_id.setReadOnly(True)
         if self.mode == "add":
             self.setWindowTitle("Thêm thuốc mới")
             self.ui.lbl_title.setText("Thêm thuốc")
-            # Hide ID field in Add mode (auto-generated)
+            # Add mode: ẩn ID field — với pure QVBoxLayout, adjustSize() sẽ co dialog đúng
             self.ui.lbl_id.setVisible(False)
             self.ui.txt_medicine_id.setVisible(False)
             self.ui.btn_primary.setText("Thêm")
@@ -101,14 +102,16 @@ class MedicineDialog(QDialog):
         else:
             self.setWindowTitle("Chỉnh sửa thuốc")
             self.ui.lbl_title.setText("Chỉnh sửa thuốc")
-            # Show ID (read-only) in Edit mode
-            self.ui.txt_medicine_id.setReadOnly(True)
+            # Edit mode: ID chỉ đọc, hiển thị giá trị thực
             self.ui.txt_medicine_id.setStyleSheet(
-                self.ui.txt_medicine_id.styleSheet()
-                + " color: #94A3B8;"
+                self.ui.txt_medicine_id.styleSheet() + " color: #94A3B8;"
             )
             self.ui.btn_primary.setText("Lưu")
             self.ui.btn_secondary.setText("Hủy")
+
+        # Co dialog khớp với nội dung thực tế sau khi ẩn/hiện widget
+        self.adjustSize()
+
 
         # ── Populate shelf combo ──
         self.ui.cb_shelf_location.clear()
