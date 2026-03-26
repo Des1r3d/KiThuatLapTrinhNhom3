@@ -1,6 +1,7 @@
 """
 Inventory View — PHARMA.SYS Medicine Table.
 
+Uses Qt Designer-generated UI from inventory_view_ui.py for layout.
 Features:
 - Sortable table with color-coded status badges (pill shape)
 - Context menu (Edit/Delete)
@@ -11,20 +12,21 @@ from typing import List, Optional
 from datetime import date
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton, QHeaderView, QMenu,
-    QLabel
+    QWidget, QTableWidgetItem, QMenu, QHeaderView,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QAction
 
 from src.models import Medicine
 from src.ui.theme import Theme
+from src.ui.generated.inventory_view_ui import Ui_InventoryView
 
 
 class InventoryView(QWidget):
     """
     Widget for displaying medicines in a table.
+
+    Uses Ui_InventoryView from inventory_view_ui.py for layout.
 
     Features:
     - Status badges (pill shape) with color coding
@@ -62,77 +64,14 @@ class InventoryView(QWidget):
         self.active_filters: Optional[dict] = None
 
         self.setup_ui()
-        self.apply_theme()
 
     def setup_ui(self):
-        """Setup table UI components."""
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(12)
+        """Setup table UI using Qt Designer generated class."""
+        self.ui = Ui_InventoryView()
+        self.ui.setupUi(self)
 
-        # Header
-        header_layout = QHBoxLayout()
-
-        title_label = QLabel("Danh sách thuốc")
-        title_font = QFont()
-        title_font.setPointSize(Theme.FONT_SIZE_H2)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        header_layout.addWidget(title_label)
-
-        header_layout.addStretch()
-
-        # Add medicine button
-        self.add_button = QPushButton("+ Thêm thuốc")
-        self.add_button.setObjectName("btn_add_medicine")
-        self.add_button.setFixedHeight(36)
-        self.add_button.clicked.connect(lambda: self.add_requested.emit())
-        header_layout.addWidget(self.add_button)
-
-        # Filter button
-        self.filter_button = QPushButton("Lọc")
-        self.filter_button.setObjectName("btn_filter")
-        self.filter_button.setFixedWidth(110)
-        self.filter_button.clicked.connect(lambda: self.filter_requested.emit())
-        header_layout.addWidget(self.filter_button)
-
-        # Clear filter button (hidden by default)
-        self.clear_filter_button = QPushButton("Xóa lọc")
-        self.clear_filter_button.setProperty("secondary", True)
-        self.clear_filter_button.setFixedWidth(90)
-        self.clear_filter_button.clicked.connect(self.clear_filters)
-        self.clear_filter_button.setVisible(False)
-        header_layout.addWidget(self.clear_filter_button)
-
-        # Count label
-        self.count_label = QLabel("0 items")
-        self.count_label.setProperty("secondary", True)
-        header_layout.addWidget(self.count_label)
-
-        layout.addLayout(header_layout)
-
-        # Table
-        self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels([
-            "ID", "TÊN THUỐC", "SỐ LƯỢNG", "HSD",
-            "KỆ", "GIÁ", "TRẠNG THÁI"
-        ])
-
-        # Table properties
-        self.table.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectRows
-        )
-        self.table.setSelectionMode(
-            QTableWidget.SelectionMode.SingleSelection
-        )
-        self.table.setAlternatingRowColors(True)
-        self.table.setSortingEnabled(True)
-        self.table.verticalHeader().setVisible(False)
-        self.table.setShowGrid(False)
-
-        # Column widths
-        header = self.table.horizontalHeader()
+        # Configure column widths (not in .ui)
+        header = self.ui.tbl_medicines.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
@@ -142,20 +81,19 @@ class InventoryView(QWidget):
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
 
         # Row height
-        self.table.verticalHeader().setDefaultSectionSize(42)
+        self.ui.tbl_medicines.verticalHeader().setDefaultSectionSize(42)
 
         # Connect signals
-        self.table.itemDoubleClicked.connect(self.on_item_double_clicked)
-        self.table.setContextMenuPolicy(
+        self.ui.btn_add.clicked.connect(lambda: self.add_requested.emit())
+        self.ui.btn_filter.clicked.connect(lambda: self.filter_requested.emit())
+        self.ui.btn_clear_filter.clicked.connect(self.clear_filters)
+        self.ui.tbl_medicines.itemDoubleClicked.connect(self.on_item_double_clicked)
+        self.ui.tbl_medicines.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu
         )
-        self.table.customContextMenuRequested.connect(
+        self.ui.tbl_medicines.customContextMenuRequested.connect(
             self.show_context_menu
         )
-
-        layout.addWidget(self.table)
-
-        self.setLayout(layout)
 
     def load_medicines(self, medicines: List[Medicine]):
         """
@@ -176,13 +114,13 @@ class InventoryView(QWidget):
         else:
             self.filtered_medicines = list(self.medicines)
 
-        self.table.setSortingEnabled(False)  # Disable during update
-        self.table.setRowCount(0)
+        self.ui.tbl_medicines.setSortingEnabled(False)  # Disable during update
+        self.ui.tbl_medicines.setRowCount(0)
 
         for medicine in self.filtered_medicines:
             self.add_medicine_row(medicine)
 
-        self.table.setSortingEnabled(True)
+        self.ui.tbl_medicines.setSortingEnabled(True)
         self.update_count_label()
 
     def add_medicine_row(self, medicine: Medicine):
@@ -192,13 +130,13 @@ class InventoryView(QWidget):
         Args:
             medicine: Medicine object to add
         """
-        row = self.table.rowCount()
-        self.table.insertRow(row)
+        row = self.ui.tbl_medicines.rowCount()
+        self.ui.tbl_medicines.insertRow(row)
 
         # ID
         id_item = QTableWidgetItem(medicine.id)
         id_item.setFlags(id_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 0, id_item)
+        self.ui.tbl_medicines.setItem(row, 0, id_item)
 
         # Name
         name_item = QTableWidgetItem(medicine.name)
@@ -206,14 +144,14 @@ class InventoryView(QWidget):
         name_font = name_item.font()
         name_font.setWeight(QFont.Weight.Medium)
         name_item.setFont(name_font)
-        self.table.setItem(row, 1, name_item)
+        self.ui.tbl_medicines.setItem(row, 1, name_item)
 
         # Quantity
         quantity_item = QTableWidgetItem(str(medicine.quantity))
         quantity_item.setData(Qt.ItemDataRole.UserRole, medicine.quantity)
         quantity_item.setFlags(quantity_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         quantity_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 2, quantity_item)
+        self.ui.tbl_medicines.setItem(row, 2, quantity_item)
 
         # Expiry Date
         expiry_str = medicine.expiry_date.strftime("%d/%m/%Y")
@@ -223,20 +161,20 @@ class InventoryView(QWidget):
             medicine.expiry_date.toordinal()
         )
         expiry_item.setFlags(expiry_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 3, expiry_item)
+        self.ui.tbl_medicines.setItem(row, 3, expiry_item)
 
         # Shelf
         shelf_item = QTableWidgetItem(medicine.shelf_id)
         shelf_item.setFlags(shelf_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
         shelf_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 4, shelf_item)
+        self.ui.tbl_medicines.setItem(row, 4, shelf_item)
 
         # Price
         price_str = f"{medicine.price:,.2f}"
         price_item = QTableWidgetItem(price_str)
         price_item.setData(Qt.ItemDataRole.UserRole, medicine.price)
         price_item.setFlags(price_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        self.table.setItem(row, 5, price_item)
+        self.ui.tbl_medicines.setItem(row, 5, price_item)
 
         # Status — badge style
         status_text, status_type = self.get_medicine_status(medicine)
@@ -257,7 +195,7 @@ class InventoryView(QWidget):
         status_font.setPointSize(Theme.FONT_SIZE_BADGE)
         status_item.setFont(status_font)
 
-        self.table.setItem(row, 6, status_item)
+        self.ui.tbl_medicines.setItem(row, 6, status_item)
 
         # Apply row coloring based on status
         self.apply_row_color(row, status_type, medicine)
@@ -309,15 +247,15 @@ class InventoryView(QWidget):
         alert_colors = self.theme.get_alert_colors(status_type)
         text_color = QColor(alert_colors['text'])
 
-        for col in range(self.table.columnCount() - 1):  # Skip status column
-            item = self.table.item(row, col)
+        for col in range(self.ui.tbl_medicines.columnCount() - 1):  # Skip status column
+            item = self.ui.tbl_medicines.item(row, col)
             if item:
                 item.setForeground(text_color)
 
     def on_item_double_clicked(self, item: QTableWidgetItem):
         """Handle double-click on table item — show detail view."""
         row = item.row()
-        medicine_id = self.table.item(row, 0).text()
+        medicine_id = self.ui.tbl_medicines.item(row, 0).text()
         self.detail_requested.emit(medicine_id)
 
     def show_context_menu(self, position):
@@ -327,13 +265,13 @@ class InventoryView(QWidget):
         Args:
             position: Position where menu was requested
         """
-        item = self.table.itemAt(position)
+        item = self.ui.tbl_medicines.itemAt(position)
         if not item:
             return
 
         row = item.row()
-        medicine_id = self.table.item(row, 0).text()
-        medicine_name = self.table.item(row, 1).text()
+        medicine_id = self.ui.tbl_medicines.item(row, 0).text()
+        medicine_name = self.ui.tbl_medicines.item(row, 1).text()
 
         menu = QMenu(self)
 
@@ -351,7 +289,7 @@ class InventoryView(QWidget):
         )
         menu.addAction(delete_action)
 
-        menu.exec(self.table.viewport().mapToGlobal(position))
+        menu.exec(self.ui.tbl_medicines.viewport().mapToGlobal(position))
 
     def confirm_delete(self, medicine_id: str, medicine_name: str):
         """
@@ -369,9 +307,9 @@ class InventoryView(QWidget):
         total = len(self.medicines)
         shown = len(self.filtered_medicines)
         if self.active_filters:
-            self.count_label.setText(f"{shown}/{total} mục (đã lọc)")
+            self.ui.lbl_count.setText(f"{shown}/{total} mục (đã lọc)")
         else:
-            self.count_label.setText(f"{total} mục")
+            self.ui.lbl_count.setText(f"{total} mục")
 
     def refresh(self):
         """Refresh the table display."""
@@ -386,11 +324,11 @@ class InventoryView(QWidget):
         """
         self.active_filters = filters
         if filters:
-            self.clear_filter_button.setVisible(True)
-            self.filter_button.setText("Đã lọc")
+            self.ui.btn_clear_filter.setVisible(True)
+            self.ui.btn_filter.setText("Đã lọc")
         else:
-            self.clear_filter_button.setVisible(False)
-            self.filter_button.setText("Lọc")
+            self.ui.btn_clear_filter.setVisible(False)
+            self.ui.btn_filter.setText("Lọc")
         self.apply_current_filters()
 
     def clear_filters(self):
@@ -454,7 +392,7 @@ class InventoryView(QWidget):
         Returns:
             Medicine ID if a row is selected, None otherwise
         """
-        current_row = self.table.currentRow()
+        current_row = self.ui.tbl_medicines.currentRow()
         if current_row >= 0:
-            return self.table.item(current_row, 0).text()
+            return self.ui.tbl_medicines.item(current_row, 0).text()
         return None
