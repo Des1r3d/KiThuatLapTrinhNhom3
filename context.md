@@ -3,7 +3,7 @@
 > **Dự án:** Hệ Thống Quản Lý Kho Thuốc  
 > **Phiên bản:** 1.0.0 Beta  
 > **Môn học:** Kỹ Thuật Lập Trình — Nhóm 3  
-> **Ngày cập nhật context:** 26/03/2026 (cập nhật lần 5 — tách DashboardManager)
+> **Ngày cập nhật context:** 26/03/2026 (cập nhật lần 6 — đồng bộ cấu trúc thư mục thực tế)
 
 ---
 
@@ -53,6 +53,20 @@ KiThuatLapTrinhNhom3/
 │   ├── image_manager.py        # ImageManager: ảnh thuốc
 │   ├── dashboard_manager.py    # DashboardManager: xử lý dữ liệu dashboard
 │   │
+│   ├── views/                  # 📊 Các trang chính (CHỈ UI)
+│   │   ├── __init__.py         # Xuất Dashboard, InventoryView, ShelfView
+│   │   ├── dashboard.py        # Giao diện dashboard (render thẻ KPI + biểu đồ)
+│   │   ├── inventory_view.py   # Bảng danh sách thuốc
+│   │   └── shelf_view.py       # Trang quản lý kệ
+│   │
+│   ├── dialogs/                # 💬 Các hộp thoại
+│   │   ├── __init__.py         # Xuất tất cả dialog
+│   │   ├── medicine_dialog.py      # Thêm/Sửa thuốc
+│   │   ├── shelf_dialog.py         # Thêm/Sửa kệ
+│   │   ├── filter_dialog.py        # Lọc thuốc
+│   │   ├── medicine_detail_view.py # Xem chi tiết thuốc
+│   │   └── notification_dialogs.py # Thông báo thành công/lỗi/xác nhận
+│   │
 │   └── ui/                     # 🎨 Giao diện người dùng
 │       ├── __init__.py          # Xuất các thành phần UI
 │       ├── main_window.py       # MainWindow + SearchDialog (chỉ logic xử lý)
@@ -66,20 +80,6 @@ KiThuatLapTrinhNhom3/
 │       │   ├── core.py          # Lớp Theme, enum ThemeMode
 │       │   ├── stylesheets.py   # Tạo stylesheet Qt
 │       │   └── badges.py        # Hàm trợ giúp huy hiệu/cảnh báo
-│       │
-│       ├── views/               # 📊 Các trang chính (CHỈ UI)
-│       │   ├── __init__.py      # Xuất Dashboard, InventoryView, ShelfView
-│       │   ├── dashboard.py     # Giao diện dashboard (render thẻ KPI + biểu đồ)
-│       │   ├── inventory_view.py# Bảng danh sách thuốc
-│       │   └── shelf_view.py    # Trang quản lý kệ
-│       │
-│       ├── dialogs/             # 💬 Các hộp thoại
-│       │   ├── __init__.py      # Xuất tất cả dialog
-│       │   ├── medicine_dialog.py   # Thêm/Sửa thuốc
-│       │   ├── shelf_dialog.py      # Thêm/Sửa kệ
-│       │   ├── filter_dialog.py     # Lọc thuốc
-│       │   ├── medicine_detail_view.py  # Xem chi tiết thuốc
-│       │   └── notification_dialogs.py  # Thông báo thành công/lỗi/xác nhận
 │       │
 │       └── generated/           # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
 │           ├── main_window_ui.py      # Giao diện chính (sáng)
@@ -328,33 +328,37 @@ Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (Sán
 - Sau khi `_build_ui()` + `refresh_all()`, gọi `navigate_to(saved_index, btn)` để khôi phục trang đang xem
 - Đảm bảo người dùng không bị nhảy về Dashboard khi chuyển Light ↔ Dark
 
-### InventoryView ([inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/views/inventory_view.py))
+### InventoryView ([inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/views/inventory_view.py))
 
 Bảng danh sách thuốc với các tính năng:
 - Nút **`+ Thêm thuốc`** (`objectName=btn_add_medicine`) phát signal `add_requested` → kết nối với `MainWindow.show_add_medicine()`
 - Nút **Lọc** → phát `filter_requested`
+- Nút **Xóa lọc** → ẩn theo mặc định, hiện khi có bộ lọc đang hoạt động
 - Menu ngữ cảnh (chuột phải) → Chỉnh sửa / Xóa thuốc
 - Double-click hàng → xem chi tiết thuốc
+- Màu chữ theo trạng thái (không tô màu nền hàng — chỉ thay màu text)
 
 **Signals:**
 ```python
 add_requested    = pyqtSignal()    # Thêm thuốc mới
 edit_requested   = pyqtSignal(str) # Chỉnh sửa (medicine_id)
-delete_requested = pyqtSignal(str) # Xóa (medicine_id)
+delete_requested = pyqtSignal(str) # Xóa (medicine_id) → MainWindow xử lý xác nhận
 detail_requested = pyqtSignal(str) # Xem chi tiết
 filter_requested = pyqtSignal()    # Mở hộp thoại lọc
 ```
+
+**Lưu ý xóa thuốc:** `InventoryView.confirm_delete()` chỉ phát `delete_requested`, **không** tự hiện dialog xác nhận. `ConfirmDeleteDialog` được hiển thị bởi `MainWindow.delete_medicine()`.
 
 ### Các Dialog quan trọng:
 
 | Dialog | File | Chức năng |
 |--------|------|-----------|
-| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/medicine_dialog.py) | Thêm/Sửa thuốc (dùng `them_thuoc` / `them_thuoc_dark` generated UI) |
-| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/shelf_dialog.py) | Thêm/Sửa kệ (dùng `them_ke` / `them_ke_dark` generated UI) |
+| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/medicine_dialog.py) | Thêm/Sửa thuốc (dùng `them_thuoc` / `them_thuoc_dark` generated UI) |
+| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/shelf_dialog.py) | Thêm/Sửa kệ (dùng `them_ke` / `them_ke_dark` generated UI) |
 | `SearchDialog` | main_window.py (nội tuyến) | Tìm kiếm mờ (dùng `search` / `search_dark` generated UI) |
-| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/filter_dialog.py) | Lọc thuốc (dùng `loc_thuoc` / `loc_thuoc_dark` generated UI) |
-| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/medicine_detail_view.py) | Xem chi tiết thuốc (dùng `thong_tin_thuoc` / `thong_tin_thuoc_dark`) |
-| Notification Dialogs | [notification_dialogs.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/dialogs/notification_dialogs.py) | Thêm/Sửa/Xóa thành công, Xác nhận xóa, Kệ đầy |
+| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/filter_dialog.py) | Lọc thuốc (dùng `loc_thuoc` / `loc_thuoc_dark` generated UI) |
+| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/medicine_detail_view.py) | Xem chi tiết thuốc (dùng `thong_tin_thuoc` / `thong_tin_thuoc_dark`) |
+| Notification Dialogs | [notification_dialogs.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/dialogs/notification_dialogs.py) | Thêm/Sửa/Xóa thành công, Xác nhận xóa, Kệ đầy |
 
 ---
 
@@ -510,6 +514,8 @@ run.bat
 > - Kiểm tra sức chứa: khi thêm/sửa thuốc, hệ thống kiểm tra sức chứa còn lại của kệ
 > - sort_medicines() trả về **bản sao**, không thay đổi list gốc
 > - `Shelf.capacity` đang lưu kiểu `str` (cần cast int khi tính toán)
-> - Kiến trúc UI/Logic tách biệt: `inventory_view.py` chỉ phát signal, `main_window.py` xử lý logic
+> - **Phân tách module UI:** `views/` và `dialogs/` nằm ở `src/views/` và `src/dialogs/` (import: `from src.views.xxx` / `from src.dialogs.xxx`), **không phải** `src.ui.views` hay `src.ui.dialogs`
+> - `src/ui/` chỉ chứa: `main_window.py`, `theme/`, `generated/`
 > - Mỗi dialog/form cần **2 generated files** (sáng + tối) — khi thêm UI mới phải tạo cả 2 phiên bản
-> - Hệ thống theme đã tách module: import qua `from src.ui.theme import Theme, ThemeMode` (backward-compatible)
+> - Hệ thống theme: import qua `from src.ui.theme import Theme, ThemeMode`
+> - `InventoryView.confirm_delete()` chỉ phát signal — `ConfirmDeleteDialog` do `MainWindow.delete_medicine()` khởi tạo

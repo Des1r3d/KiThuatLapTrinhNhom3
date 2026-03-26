@@ -431,6 +431,14 @@ Kết quả: [("Paracetamol 500mg", 85)]
 
 ---
 
+---
+
+## 6. Luồng DashboardManager
+
+> **Vị trí:** `src/dashboard_manager.py`
+
+### Mục đích
+Xử lý toàn bộ logic nghiệp vụ cho trang Dashboard. Tách biệt hoàn toàn khỏi tầng view.
 
 ### 6.1 Luồng MainWindow
 
@@ -984,6 +992,18 @@ src/
 │   ├── ExpiryItem (dataclass)
 │   └── LowStockItem (dataclass)
 │
+├── views/                            # ⚠️ Nằm trong src/, import: from src.views.xxx
+│   ├── dashboard.py                  # Dashboard (CHỈ render, logic ở DashboardManager)
+│   ├── inventory_view.py             # Bảng danh sách thuốc
+│   └── shelf_view.py                 # Quản lý kệ
+│
+├── dialogs/                          # ⚠️ Nằm trong src/, import: from src.dialogs.xxx
+│   ├── medicine_dialog.py            # Thêm/Sửa thuốc
+│   ├── shelf_dialog.py               # Thêm/Sửa kệ
+│   ├── filter_dialog.py              # Lọc thuốc
+│   ├── medicine_detail_view.py       # Xem chi tiết thuốc
+│   └── notification_dialogs.py       # Thông báo thành công/lỗi
+│
 └── ui/
     ├── main_window.py
     │   ├── MainWindow
@@ -999,22 +1019,18 @@ src/
     │   ├── stylesheets.py        # Hàm tạo stylesheet Qt
     │   └── badges.py             # Hàm huy hiệu/cảnh báo
     │
-    ├── views/                    # Các trang chính (CHỈ UI)
-    │   ├── dashboard.py          # Dashboard (CHỈ render, logic ở DashboardManager)
-    │   ├── inventory_view.py     # Bảng danh sách thuốc
-    │   └── shelf_view.py         # Quản lý kệ
-    │
-    ├── dialogs/                  # Các hộp thoại
-    │   ├── medicine_dialog.py    # Thêm/Sửa thuốc
-    │   ├── shelf_dialog.py       # Thêm/Sửa kệ
-    │   ├── filter_dialog.py      # Lọc thuốc
-    │   ├── medicine_detail_view.py # Xem chi tiết thuốc
-    │   └── notification_dialogs.py # Thông báo thành công/lỗi
-    │
     └── generated/                # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
         ├── main_window_ui.py / main_window_ui_dark.py
         ├── them_thuoc.py / them_thuoc_dark.py
-        └── ...
+        ├── them_ke.py / them_ke_dark.py
+        ├── loc_thuoc.py / loc_thuoc_dark.py
+        ├── search.py / search_dark.py
+        ├── them_thanh_cong.py / them_thanh_cong_dark.py
+        ├── sua_thanh_cong.py / sua_thanh_cong_dark.py
+        ├── xac_nhan_xoa.py / xac_nhan_xoa_dark.py
+        ├── xoa_thanh_cong.py / xoa_thanh_cong_dark.py
+        ├── thong_tin_thuoc.py / thong_tin_thuoc_dark.py
+        └── ke_day.py
 ```
 
 ---
