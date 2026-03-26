@@ -9,8 +9,9 @@ from typing import Optional, List, Dict
 from PyQt6.QtWidgets import QDialog, QApplication
 
 from src.models import Shelf
-from src.ui.theme import Theme
+from src.ui.theme import Theme, ThemeMode
 from src.ui.generated.loc_thuoc import Ui_dlg_filter_medicine
+from src.ui.generated.loc_thuoc_dark import Ui_dlg_filter_medicine as Ui_dlg_filter_medicine_dark
 
 
 class FilterMedicineDialog(QDialog):
@@ -63,42 +64,12 @@ class FilterMedicineDialog(QDialog):
     
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
-        self.ui = Ui_dlg_filter_medicine()
+        # Choose UI class based on current theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_dlg_filter_medicine_dark()
+        else:
+            self.ui = Ui_dlg_filter_medicine()
         self.ui.setupUi(self)
-        
-        # Apply theme styling with border
-        c = self.theme._current_colors
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {c['surface']};
-                border: 2px solid {c['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {c['text_primary']};
-                background-color: transparent;
-            }}
-            QComboBox {{
-                background-color: {c['input_bg']};
-                color: {c['input_text']};
-                border: 1px solid {c['input_border']};
-                border-radius: 8px;
-                padding: 8px 12px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: {c['surface']};
-                color: {c['text_primary']};
-                border: 1px solid {c['border']};
-                selection-background-color: {c['primary']};
-                selection-color: #FFFFFF;
-            }}
-            QPushButton {{
-                border-radius: 8px;
-                padding: 8px 16px;
-                font-weight: 600;
-                min-height: 32px;
-            }}
-        """)
         
         # Center on parent
         if self.parent():

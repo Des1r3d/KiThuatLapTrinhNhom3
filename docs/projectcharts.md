@@ -2,6 +2,8 @@
 
 Tài liệu này trình bày các sơ đồ kiến trúc và sơ đồ luồng chính cho Hệ thống Quản lý Nhà thuốc, cung cấp một cái nhìn tổng quan trực quan về cấu trúc và chức năng của nó. Các sơ đồ này được tạo bằng cú pháp Mermaid, có thể được hiển thị bởi nhiều trình xem Markdown và công cụ tài liệu.
 
+**Ngày cập nhật:** 26/03/2026
+
 ---
 
 ## 1. Sơ đồ Kiến trúc Thành phần
@@ -10,38 +12,47 @@ Sơ đồ này minh họa tổ chức cấp cao của Hệ thống Quản lý Nh
 
 ```mermaid
 graph TD
-    App[Main Application] --> UI["UI Layer (PyQt6)"]
+    App["app.py<br>Main Application"] --> UI["UI Layer (PyQt6)"]
 
     UI --> Logic[Business Logic]
     Logic --> Data[Data Access Layer]
 
-    UI --> Dashboard[Dashboard View]
-    UI --> InventoryView[Inventory View]
-    UI --> SearchBar["Global Search (Ctrl+K)"]
-    UI --> Reports["Reports (Matplotlib)"]
+    UI --> MainWin["MainWindow<br>(main_window.py)"]
+    MainWin --> Dashboard[Dashboard View]
+    MainWin --> InventoryView[Inventory View]
+    MainWin --> ShelfView[Shelf View]
+    MainWin --> SearchDlg["Global Search (Ctrl+K)"]
+    MainWin --> Dialogs["Dialogs<br>(Medicine/Shelf/Filter/Notify)"]
 
     Logic --> InvMgr[Inventory Manager]
     Logic --> SearchEng[Search Engine]
     Logic --> AlertSys[Expiry Alert System]
+    Logic --> ImgMgr[Image Manager]
 
     Data --> JSON_Store[JSON Storage Engine]
-    Data --> Models[Data Models]
+    Data --> Models["Data Models<br>(Medicine, Shelf)"]
 
     InvMgr --> Models
+    InvMgr --> JSON_Store
     SearchEng --> Models
-    JSON_Store --> Files[(JSON Files)]
+    ImgMgr --> Files2["data/images/"]
+    JSON_Store --> Files["data/*.json"]
+
+    MainWin --> ThemeSys["Theme System<br>(Light/Dark)"]
+    ThemeSys --> GenUI["Generated UI<br>(Light + Dark variants)"]
 ```
 
 ### Giải thích:
--   **Main Application:** Đóng vai trò khởi tạo (bootstrap) hệ thống.
--   **UI Layer (PyQt6):** Xử lý tương tác người dùng và hiển thị thông tin. Gọi các chức năng từ lớp Business Logic. Gồm các chế độ xem như Dashboard, Inventory View, Global Search và Reports.
--   **Business Logic Layer:** Chứa các quy tắc nghiệp vụ và hoạt động cốt lõi, được quản lý bởi Inventory Manager, Search Engine và Alert System.
--   **Data Access Layer:** Chịu trách nhiệm về việc lưu trữ và truy cập dữ liệu, bao gồm JSON Storage Engine và các Data Models (Medicine, Shelf).
--   **Dependencies:** Các mũi tên chỉ ra luồng điều khiển hoặc dữ liệu. Cụ thể, `UI Layer` gọi `Business Logic`, và `Business Logic` gọi `Data Access Layer` khi cần thiết. Ví dụ, `InventoryManager` phụ thuộc vào `Data Models` và `StorageEngine`.
+-   **Main Application (`app.py`):** Đóng vai trò khởi tạo (bootstrap) hệ thống, tạo `QApplication` và `MainWindow`.
+-   **MainWindow (`main_window.py`):** Hub trung tâm điều khiển tất cả views, dialogs, theme, search. Chỉ chứa business logic — layout được define trong generated UI files.
+-   **UI Layer (PyQt6):** Xử lý tương tác người dùng và hiển thị thông tin. Gồm Dashboard, Inventory View, Shelf View, Search Dialog, và các Notification Dialogs.
+-   **Business Logic Layer:** Chứa các quy tắc nghiệp vụ cốt lõi: Inventory Manager, Search Engine, Alert System, và Image Manager.
+-   **Data Access Layer:** Chịu trách nhiệm lưu trữ và truy cập dữ liệu: JSON Storage Engine (atomic writes) và Data Models (Medicine, Shelf).
+-   **Theme System:** Chọn giữa Light/Dark generated UI files tại runtime, giữ nguyên page index khi chuyển theme.
 
 ---
 
-## 2. Sơ đồ Luồng Logic / Tuần tự (cho một Trường hợp Sử dụng Chính: Thêm Thuốc)
+## 2. Sơ đồ Luồng Logic / Tuần tự (Thêm Thuốc)
 
 Sơ đồ tuần tự này mô tả chi tiết sự tương tác giữa người dùng và các thành phần hệ thống khác nhau trong quá trình thêm một mục thuốc mới.
 
@@ -53,25 +64,25 @@ sequenceDiagram
     participant SE as StorageEngine
 
     User->>UI: Clicks "Add Medicine"
-    UI->>UI: MainWindow opens AddMedicineDialog
+    UI->>UI: MainWindow opens MedicineDialog
     User->>UI: Fills form & Clicks Save
     UI->>UI: Dialog validates input
     activate UI
     UI->>IM: Creates Medicine object & Calls add_medicine()
     activate IM
-    IM->>IM: Validates medicine data (ID, quantity, shelf_id)
+    IM->>IM: Generates ID (shelf_id.seq)
+    IM->>IM: Validates data (quantity, shelf_id, capacity)
     IM->>IM: Check shelf capacity (remaining >= quantity)
     IM->>IM: Appends medicine to list
-    IM->>SE: Calls save_data() (indirectly via IM)
+    IM->>SE: Calls save_data()
     activate SE
     SE->>SE: Converts medicines to dicts
     SE->>SE: Performs atomic write (backup, .tmp, rename)
     deactivate SE
-    IM-->>UI: Emits 'medicine_added' signal
+    IM-->>UI: Returns added Medicine
     deactivate IM
-    UI->>UI: InventoryView reloads data
-    UI->>UI: Table updates with new medicine
-    UI->>UI: Status bar shows updated count
+    UI->>UI: refresh_all() — reloads all views
+    UI->>UI: Shows AddSuccessDialog
     UI->>UI: Dialog closes
     deactivate UI
 ```
@@ -81,14 +92,46 @@ sequenceDiagram
 -   **Người dùng và UI:** Người dùng tương tác với giao diện đồ họa.
 -   **Xác thực ở UI:** UI thực hiện xác thực đầu vào cơ bản (UX-level validation) trước khi chuyển dữ liệu.
 -   **UI gọi InventoryManager:** UI chuyển dữ liệu thuốc đã được xác thực sơ bộ cho `InventoryManager`.
--   **Vai trò của InventoryManager:** Xử lý logic nghiệp vụ, bao gồm xác thực quy tắc nghiệp vụ (business rule validation) chi tiết hơn và cập nhật danh sách thuốc nội bộ.
+-   **Vai trò của InventoryManager:** Xử lý logic nghiệp vụ, bao gồm sinh ID tự động, xác thực quy tắc nghiệp vụ và cập nhật danh sách thuốc nội bộ.
 -   **InventoryManager gọi StorageEngine:** `InventoryManager` ủy quyền việc lưu trữ dữ liệu cho `StorageEngine` để lưu các thay đổi vào tệp JSON.
 -   **Ghi dữ liệu nguyên tử của StorageEngine:** `StorageEngine` đảm bảo tính toàn vẹn dữ liệu bằng cách sử dụng tệp tạm thời và thao tác đổi tên nguyên tử.
--   **Phản hồi về UI:** Sau khi lưu thành công, `InventoryManager` phát tín hiệu để UI làm mới hiển thị, cập nhật bảng kho và thanh trạng thái.
+-   **Phản hồi về UI:** Sau khi lưu thành công, `MainWindow` gọi `refresh_all()` để cập nhật tất cả views (Dashboard, Inventory, Shelf), sau đó hiển thị dialog thông báo thành công.
 
 ---
 
-## 3. Sơ đồ Lớp
+## 3. Sơ đồ Luồng Chuyển Theme (Light ↔ Dark)
+
+Sơ đồ này mô tả quá trình chuyển đổi giữa Light và Dark mode, đảm bảo trang hiện tại được giữ nguyên.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant MW as MainWindow
+    participant Theme as Theme System
+    participant GenUI as Generated UI
+
+    User->>MW: Click toggle theme button
+    MW->>MW: Save current page index (stacked_main_content.currentIndex())
+    MW->>Theme: toggle_mode()
+    Theme-->>MW: Returns new ThemeMode (LIGHT/DARK)
+    MW->>MW: Update toggle button text ("☀️ Light" / "🌙 Dark")
+    MW->>GenUI: _build_ui() — Load Ui_MainWindow or Ui_MainWindow_dark
+    GenUI-->>MW: setupUi(self) — Rebuild all widgets
+    MW->>MW: _setup_logo() + _setup_views() + _connect_signals()
+    MW->>MW: refresh_all() — Reload data into rebuilt views
+    MW->>MW: navigate_to(saved_index, btn) — Restore previous page
+    MW->>MW: Update dashboard theme & refresh charts
+```
+
+### Giải thích:
+-   **Page Index Persistence:** `currentIndex()` được lưu **trước khi** rebuild UI. Sau khi rebuild, `navigate_to()` khôi phục lại trang đang xem.
+-   **Full UI Rebuild:** Toàn bộ widget tree được tạo lại với generated UI file tương ứng (light hoặc dark).
+-   **Data Reload:** Tất cả views (Dashboard, Inventory, Shelf) được nạp lại data từ `InventoryManager`.
+-   **Chart Refresh:** Dashboard charts được cập nhật màu sắc theo theme mới.
+
+---
+
+## 4. Sơ đồ Lớp
 
 Sơ đồ này trình bày các lớp (class) cốt lõi của hệ thống, các thuộc tính (attribute), phương thức (method) chính và mối quan hệ giữa chúng.
 
@@ -101,6 +144,7 @@ classDiagram
         +date expiry_date
         +str shelf_id
         +float price
+        +str image_path
         +is_expired() bool
         +days_until_expiry() int
         +to_dict() dict
@@ -149,6 +193,14 @@ classDiagram
         +update_index(List~Medicine~)
     }
 
+    class ImageManager {
+        -str image_dir
+        +save_image(str source, str medicine_id) str
+        +delete_image(str medicine_id)
+        +rename_image(str old_id, str new_id) str
+        +get_image_path(str medicine_id) str
+    }
+
     class AlertType {
         <<enum>>
         EXPIRED
@@ -175,6 +227,27 @@ classDiagram
         +get_alert_summary(List~Medicine~) dict
     }
 
+    class Theme {
+        +ThemeMode mode
+        +dict _current_colors
+        +toggle_mode() ThemeMode
+        +get_stylesheet() str
+    }
+
+    class MainWindow {
+        -Theme theme
+        -InventoryManager inventory_manager
+        -SearchEngine search_engine
+        -ImageManager image_manager
+        +toggle_theme()
+        +navigate_to(int page_index, QPushButton btn)
+        +refresh_all()
+        +show_add_medicine()
+        +show_edit_medicine(str id)
+        +delete_medicine(str id)
+        +show_search()
+    }
+
     InventoryManager "1" *-- "many" Medicine
     InventoryManager "1" *-- "many" Shelf
     InventoryManager -- StorageEngine : uses
@@ -183,6 +256,11 @@ classDiagram
     Alert --> Medicine : references
     Alert "1" *-- "1" AlertType : has
     SearchEngine -- Medicine : indexes
+    ImageManager -- Medicine : manages images for
+    MainWindow --> InventoryManager : uses
+    MainWindow --> SearchEngine : uses
+    MainWindow --> ImageManager : uses
+    MainWindow --> Theme : uses
 ```
 
 ### Giải thích:
@@ -190,30 +268,36 @@ classDiagram
 -   **StorageEngine:** Đóng gói logic để đọc và ghi dữ liệu JSON vào tệp, đảm bảo tính toàn vẹn của dữ liệu.
 -   **InventoryManager:** Thành phần logic nghiệp vụ trung tâm để quản lý các đối tượng `Medicine` và `Shelf`, thực hiện các thao tác CRUD và tương tác với `StorageEngine` để lưu trữ dữ liệu (persistence).
 -   **SearchEngine:** Cung cấp khả năng tìm kiếm mờ (fuzzy search) cho các loại thuốc bằng thư viện `TheFuzz`, lập chỉ mục (indexing) tên thuốc để truy vấn hiệu quả.
+-   **ImageManager:** Quản lý hình ảnh thuốc — lưu, xóa, đổi tên khi medicine ID thay đổi.
 -   **AlertType & Alert:** `AlertType` là một enum cho các loại cảnh báo khác nhau, và `Alert` là một dataclass đại diện cho một cảnh báo cụ thể cho một loại thuốc.
 -   **AlertSystem:** Giám sát kho thuốc về hạn sử dụng và mức tồn kho, tạo ra các đối tượng `Alert` dựa trên các ngưỡng đã xác định.
+-   **Theme:** Quản lý Light/Dark mode với bộ color tokens riêng; `toggle_mode()` chuyển đổi giữa 2 mode.
+-   **MainWindow:** Hub trung tâm kết nối tất cả services và views. Chứa logic CRUD, navigation, theme toggle, và search.
 -   **Các mối quan hệ:**
     -   `InventoryManager` tổng hợp (aggregates) các đối tượng `Medicine` và `Shelf` (được biểu thị bằng `*--`).
     -   `InventoryManager` sử dụng `StorageEngine` (được biểu thị bằng `--`).
+    -   `MainWindow` sử dụng tất cả services: `InventoryManager`, `SearchEngine`, `ImageManager`, `Theme`.
     -   `AlertSystem` và `SearchEngine` tương tác với các đối tượng `Medicine`.
     -   Các đối tượng `Alert` tham chiếu đến `Medicine` (thay vì sở hữu), và được kết hợp với `AlertType`.
     -   *Lưu ý:* Thuộc tính `capacity` của `Shelf` đại diện cho **tổng số đơn vị (quantity) thuốc tối đa** mà kệ có thể chứa. Khi thêm hoặc cập nhật thuốc, hệ thống kiểm tra tổng quantity trên kệ không vượt quá capacity. Thuộc tính này hiện là kiểu `str` trong mã nguồn nhưng được chuyển đổi sang `int` khi tính toán.
+
 ---
 
-## 4. Sơ đồ Cấu trúc Tệp
+## 5. Sơ đồ Cấu trúc Tệp
 
 Sơ đồ này cung cấp một biểu diễn trực quan về tổ chức thư mục và tệp của dự án, làm nổi bật các module chính.
 
 ```mermaid
 graph TD
-    A[Pharmacy Management System] --> B[src/]
+    A["Pharmacy Management System<br>(KiThuatLapTrinhNhom3/)"] --> B[src/]
     A --> C[tests/]
     A --> D[data/]
     A --> E[docs/]
-    A --> F[.gitignore]
-    A --> G[CLAUDE.md]
-    A --> H[README.md]
+    A --> F["Ui Qt/"]
+    A --> G[design-ui/]
+    A --> H[app.py]
     A --> I[requirements.txt]
+    A --> J[context.md]
 
     B --> B1[__init__.py]
     B --> B2[models.py]
@@ -221,25 +305,109 @@ graph TD
     B --> B4[inventory_manager.py]
     B --> B5[alerts.py]
     B --> B6[search_engine.py]
+    B --> B7[image_manager.py]
+    B --> B8[ui/]
 
-    C --> C1[__init__.py]
-    C --> C2[test_alerts.py]
+    B8 --> U1[main_window.py]
+    B8 --> U2[dashboard.py]
+    B8 --> U3[inventory_view.py]
+    B8 --> U4[shelf_view.py]
+    B8 --> U5[medicine_dialog.py]
+    B8 --> U6[shelf_dialog.py]
+    B8 --> U7[medicine_detail_view.py]
+    B8 --> U8[filter_dialog.py]
+    B8 --> U9[notification_dialogs.py]
+    B8 --> U10[theme.py]
+    B8 --> U11["generated/<br>⚠️ DO NOT EDIT"]
+
+    U11 --> G1["main_window_ui.py<br>main_window_ui_dark.py"]
+    U11 --> G2["search.py / search_dark.py"]
+    U11 --> G3["them_thuoc.py / them_thuoc_dark.py"]
+    U11 --> G4["them_ke.py / them_ke_dark.py"]
+    U11 --> G5["thong_tin_thuoc.py / thong_tin_thuoc_dark.py"]
+    U11 --> G6["Notification dialogs<br>(light + dark pairs)"]
+
+    C --> C1[test_models.py]
+    C --> C2[test_storage.py]
     C --> C3[test_inventory.py]
-    C --> C4[test_models.py]
+    C --> C4[test_alerts.py]
     C --> C5[test_search.py]
-    C --> C6[test_storage.py]
+    C --> C6[test_image_manager.py]
 
-    D --> D1[.gitkeep]
+    D --> D1[medicines.json]
+    D --> D2[shelves.json]
+    D --> D3[settings.json]
+    D --> D4[images/]
 
-    E --> E1[classDiagram.drawio.png]
+    E --> E1[projectcharts.md]
     E --> E2[classflow.md]
     E --> E3[design_guideline.md]
     E --> E4[PROGRESS.md]
+    E --> E5[QUICKSTART.md]
+    E --> E6[SUMMARY.md]
+    E --> E7[SCREENSHOTS.md]
 ```
 
 ### Giải thích:
--   **Thư mục gốc (Root Directory):** Chứa các tệp cấp dự án như `.gitignore`, `README.md`, và `requirements.txt`.
--   **`src/`:** Chứa mã nguồn chính của ứng dụng, được tách biệt một cách logic thành các module cho data models, storage, inventory management, alerts, và search.
--   **`tests/`:** Chứa các unit test cho mỗi module tương ứng trong thư mục `src/`, đảm bảo chất lượng và chức năng của mã nguồn.
--   **`data/`:** Dành cho việc lưu trữ dữ liệu ứng dụng, chẳng hạn như các tệp JSON để lưu trữ lâu dài (ví dụ: `medicines.json`, `shelves.json`).
--   **`docs/`:** Lưu giữ các tệp tài liệu, bao gồm tài liệu thiết kế, báo cáo tiến độ, và hiện tại là các sơ đồ dự án này.
+-   **Thư mục gốc (Root Directory):** Chứa các tệp cấp dự án như `app.py`, `requirements.txt`, `context.md`, và các scripts (`run.bat`, `run_tests.bat`).
+-   **`src/`:** Chứa mã nguồn chính của ứng dụng, được tách biệt một cách logic thành các module cho data models, storage, inventory management, alerts, search, và image management.
+-   **`src/ui/`:** Chứa tất cả UI components — mỗi file chỉ chứa business logic, layout được define trong generated files.
+-   **`src/ui/generated/`:** Files tự động sinh bởi `pyuic6` — mỗi dialog/form có 2 variants (light + dark). **KHÔNG ĐƯỢC CHỈNH SỬA THỦ CÔNG.**
+-   **`tests/`:** Chứa ~107 unit tests cho mỗi module tương ứng trong thư mục `src/`.
+-   **`data/`:** Dành cho lưu trữ dữ liệu ứng dụng: `medicines.json`, `shelves.json`, `settings.json`, và thư mục `images/` cho hình ảnh thuốc.
+-   **`Ui Qt/`:** Chứa các tệp `.ui` gốc từ Qt Designer — mỗi form có 2 phiên bản (light + dark).
+-   **`docs/`:** Tài liệu dự án bao gồm sơ đồ, hướng dẫn thiết kế, tiến độ, và tài liệu tóm tắt.
+
+---
+
+## 6. Sơ đồ Tương tác UI Components
+
+Sơ đồ này thể hiện cách các UI components giao tiếp với nhau thông qua Qt Signal/Slot mechanism.
+
+```mermaid
+graph LR
+    MW["MainWindow<br>(Controller)"]
+
+    subgraph Views
+        DV[Dashboard]
+        IV[InventoryView]
+        SV[ShelfView]
+    end
+
+    subgraph Dialogs
+        MD[MedicineDialog]
+        SD[ShelfDialog]
+        FD[FilterDialog]
+        DD[MedicineDetailView]
+        ND[NotificationDialogs]
+        SD2[SearchDialog]
+    end
+
+    IV -- "add_requested" --> MW
+    IV -- "edit_requested(id)" --> MW
+    IV -- "delete_requested(id)" --> MW
+    IV -- "detail_requested(id)" --> MW
+    IV -- "filter_requested" --> MW
+
+    SV -- "add_requested" --> MW
+    SV -- "edit_requested(id)" --> MW
+    SV -- "delete_requested(id)" --> MW
+
+    MW -- "show_add_medicine()" --> MD
+    MW -- "show_edit_medicine(id)" --> MD
+    MW -- "show_filter_dialog()" --> FD
+    MW -- "show_medicine_detail(id)" --> DD
+    MW -- "show_search()" --> SD2
+    MW -- "show_add_shelf()" --> SD
+    MW -- "refresh_all()" --> DV
+    MW -- "refresh_all()" --> IV
+    MW -- "refresh_all()" --> SV
+
+    DD -- "edit_requested(id)" --> MW
+    DD -- "delete_requested(id)" --> MW
+```
+
+### Giải thích:
+-   **Signal/Slot Pattern:** Views (InventoryView, ShelfView) chỉ **phát signals** — không chứa business logic. MainWindow **lắng nghe** signals và xử lý logic.
+-   **Unidirectional Flow:** Signals đi từ Views → MainWindow → Dialogs. Sau khi dialog hoàn thành, MainWindow gọi `refresh_all()` để cập nhật tất cả views.
+-   **MedicineDetailView:** Cũng có thể phát `edit_requested` và `delete_requested` — cho phép chỉnh sửa/xóa trực tiếp từ màn hình chi tiết thuốc.

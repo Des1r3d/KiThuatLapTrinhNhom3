@@ -19,8 +19,9 @@ from PyQt6.QtGui import QPixmap, QIntValidator, QDoubleValidator
 
 from src.models import Medicine, Shelf
 from src.image_manager import ImageManager
-from src.ui.theme import Theme
+from src.ui.theme import Theme, ThemeMode
 from src.ui.generated.them_thuoc import Ui_dlg_medicine_detail
+from src.ui.generated.them_thuoc_dark import Ui_dlg_medicine_detail as Ui_dlg_medicine_detail_dark
 
 
 class MedicineDialog(QDialog):
@@ -81,36 +82,12 @@ class MedicineDialog(QDialog):
 
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
-        self.ui = Ui_dlg_medicine_detail()
+        # Choose UI class based on current theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_dlg_medicine_detail_dark()
+        else:
+            self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
-
-        # Apply theme styling for dark mode
-        c = self.theme._current_colors
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {c['surface']};
-                border: 1px solid {c['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {c['text_primary']};
-                background-color: transparent;
-            }}
-            QLineEdit, QComboBox, QDateEdit {{
-                background-color: {c['input_bg']};
-                color: {c['input_text']};
-                border: 1px solid {c['input_border']};
-                border-radius: 8px;
-                padding: 8px 12px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: {c['surface']};
-                color: {c['text_primary']};
-                border: 1px solid {c['border']};
-                selection-background-color: {c['primary']};
-                selection-color: #FFFFFF;
-            }}
-        """)
 
         # ── Mode-specific setup ──
         if self.mode == "add":
@@ -232,7 +209,7 @@ class MedicineDialog(QDialog):
                 errors.append("Số lượng phải là số nguyên")
 
         # Expiry Date
-        qdate = self.ui.txt_expiry_date.date()
+        qdate = self.ui.dateEdit.date()
         expiry_date = date(qdate.year(), qdate.month(), qdate.day())
 
         # Shelf

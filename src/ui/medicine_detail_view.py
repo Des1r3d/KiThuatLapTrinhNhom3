@@ -13,8 +13,9 @@ from PyQt6.QtGui import QPixmap
 
 from src.models import Medicine
 from src.image_manager import ImageManager
-from src.ui.theme import Theme
+from src.ui.theme import Theme, ThemeMode
 from src.ui.generated.thong_tin_thuoc import Ui_dlg_medicine_detail
+from src.ui.generated.thong_tin_thuoc_dark import Ui_dlg_medicine_detail as Ui_dlg_medicine_detail_dark
 
 
 class MedicineDetailView(QDialog):
@@ -60,22 +61,12 @@ class MedicineDetailView(QDialog):
 
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
-        self.ui = Ui_dlg_medicine_detail()
+        # Choose UI class based on current theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_dlg_medicine_detail_dark()
+        else:
+            self.ui = Ui_dlg_medicine_detail()
         self.ui.setupUi(self)
-
-        # Apply theme styling
-        c = self.theme._current_colors
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {c['surface']};
-                border: 1px solid {c['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {c['text_primary']};
-                background-color: transparent;
-            }}
-        """)
 
         # Connect buttons
         self.ui.btn_primary.clicked.connect(self._on_edit_clicked)

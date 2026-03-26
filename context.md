@@ -3,7 +3,7 @@
 > **Dự án:** Hệ Thống Quản Lý Kho Thuốc  
 > **Phiên bản:** 1.0.0 Beta  
 > **Môn học:** Kỹ Thuật Lập Trình — Nhóm 3  
-> **Ngày cập nhật context:** 25/03/2026 (cập nhật lần 2)
+> **Ngày cập nhật context:** 26/03/2026 (cập nhật lần 3)
 
 ---
 
@@ -15,7 +15,7 @@
 - Cảnh báo hết hạn / sắp hết hạn / tồn kho thấp / hết hàng
 - Tìm kiếm mờ (fuzzy search) bằng TheFuzz
 - Dashboard thống kê với biểu đồ Matplotlib
-- Chế độ Light / Dark mode
+- Chế độ Light / Dark mode (giữ nguyên trang hiện tại khi chuyển theme)
 - Lưu trữ dữ liệu bằng JSON files với cơ chế atomic write + backup
 
 ---
@@ -54,7 +54,7 @@ KiThuatLapTrinhNhom3/
 │   │
 │   └── ui/                     # 🎨 UI Components
 │       ├── __init__.py          # UI package exports
-│       ├── main_window.py       # MainWindow + SearchDialog
+│       ├── main_window.py       # MainWindow + SearchDialog (business logic only)
 │       ├── dashboard.py         # Dashboard view (stats + charts)
 │       ├── inventory_view.py    # Medicine table view
 │       ├── shelf_view.py        # Shelf management view
@@ -66,17 +66,18 @@ KiThuatLapTrinhNhom3/
 │       ├── theme.py             # Theme system (Light/Dark)
 │       │
 │       └── generated/           # ⚠️ AUTO-GENERATED — DO NOT EDIT
-│           ├── main_window_ui.py # Generated từ Ui Qt/main_window.ui
-│           ├── search.py
-│           ├── loc_thuoc.py
+│           ├── main_window_ui.py      # Light mode main window
+│           ├── main_window_ui_dark.py # Dark mode main window
+│           ├── search.py / search_dark.py
+│           ├── loc_thuoc.py / loc_thuoc_dark.py
 │           ├── ke_day.py
-│           ├── them_thuoc.py
-│           ├── them_ke.py
-│           ├── them_thanh_cong.py
-│           ├── sua_thanh_cong.py
-│           ├── xac_nhan_xoa.py
-│           ├── xoa_thanh_cong.py
-│           └── thong_tin_thuoc.py
+│           ├── them_thuoc.py / them_thuoc_dark.py
+│           ├── them_ke.py / them_ke_dark.py
+│           ├── them_thanh_cong.py / them_thanh_cong_dark.py
+│           ├── sua_thanh_cong.py / sua_thanh_cong_dark.py
+│           ├── xac_nhan_xoa.py / xac_nhan_xoa_dark.py
+│           ├── xoa_thanh_cong.py / xoa_thanh_cong_dark.py
+│           └── thong_tin_thuoc.py / thong_tin_thuoc_dark.py
 │
 ├── data/                       # 💾 Data storage
 │   ├── medicines.json           # Medicine database
@@ -111,9 +112,18 @@ KiThuatLapTrinhNhom3/
 │   ├── ui_flow.md
 │   └── design-ui/Qt_designer/  # .ui files & Logo.png
 │
-└── Ui Qt/                      # Qt Designer raw .ui files
-    ├── *.ui                     # UI form definitions
-    └── *.py                     # pyuic6-generated Python files
+└── Ui Qt/                      # Qt Designer raw .ui files (Light + Dark pairs)
+    ├── main_window.ui / main_window_dark.ui
+    ├── them_thuoc.ui / them_thuoc_dark.ui
+    ├── them_ke.ui / them_ke_dark.ui
+    ├── loc_thuoc.ui / loc_thuoc_dark.ui
+    ├── search.ui / search_dark.ui
+    ├── them_thanh_cong.ui / them_thanh_cong_dark.ui
+    ├── sua_thanh_cong.ui / sua_thanh_cong_dark.ui
+    ├── xac_nhan_xoa.ui / xac_nhan_xoa_dark.ui
+    ├── xoa_thanh_cong.ui / xoa_thanh_cong_dark.ui
+    ├── thong_tin_thuoc.ui / thong_tin_thuoc_dark.ui
+    └── ke_day.ui
 ```
 
 > [!WARNING]
@@ -195,6 +205,7 @@ graph TB
 | **Atomic Write** | Ghi file qua temp → rename, có backup recovery |
 | **Signal/Slot** | Qt event system cho UI communication |
 | **Observer** | Dashboard + InventoryView lắng nghe sự thay đổi data |
+| **Dual UI Generation** | Mỗi dialog/window có 2 phiên bản generated (light + dark), chọn tại runtime |
 
 ---
 
@@ -247,7 +258,7 @@ Bộ điều khiển trung tâm cho tất cả thao tác CRUD:
 
 ### MainWindow ([main_window.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/main_window.py))
 
-Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (sinh từ `Ui Qt/main_window.ui`).
+Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (Light) hoặc `main_window_ui_dark.py` (Dark).
 `main_window.py` chỉ chứa **business logic** — không định nghĩa widget thủ công.
 
 ```
@@ -276,6 +287,11 @@ Layout chính dùng generated UI từ `src/ui/generated/main_window_ui.py` (sinh
 **Phím tắt:**
 - `Ctrl+K` → Search dialog
 
+**Theme Toggle (page persistence):**
+- Khi chuyển theme, `toggle_theme()` lưu `currentIndex()` **trước khi** rebuild UI
+- Sau khi `_build_ui()` + `refresh_all()`, gọi `navigate_to(saved_index, btn)` để khôi phục trang đang xem
+- Đảm bảo người dùng không bị nhảy về Dashboard khi chuyển Light ↔ Dark
+
 ### InventoryView ([inventory_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/inventory_view.py))
 
 Bảng danh sách thuốc với các tính năng:
@@ -297,11 +313,11 @@ filter_requested = pyqtSignal()    # Mở filter dialog
 
 | Dialog | File | Chức năng |
 |--------|------|-----------|
-| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_dialog.py) | Add/Edit thuốc |
-| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/shelf_dialog.py) | Add/Edit kệ |
-| `SearchDialog` | main_window.py (inline) | Fuzzy search (dùng generated UI) |
-| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/filter_dialog.py) | Lọc thuốc |
-| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_detail_view.py) | Xem chi tiết thuốc |
+| `MedicineDialog` | [medicine_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_dialog.py) | Add/Edit thuốc (dùng `them_thuoc` / `them_thuoc_dark` generated UI) |
+| `ShelfDialog` | [shelf_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/shelf_dialog.py) | Add/Edit kệ (dùng `them_ke` / `them_ke_dark` generated UI) |
+| `SearchDialog` | main_window.py (inline) | Fuzzy search (dùng `search` / `search_dark` generated UI) |
+| `FilterMedicineDialog` | [filter_dialog.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/filter_dialog.py) | Lọc thuốc (dùng `loc_thuoc` / `loc_thuoc_dark` generated UI) |
+| `MedicineDetailView` | [medicine_detail_view.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/medicine_detail_view.py) | Xem chi tiết thuốc (dùng `thong_tin_thuoc` / `thong_tin_thuoc_dark`) |
 | Notification Dialogs | [notification_dialogs.py](file:///c:/Users/Desired/Desktop/ki2nam2/kithuatlaptrinh/DoAnKiThuatLaptrinh/KiThuatLapTrinhNhom3/src/ui/notification_dialogs.py) | Thêm/Sửa/Xóa thành công, Xác nhận xóa, Kệ đầy |
 
 ---
@@ -327,6 +343,11 @@ filter_requested = pyqtSignal()    # Mở filter dialog
 - Font sizes: H1=20, H2=16, Body=14, Table=13, Caption=12, Badge=11
 
 **Stat card colors:** Blue (`#3B82F6`), Orange (`#FF8800`), Red (`#EF4444`), Amber (`#FFAD00`)
+
+**Dual UI approach:**
+- Mỗi form/dialog có 2 file `.ui` (light + dark) trong `Ui Qt/`
+- Compile bằng `pyuic6` thành 2 file `.py` trong `src/ui/generated/`
+- Tại runtime, business logic chọn đúng generated class dựa trên `theme.mode`
 
 **Stylesheet notes (Dark Mode fixes):**
 - `QTableWidget` có `alternate-background-color: {table_row_alt}` — tránh Qt dùng màu trắng hệ thống
@@ -355,6 +376,23 @@ sequenceDiagram
     IM-->>MW: Return added Medicine
     MW->>MW: refresh_all()
     MW->>MW: Show AddSuccessDialog
+```
+
+### Theme Toggle Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant MW as MainWindow
+    participant UI as Generated UI
+
+    U->>MW: Click theme toggle button
+    MW->>MW: Save current page index
+    MW->>MW: theme.toggle_mode()
+    MW->>UI: _build_ui() → Load light/dark Ui_MainWindow
+    MW->>MW: refresh_all() → Reload data into views
+    MW->>MW: navigate_to(saved_index) → Restore page
+    MW->>MW: Update dashboard theme & charts
 ```
 
 ---
@@ -418,9 +456,11 @@ run.bat
 > - Medicine ID tự động thay đổi khi chuyển kệ (shelf)
 > - StorageEngine tự backup trước khi ghi, tự restore khi file bị corrupt
 > - Window title được định nghĩa trong `Ui Qt/main_window.ui` → compiled vào `main_window_ui.py`
+> - Theme toggle giữ nguyên trang hiện tại (page index) — không nhảy về Dashboard
 
 > [!IMPORTANT]
 > - Capacity check: khi thêm/sửa thuốc, hệ thống kiểm tra sức chứa còn lại của kệ
 > - sort_medicines() trả về **bản sao**, không thay đổi list gốc
 > - `Shelf.capacity` đang lưu kiểu `str` (cần cast int khi tính toán)
 > - Kiến trúc UI/Logic tách biệt: `inventory_view.py` chỉ emit signal, `main_window.py` xử lý logic
+> - Mỗi dialog/form cần **2 generated files** (light + dark) — khi thêm UI mới phải tạo cả 2 phiên bản

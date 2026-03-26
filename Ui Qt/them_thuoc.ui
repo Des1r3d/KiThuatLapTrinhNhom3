@@ -222,25 +222,57 @@ QLineEdit {
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QDateEdit" name="dateEdit">
-          <property name="minimumSize">
-           <size>
-            <width>50</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px; color: #1E293B;</string>
-          </property>
-          <property name="displayFormat">
-           <string>dd/MM/yyyy</string>
-          </property>
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
+         <item row="1" column="1">
+          <widget class="QDateEdit" name="txt_expiry_date">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px; color: #1E293B;</string>
+           </property>
+           <property name="displayFormat">
+            <string>dd/MM/yyyy</string>
+           </property>
+           <property name="calendarPopup">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="lbl_id">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Mã thuốc</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="2">
+          <widget class="QLineEdit" name="txt_medicine_id">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Tự động tạo</string>
+           </property>
+          </widget>
+         </item>
        </layout>
       </item>
       <item>

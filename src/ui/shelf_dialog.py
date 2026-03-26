@@ -16,8 +16,9 @@ from PyQt6.QtWidgets import QDialog, QMessageBox
 from PyQt6.QtCore import Qt
 
 from src.models import Shelf
-from src.ui.theme import Theme
+from src.ui.theme import Theme, ThemeMode
 from src.ui.generated.them_ke import Ui_dlg_add_shelf
+from src.ui.generated.them_ke_dark import Ui_dlg_add_shelf as Ui_dlg_add_shelf_dark
 
 
 class ShelfDialog(QDialog):
@@ -69,29 +70,12 @@ class ShelfDialog(QDialog):
 
     def setup_ui(self):
         """Setup dialog UI using Qt Designer generated class."""
-        self.ui = Ui_dlg_add_shelf()
+        # Choose UI class based on current theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_dlg_add_shelf_dark()
+        else:
+            self.ui = Ui_dlg_add_shelf()
         self.ui.setupUi(self)
-
-        # Apply theme styling for dark mode
-        c = self.theme._current_colors
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {c['surface']};
-                border: 1px solid {c['border']};
-                border-radius: 12px;
-            }}
-            QLabel {{
-                color: {c['text_primary']};
-                background-color: transparent;
-            }}
-            QLineEdit {{
-                background-color: {c['input_bg']};
-                color: {c['input_text']};
-                border: 1px solid {c['input_border']};
-                border-radius: 8px;
-                padding: 8px 12px;
-            }}
-        """)
 
         # ── Mode-specific setup ──
         if self.mode == "add":

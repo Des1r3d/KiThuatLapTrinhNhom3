@@ -40,7 +40,9 @@ from src.ui.notification_dialogs import (
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
 from src.ui.generated.search import Ui_dlg_search
+from src.ui.generated.search_dark import Ui_dlg_search as Ui_dlg_search_dark
 from src.ui.generated.main_window_ui import Ui_MainWindow
+from src.ui.generated.main_window_ui_dark import Ui_MainWindow as Ui_MainWindow_dark
 
 
 class SearchDialog(QFrame):
@@ -65,7 +67,11 @@ class SearchDialog(QFrame):
         self.theme = theme or Theme()
         self.selected_medicine_id: Optional[str] = None
 
-        self.ui = Ui_dlg_search()
+        # Choose UI class based on theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_dlg_search_dark()
+        else:
+            self.ui = Ui_dlg_search()
         self.ui.setupUi(self.dialog)
 
         self.dialog.setWindowTitle("Tìm kiếm thuốc")
@@ -73,23 +79,8 @@ class SearchDialog(QFrame):
             self.dialog.windowFlags() | Qt.WindowType.FramelessWindowHint
         )
 
-        # Apply dark theme support
-        c = self.theme._current_colors
-        self.dialog.setStyleSheet(f"""
-            QDialog {{ background-color: {c['surface']}; border: 1px solid {c['border']}; border-radius: 12px; }}
-            QLineEdit#txt_search {{
-                border: none; padding-left: 10px; font-size: 16px;
-                color: {c['input_text']}; background-color: transparent;
-            }}
-            QListWidget {{ border: none; background-color: {c['surface']}; outline: none; color: {c['text_primary']}; }}
-            QListWidget::item {{ border-bottom: 1px solid {c['border']}; padding: 8px; }}
-            QListWidget::item:hover {{ background-color: {c['search_highlight']}; }}
-        """)
-        self.ui.frame_search.setStyleSheet(
-            f"border-bottom: 1px solid {c['border']}; background-color: {c['table_row_alt']};"
-        )
-
         # Add close button to search bar
+        c = self.theme._current_colors
         self.btn_close = QPushButton("Đóng")
         self.btn_close.setFixedSize(60, 30)
         self.btn_close.setStyleSheet(f"""
@@ -178,18 +169,10 @@ class MainWindow(QMainWindow):
         # Track search dialog state
         self._search_dialog: Optional[SearchDialog] = None
 
-        # Setup UI from generated file
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+        # Build the full UI (generated + views + signals)
+        self._build_ui()
 
-        # Additional UI setup (logo, views, connections)
-        self._setup_logo()
-        self._setup_views()
-        self._connect_signals()
-        self._setup_shortcuts()
-
-        # Apply theme & load data
-        self.apply_theme()
+        # Load data into views
         self.refresh_all()
 
         # Set default page
@@ -197,6 +180,30 @@ class MainWindow(QMainWindow):
 
         # Center window on screen
         self._center_on_screen()
+
+    def _build_ui(self):
+        """
+        Build (or rebuild) the entire UI from the appropriate generated file.
+        Selects light or dark Ui_MainWindow based on current theme mode.
+        """
+        # Clear any existing stylesheet before applying new UI
+        self.setStyleSheet("")
+        app = QApplication.instance()
+        if app:
+            app.setStyleSheet("")
+
+        # Choose UI class based on theme mode
+        if self.theme.mode == ThemeMode.DARK:
+            self.ui = Ui_MainWindow_dark()
+        else:
+            self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        # Additional UI setup (logo, views, connections)
+        self._setup_logo()
+        self._setup_views()
+        self._connect_signals()
+        self._setup_shortcuts()
 
     # ── UI Initialization (connecting generated UI to business logic) ──
 
@@ -434,7 +441,8 @@ class MainWindow(QMainWindow):
                     success = AddSuccessDialog(
                         self,
                         medicine_name=added.name,
-                        medicine_id=added.id
+                        medicine_id=added.id,
+                        theme=self.theme
                     )
                     success.exec()
 
@@ -510,7 +518,8 @@ class MainWindow(QMainWindow):
                     success = EditSuccessDialog(
                         self,
                         medicine_name=updated.name,
-                        medicine_id=updated.id
+                        medicine_id=updated.id,
+                        theme=self.theme
                     )
                     success.exec()
 
@@ -540,7 +549,8 @@ class MainWindow(QMainWindow):
             self,
             medicine_name=medicine.name,
             medicine_id=medicine_id,
-            quantity=medicine.quantity
+            quantity=medicine.quantity,
+            theme=self.theme
         )
 
         if confirm.exec() == ConfirmDeleteDialog.DialogCode.Accepted:
@@ -552,7 +562,8 @@ class MainWindow(QMainWindow):
                 success = DeleteSuccessDialog(
                     self,
                     medicine_name=removed.name,
-                    medicine_id=medicine_id
+                    medicine_id=medicine_id,
+                    theme=self.theme
                 )
                 success.exec()
 
@@ -732,7 +743,10 @@ class MainWindow(QMainWindow):
     # ── Theme ──
 
     def toggle_theme(self):
-        """Toggle between Light and Dark modes."""
+        """Toggle between Light and Dark modes by rebuilding UI."""
+        # Save current page index BEFORE rebuilding UI
+        current_index = self.ui.stacked_main_content.currentIndex()
+
         new_mode = self.theme.toggle_mode()
 
         if new_mode == ThemeMode.DARK:
@@ -740,28 +754,30 @@ class MainWindow(QMainWindow):
         else:
             self.ui.btn_toggle_theme.setText("🌙 Dark")
 
-        self.apply_theme()
+        # Rebuild the entire UI with the new theme's generated file
+        self._build_ui()
 
-        # Refresh charts with new theme colors
-        self.dashboard.theme = self.theme
-        self.dashboard.apply_theme()
-        self.dashboard.update_charts()
+        # Reload data into rebuilt views
+        self.refresh_all()
 
-        # Re-apply sidebar active state after theme change
-        current_index = self.ui.stacked_main_content.currentIndex()
+        # Restore the page that was active before theme change
         btn_map = {
             self.PAGE_DASHBOARD: self.ui.btn_nav_dashboard,
             self.PAGE_INVENTORY: self.ui.btn_nav_inventory,
             self.PAGE_SHELVES: self.ui.btn_nav_shelf,
         }
         active_btn = btn_map.get(current_index, self.ui.btn_nav_dashboard)
-        self.update_sidebar_active_state(active_btn)
+        self.navigate_to(current_index, active_btn)
+
+        # Refresh charts with new theme colors
+        self.dashboard.theme = self.theme
+        self.dashboard.apply_theme()
+        self.dashboard.update_charts()
 
     def apply_theme(self):
-        """Apply current theme stylesheet to entire application."""
-        app = QApplication.instance()
-        if app:
-            app.setStyleSheet(self.theme.get_stylesheet())
+        """Apply current theme — no longer uses hard-coded stylesheet.
+        Theme is now embedded in the generated .ui files."""
+        pass  # Styling comes from the generated Ui_MainWindow / Ui_MainWindow_dark
 
     # ── Helpers ──
 
@@ -796,8 +812,8 @@ class MainWindow(QMainWindow):
         dialog = ShelfFullErrorDialog(
             self,
             shelf_id=shelf_id,
-
-            remaining_capacity=remaining
+            remaining_capacity=remaining,
+            theme=self.theme
         )
         dialog.exec()
 
