@@ -114,8 +114,14 @@ class MedicineDialog(QDialog):
         self.ui.cb_shelf_location.clear()
         self.ui.cb_shelf_location.addItem("Chọn kệ thuốc", None)
         for shelf in self.shelves:
+            # Tính sức chứa còn lại thực tế (không kể thuốc đang sửa)
+            if self.remaining_capacity_func:
+                exclude_id = self.medicine.id if self.medicine else ""
+                remaining = self.remaining_capacity_func(shelf.id, exclude_id)
+            else:
+                remaining = shelf.capacity
             self.ui.cb_shelf_location.addItem(
-                f"{shelf.id} (Còn chứa: {shelf.capacity})", shelf.id
+                f"{shelf.id} (Còn chứa: {remaining})", shelf.id
             )
 
         # ── Input validators ──
@@ -209,7 +215,7 @@ class MedicineDialog(QDialog):
                 errors.append("Số lượng phải là số nguyên")
 
         # Expiry Date
-        qdate = self.ui.dateEdit.date()
+        qdate = self.ui.txt_expiry_date.date()
         expiry_date = date(qdate.year(), qdate.month(), qdate.day())
 
         # Shelf

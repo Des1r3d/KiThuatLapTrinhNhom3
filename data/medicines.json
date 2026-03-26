@@ -36,12 +36,12 @@
     "image_path": ""
   },
   {
-    "id": "K-A1.002",
-    "name": "Omeprazole 20mg",
-    "quantity": 100,
-    "expiry_date": "2027-09-30",
-    "shelf_id": "K-A1",
-    "price": 45000.0,
+    "id": "K-A2.002",
+    "name": "hello",
+    "quantity": 12,
+    "expiry_date": "2030-04-23",
+    "shelf_id": "K-A2",
+    "price": 10.0,
     "image_path": ""
   }
 ]

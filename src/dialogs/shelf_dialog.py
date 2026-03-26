@@ -77,6 +77,26 @@ class ShelfDialog(QDialog):
             self.ui = Ui_dlg_add_shelf()
         self.ui.setupUi(self)
 
+        # Sửa lỗi dark theme: layoutWidget1 có chiều cao cố định 221px không đủ
+        # chứa hết các fields → lbl_capacity bị tràn lên trên input Dãy/Cột.
+        # Sau setupUi, mở rộng container và dialog để đủ chỗ.
+        if self.theme.mode == ThemeMode.DARK:
+            if hasattr(self.ui, 'layoutWidget1'):
+                geom = self.ui.layoutWidget1.geometry()
+                self.ui.layoutWidget1.setGeometry(
+                    geom.x(), geom.y(), geom.width(), 285
+                )
+            self.setMinimumSize(450, 470)
+            self.setMaximumSize(450, 470)
+            self.resize(450, 470)
+        else:
+            # Light theme dùng VBoxLayout nhưng chiều cao cố định 420px
+            # có thể không đủ tuỳ font hệ thống / DPI màn hình
+            self.setMinimumSize(450, 480)
+            self.setMaximumSize(450, 480)
+            self.resize(450, 480)
+
+
         # ── Mode-specific setup ──
         if self.mode == "add":
             self.setWindowTitle("Thêm kệ mới")

@@ -28,14 +28,14 @@ from src.inventory_manager import InventoryManager
 from src.image_manager import ImageManager
 from src.search_engine import SearchEngine
 from src.ui.theme import Theme, ThemeMode
-from src.ui.views.dashboard import Dashboard
-from src.ui.views.inventory_view import InventoryView
-from src.ui.views.shelf_view import ShelfView
-from src.ui.dialogs.medicine_dialog import MedicineDialog
-from src.ui.dialogs.shelf_dialog import ShelfDialog
-from src.ui.dialogs.medicine_detail_view import MedicineDetailView
-from src.ui.dialogs.filter_dialog import FilterMedicineDialog
-from src.ui.dialogs.notification_dialogs import (
+from src.views.dashboard import Dashboard
+from src.views.inventory_view import InventoryView
+from src.views.shelf_view import ShelfView
+from src.dialogs.medicine_dialog import MedicineDialog
+from src.dialogs.shelf_dialog import ShelfDialog
+from src.dialogs.medicine_detail_view import MedicineDetailView
+from src.dialogs.filter_dialog import FilterMedicineDialog
+from src.dialogs.notification_dialogs import (
     AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
@@ -769,10 +769,6 @@ class MainWindow(QMainWindow):
         active_btn = btn_map.get(current_index, self.ui.btn_nav_dashboard)
         self.navigate_to(current_index, active_btn)
 
-        # Refresh charts with new theme colors
-        self.dashboard.theme = self.theme
-        self.dashboard.apply_theme()
-        self.dashboard.update_charts()
 
     def apply_theme(self):
         """Apply current theme — no longer uses hard-coded stylesheet.

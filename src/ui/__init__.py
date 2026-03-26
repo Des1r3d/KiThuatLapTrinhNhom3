@@ -14,14 +14,14 @@ Package này chứa tất cả thành phần giao diện PyQt6:
 """
 
 from src.ui.main_window import MainWindow
-from src.ui.views.inventory_view import InventoryView
-from src.ui.dialogs.medicine_dialog import MedicineDialog
-from src.ui.dialogs.shelf_dialog import ShelfDialog
-from src.ui.dialogs.medicine_detail_view import MedicineDetailView
-from src.ui.dialogs.filter_dialog import FilterMedicineDialog
-from src.ui.views.dashboard import Dashboard
+from src.views.inventory_view import InventoryView
+from src.dialogs.medicine_dialog import MedicineDialog
+from src.dialogs.shelf_dialog import ShelfDialog
+from src.dialogs.medicine_detail_view import MedicineDetailView
+from src.dialogs.filter_dialog import FilterMedicineDialog
+from src.views.dashboard import Dashboard
 from src.ui.theme import Theme, ThemeMode
-from src.ui.dialogs.notification_dialogs import (
+from src.dialogs.notification_dialogs import (
     AddSuccessDialog, EditSuccessDialog, DeleteSuccessDialog,
     ConfirmDeleteDialog, ShelfFullErrorDialog
 )
