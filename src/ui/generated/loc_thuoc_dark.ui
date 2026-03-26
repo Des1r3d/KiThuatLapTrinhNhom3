@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dlg_filter_medicine</class>
+ <widget class="QDialog" name="dlg_filter_medicine">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>380</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>380</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>380</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Lọc thuốc</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QDialog { background-color: rgb(39, 57, 71);}
+
+    /* Nhãn tiêu đề mục: Màu xám xanh, không đậm, size vừa phải */
+    QLabel#lbl_st_shelf, QLabel#lbl_st_price, QLabel#lbl_st_status {
+        color: #9AA5B1;
+        font-weight: normal;
+        font-size: 12px;
+    }
+
+    /* Ô chọn ComboBox đồng bộ với Form Thêm thuốc */
+    QComboBox {
+        background-color: #1F2933;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        padding-left: 10px;
+        color:#E4E7EB ;
+        font-size: 13px;
+    }
+
+    QComboBox:focus {
+        border: 1px solid #2563EB;
+    }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>35</number>
+   </property>
+   <property name="topMargin">
+    <number>30</number>
+   </property>
+   <property name="rightMargin">
+    <number>35</number>
+   </property>
+   <property name="bottomMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="lbl_filter_title">
+     <property name="styleSheet">
+      <string notr="true">font-size: 18px; color: #9AA5B1; font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>Lọc thuốc</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="layout_fields">
+     <property name="spacing">
+      <number>8</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lbl_st_shelf">
+       <property name="text">
+        <string>Mã kệ</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cb_filter_shelf">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>42</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>Chọn kệ</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lbl_st_price">
+       <property name="text">
+        <string>Giá bán</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cb_filter_price">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>42</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>Chọn khoảng giá</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lbl_st_status">
+       <property name="text">
+        <string>Trạng thái</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cb_filter_status">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>42</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>Chọn trạng thái</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="spacer_v">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="layout_actions">
+     <property name="spacing">
+      <number>15</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="btn_secondary">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: #E4E7EB; border: 1px solid #E0E6ED; border-radius: 8px; font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_primary">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #2563EB; color: white; border-radius: 8px; font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>dlg_medicine_detail</class>
+    <widget class="QDialog" name="dlg_medicine_detail">
+        <property name="windowModality">
+            <enum>Qt::ApplicationModal</enum>
+        </property>
+        <property name="geometry">
+            <rect><x>0</x><y>0</y><width>500</width><height>600</height></rect>
+        </property>
+        <property name="minimumSize">
+            <size><width>500</width><height>0</height></size>
+        </property>
+        <property name="windowTitle">
+            <string>Thêm thuốc mới</string>
+        </property>
+        <property name="styleSheet">
+            <string notr="true">QDialog { background-color: #FFFFFF; }
+QLabel { color: #475569; font-weight: 500; }
+QLineEdit { color: #1E293B; }</string>
+        </property>
+        <layout class="QVBoxLayout" name="main_layout">
+            <property name="leftMargin"><number>30</number></property>
+            <property name="rightMargin"><number>30</number></property>
+            <property name="topMargin"><number>20</number></property>
+            <property name="bottomMargin"><number>20</number></property>
+            <property name="spacing"><number>8</number></property>
+            <item>
+                <widget class="QLabel" name="lbl_title">
+                    <property name="styleSheet">
+                        <string notr="true">font-size: 20px; font-weight: bold; color: #475569;</string>
+                    </property>
+                    <property name="text"><string>Thêm thuốc</string></property>
+                    <property name="alignment"><set>Qt::AlignCenter</set></property>
+                </widget>
+            </item>
+            <item>
+                <widget class="Line" name="line_top">
+                    <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                </widget>
+            </item>
+            <item>
+                <layout class="QVBoxLayout" name="verticalLayout">
+                    <property name="spacing"><number>6</number></property>
+                    <item>
+                        <widget class="QLabel" name="lbl_name">
+                            <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                            <property name="text"><string>Tên thuốc</string></property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QLineEdit" name="txt_medicine_name">
+                            <property name="minimumSize"><size><width>100</width><height>34</height></size></property>
+                            <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string></property>
+                            <property name="placeholderText"><string>e.g Paracetamol 500mg</string></property>
+                        </widget>
+                    </item>
+                    <item>
+                        <layout class="QGridLayout" name="grid_info">
+                            <property name="verticalSpacing"><number>6</number></property>
+                            <property name="horizontalSpacing"><number>12</number></property>
+                            <item row="0" column="0">
+                                <widget class="QLabel" name="lbl_qty">
+                                    <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                                    <property name="text"><string>Số lượng</string></property>
+                                </widget>
+                            </item>
+                            <item row="0" column="1">
+                                <widget class="QLabel" name="lbl_hsd">
+                                    <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                                    <property name="text"><string>HSD</string></property>
+                                </widget>
+                            </item>
+                            <item row="1" column="0">
+                                <widget class="QLineEdit" name="txt_quantity">
+                                    <property name="minimumSize"><size><width>50</width><height>34</height></size></property>
+                                    <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string></property>
+                                    <property name="placeholderText"><string>0</string></property>
+                                </widget>
+                            </item>
+                            <item row="1" column="1">
+                                <widget class="QDateEdit" name="txt_expiry_date">
+                                    <property name="minimumSize"><size><width>50</width><height>34</height></size></property>
+                                    <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px; color: #1E293B;</string></property>
+                                    <property name="displayFormat"><string>dd/MM/yyyy</string></property>
+                                    <property name="calendarPopup"><bool>true</bool></property>
+                                </widget>
+                            </item>
+                            <item row="2" column="0">
+                                <widget class="QLabel" name="lbl_shelf">
+                                    <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                                    <property name="text"><string>Kệ thuốc</string></property>
+                                </widget>
+                            </item>
+                            <item row="2" column="1">
+                                <widget class="QLabel" name="lbl_price">
+                                    <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                                    <property name="text"><string>Giá</string></property>
+                                </widget>
+                            </item>
+                            <item row="3" column="0">
+                                <widget class="QComboBox" name="cb_shelf_location">
+                                    <property name="minimumSize"><size><width>50</width><height>34</height></size></property>
+                                    <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string></property>
+                                    <item><property name="text"><string>Chọn kệ thuốc</string></property></item>
+                                </widget>
+                            </item>
+                            <item row="3" column="1">
+                                <widget class="QLineEdit" name="txt_price">
+                                    <property name="minimumSize"><size><width>50</width><height>34</height></size></property>
+                                    <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string></property>
+                                    <property name="placeholderText"><string>VND</string></property>
+                                </widget>
+                            </item>
+                            <item row="4" column="0">
+                                <widget class="QLabel" name="lbl_id">
+                                    <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                                    <property name="text"><string>Mã thuốc</string></property>
+                                </widget>
+                            </item>
+                            <item row="5" column="0" colspan="2">
+                                <widget class="QLineEdit" name="txt_medicine_id">
+                                    <property name="minimumSize"><size><width>50</width><height>34</height></size></property>
+                                    <property name="styleSheet"><string notr="true">background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding-left: 10px;</string></property>
+                                    <property name="readOnly"><bool>true</bool></property>
+                                    <property name="placeholderText"><string>Tự động tạo</string></property>
+                                </widget>
+                            </item>
+                        </layout>
+                    </item>
+                    <item>
+                        <widget class="QLabel" name="lbl_img_title">
+                            <property name="minimumSize"><size><width>0</width><height>25</height></size></property>
+                            <property name="text"><string>Hình ảnh</string></property>
+                        </widget>
+                    </item>
+                    <item>
+                        <layout class="QHBoxLayout" name="layout_upload">
+                            <item>
+                                <widget class="QFrame" name="frame_upload">
+                                    <property name="minimumSize"><size><width>300</width><height>150</height></size></property>
+                                    <property name="styleSheet"><string notr="true">border: 2px dashed #CBD5E1; border-radius: 10px; background-color: #F8FAFC;</string></property>
+                                    <layout class="QVBoxLayout" name="v_upload">
+                                        <item>
+                                            <widget class="QLabel" name="lbl_upload_text">
+                                                <property name="styleSheet"><string notr="true">color: #94A3B8;</string></property>
+                                                <property name="text"><string>Upload hình ảnh thuốc</string></property>
+                                                <property name="alignment"><set>Qt::AlignCenter</set></property>
+                                            </widget>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                            <item>
+                                <layout class="QVBoxLayout" name="v_img_btns">
+                                    <property name="spacing"><number>6</number></property>
+                                    <item>
+                                        <widget class="QPushButton" name="btn_add_img">
+                                            <property name="minimumSize"><size><width>80</width><height>35</height></size></property>
+                                            <property name="styleSheet"><string notr="true">background-color: #2563EB; color: white; border-radius: 6px;</string></property>
+                                            <property name="text"><string>Thêm ảnh</string></property>
+                                        </widget>
+                                    </item>
+                                    <item>
+                                        <widget class="QPushButton" name="btn_remove_img">
+                                            <property name="minimumSize"><size><width>80</width><height>35</height></size></property>
+                                            <property name="styleSheet"><string notr="true">background-color: #F1F5F9; color: #475569; border-radius: 6px;</string></property>
+                                            <property name="text"><string>Xóa ảnh</string></property>
+                                        </widget>
+                                    </item>
+                                    <item>
+                                        <spacer name="spacer_img_btns">
+                                            <property name="orientation"><enum>Qt::Vertical</enum></property>
+                                            <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+                                        </spacer>
+                                    </item>
+                                </layout>
+                            </item>
+                        </layout>
+                    </item>
+                </layout>
+            </item>
+            <item>
+                <spacer name="s_mid_v">
+                    <property name="orientation"><enum>Qt::Vertical</enum></property>
+                    <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+                </spacer>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="layout_actions">
+                    <item>
+                        <spacer name="s_btn_h">
+                            <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                            <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                        </spacer>
+                    </item>
+                    <item>
+                        <widget class="QPushButton" name="btn_secondary">
+                            <property name="minimumSize"><size><width>120</width><height>45</height></size></property>
+                            <property name="styleSheet"><string notr="true">background-color: #F1F5F9; color: #475569; border-radius: 8px; font-weight: bold;</string></property>
+                            <property name="text"><string>Hủy</string></property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QPushButton" name="btn_primary">
+                            <property name="minimumSize"><size><width>120</width><height>45</height></size></property>
+                            <property name="styleSheet"><string notr="true">background-color: #2563EB; color: white; border-radius: 8px; font-weight: bold;</string></property>
+                            <property name="text"><string>Thêm</string></property>
+                        </widget>
+                    </item>
+                </layout>
+            </item>
+        </layout>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
