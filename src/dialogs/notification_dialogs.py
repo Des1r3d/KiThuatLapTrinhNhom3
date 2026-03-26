@@ -113,10 +113,10 @@ class DeleteSuccessDialog(QDialog):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         # Update dynamic content
-        self.ui.lbl_desc.setText(
-            f"Thuốc '{medicine_name}' đã được loại bỏ khỏi hệ thống."
+        # Note: xoa_thanh_cong.ui does not have lbl_desc — use lbl_code instead
+        self.ui.lbl_code.setText(
+            f"Thuốc '{medicine_name}' | Mã: {medicine_id}"
         )
-        self.ui.lbl_code.setText(f"Mã thuốc: {medicine_id}")
         
         # Connect close button
         self.ui.btn_close.clicked.connect(self.accept)

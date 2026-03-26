@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'them_thanh_cong.ui'
+# Form implementation generated from reading ui file 'C:\Users\Desired\Desktop\ki2nam2\kithuatlaptrinh\DoAnKiThuatLaptrinh\KiThuatLapTrinhNhom3\Ui Qt\them_thanh_cong.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -20,7 +20,11 @@ class Ui_dlg_add_success(object):
         self.main_layout.setObjectName("main_layout")
         self.container_frame = QtWidgets.QFrame(parent=dlg_add_success)
         self.container_frame.setStyleSheet("\n"
-"       QFrame#container_frame { background-color: #FFFFFF; border-radius: 20px; }\n"
+"       QFrame#container_frame {\n"
+"           background-color: #FFFFFF;\n"
+"           border-radius: 20px;\n"
+"           border: 2px solid #E2E8F0; /* Viền để không bị chìm vào nền trắng */\n"
+"       }\n"
 "      ")
         self.container_frame.setObjectName("container_frame")
         self.content_layout = QtWidgets.QVBoxLayout(self.container_frame)

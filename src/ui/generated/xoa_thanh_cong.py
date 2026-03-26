@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'xoa_thanh_cong.ui'
+# Form implementation generated from reading ui file 'C:\Users\Desired\Desktop\ki2nam2\kithuatlaptrinh\DoAnKiThuatLaptrinh\KiThuatLapTrinhNhom3\Ui Qt\xoa_thanh_cong.ui'
 #
 # Created by: PyQt6 UI code generator 6.10.0
 #
@@ -13,82 +13,64 @@ class Ui_dlg_success(object):
     def setupUi(self, dlg_success):
         dlg_success.setObjectName("dlg_success")
         dlg_success.resize(400, 420)
-        dlg_success.setMinimumSize(QtCore.QSize(400, 420))
-        dlg_success.setMaximumSize(QtCore.QSize(400, 420))
         dlg_success.setStyleSheet("QDialog { background-color: rgba(0, 0, 0, 0); }")
         self.main_layout = QtWidgets.QVBoxLayout(dlg_success)
-        self.main_layout.setContentsMargins(10, 10, 10, 10)
-        self.main_layout.setSpacing(0)
         self.main_layout.setObjectName("main_layout")
         self.container_frame = QtWidgets.QFrame(parent=dlg_success)
         self.container_frame.setStyleSheet("\n"
 "       QFrame#container_frame {\n"
 "           background-color: #FFFFFF;\n"
 "           border-radius: 20px;\n"
+"           border: 2px solid #E2E8F0;\n"
 "       }\n"
 "      ")
         self.container_frame.setObjectName("container_frame")
         self.content_layout = QtWidgets.QVBoxLayout(self.container_frame)
-        self.content_layout.setContentsMargins(40, 40, 40, 40)
-        self.content_layout.setSpacing(20)
+        self.content_layout.setContentsMargins(40, 20, 40, 30)
+        self.content_layout.setSpacing(15)
         self.content_layout.setObjectName("content_layout")
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.content_layout.addItem(spacerItem)
         self.layout_icon = QtWidgets.QHBoxLayout()
         self.layout_icon.setObjectName("layout_icon")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.layout_icon.addItem(spacerItem)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.layout_icon.addItem(spacerItem1)
         self.lbl_icon = QtWidgets.QLabel(parent=self.container_frame)
         self.lbl_icon.setMinimumSize(QtCore.QSize(90, 90))
-        self.lbl_icon.setMaximumSize(QtCore.QSize(90, 90))
-        self.lbl_icon.setStyleSheet("\n"
-"            QLabel {\n"
-"                border: 4px solid #22C55E;\n"
-"                border-radius: 45px;\n"
-"                color: #22C55E;\n"
-"                font-family: \'Segoe UI Symbol\'; /* Font này máy Windows nào cũng có dấu tích đẹp */\n"
-"                font-size: 45px;\n"
-"                font-weight: bold;\n"
-"                background-color: transparent;\n"
-"            }\n"
-"           ")
+        self.lbl_icon.setStyleSheet("border: 4px solid #22C55E; border-radius: 45px; color: #22C55E; font-size: 45px; font-weight: bold;")
         self.lbl_icon.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lbl_icon.setObjectName("lbl_icon")
         self.layout_icon.addWidget(self.lbl_icon)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.layout_icon.addItem(spacerItem1)
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.layout_icon.addItem(spacerItem2)
         self.content_layout.addLayout(self.layout_icon)
         self.lbl_title = QtWidgets.QLabel(parent=self.container_frame)
-        self.lbl_title.setStyleSheet("color: #22C55E; font-weight: bold; font-size: 20px;")
+        self.lbl_title.setStyleSheet("color: #22C55E; font-weight: bold; font-size: 20px; border: none;")
         self.lbl_title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lbl_title.setObjectName("lbl_title")
         self.content_layout.addWidget(self.lbl_title)
-        self.lbl_desc = QtWidgets.QLabel(parent=self.container_frame)
-        self.lbl_desc.setStyleSheet("color: #475569; font-size: 14px;")
-        self.lbl_desc.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.lbl_desc.setWordWrap(True)
-        self.lbl_desc.setObjectName("lbl_desc")
-        self.content_layout.addWidget(self.lbl_desc)
         self.lbl_code = QtWidgets.QLabel(parent=self.container_frame)
-        self.lbl_code.setStyleSheet("color: #94A3B8; font-size: 13px;")
+        self.lbl_code.setStyleSheet("color: #94A3B8; font-size: 13px; border: none;")
         self.lbl_code.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lbl_code.setObjectName("lbl_code")
         self.content_layout.addWidget(self.lbl_code)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
-        self.content_layout.addItem(spacerItem2)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.content_layout.addItem(spacerItem3)
         self.btn_close = QtWidgets.QPushButton(parent=self.container_frame)
         self.btn_close.setMinimumSize(QtCore.QSize(100, 50))
         self.btn_close.setStyleSheet("background-color: #2563EB; color: white; border-radius: 12px; font-weight: bold; font-size: 14px;")
         self.btn_close.setObjectName("btn_close")
         self.content_layout.addWidget(self.btn_close)
+        spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.content_layout.addItem(spacerItem4)
         self.main_layout.addWidget(self.container_frame)
 
         self.retranslateUi(dlg_success)
 
     def retranslateUi(self, dlg_success):
         _translate = QtCore.QCoreApplication.translate
-        self.lbl_icon.setText(_translate("dlg_success", "L"))
         self.lbl_icon.setText(_translate("dlg_success", "✔"))
         self.lbl_title.setText(_translate("dlg_success", "XOÁ THUỐC THÀNH CÔNG"))
-        self.lbl_desc.setText(_translate("dlg_success", "Sản phẩm đã được loại bỏ khỏi hệ thống quản lý."))
         self.lbl_code.setText(_translate("dlg_success", "Mã thuốc: K-A1.001"))
         self.btn_close.setText(_translate("dlg_success", "Đóng thông báo"))
 
