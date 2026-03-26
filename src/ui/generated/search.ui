@@ -3,7 +3,12 @@
  <class>dlg_search</class>
  <widget class="QDialog" name="dlg_search">
   <property name="geometry">
-   <rect><x>0</x><y>0</y><width>450</width><height>500</height></rect>
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>500</height>
+   </rect>
   </property>
   <property name="styleSheet">
    <string notr="true">
@@ -20,33 +25,88 @@
     QListWidget::item:hover { background-color: #F8FAFC; }
    </string>
   </property>
-  <layout class="QVBoxLayout" name="main_layout">
-   <property name="spacing"><number>0</number></property>
-   <property name="leftMargin"><number>0</number></property>
-   <property name="topMargin"><number>0</number></property>
-   <property name="rightMargin"><number>0</number></property>
-   <property name="bottomMargin"><number>0</number></property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QFrame" name="frame_search">
-     <property name="minimumSize"><size><width>0</width><height>60</height></size></property>
-     <property name="styleSheet"><string notr="true">border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;</string></property>
-     <layout class="QHBoxLayout" name="layout_h_search">
-      <property name="leftMargin"><number>20</number></property>
-      <property name="rightMargin"><number>20</number></property>
-      <item><widget class="QLabel" name="lbl_icon"><property name="text"><string>🔍</string></property></widget></item>
-      <item><widget class="QLineEdit" name="txt_search"><property name="placeholderText"><string>Tìm kiếm thuốc...</string></property></widget></item>
+    <widget class="QFrame" name="main_frame">
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid #F1F5F9;</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="btn_close">
-        <property name="text"><string>Đóng</string></property>
-        <property name="minimumSize"><size><width>60</width><height>30</height></size></property>
-        <property name="maximumSize"><size><width>60</width><height>30</height></size></property>
-        <property name="styleSheet"><string notr="true">QPushButton { background-color: #F1F5F9; color: #2F3E46; border: 1px solid #E0E6ED; border-radius: 6px; font-size: 12px; } QPushButton:hover { border-color: #2563EB; color: #2563EB; }</string></property>
+       <widget class="QFrame" name="frame_search">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border-bottom: 1px solid #E2E8F0; background-color: #F8FAFC;</string>
+        </property>
+        <layout class="QHBoxLayout" name="layout_h_search">
+         <property name="leftMargin">
+          <number>20</number>
+         </property>
+         <property name="rightMargin">
+          <number>20</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lbl_icon">
+           <property name="text">
+            <string>🔍</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="txt_search">
+           <property name="placeholderText">
+            <string>Tìm kiếm thuốc...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_close">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton { background-color: #F1F5F9; color: #2F3E46; border: 1px solid #E0E6ED; border-radius: 6px; font-size: 12px; } QPushButton:hover { border-color: #2563EB; color: #2563EB; }</string>
+           </property>
+           <property name="text">
+            <string>Đóng</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="list_results">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item><widget class="QListWidget" name="list_results"/></item>
   </layout>
  </widget>
+ <resources/>
+ <connections/>
 </ui>
