@@ -478,31 +478,31 @@ flowchart TD
     classDef ui fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff;
 
     %% Nodes
-    Start([System Start]) ::: startEnd
-    Dashboard[Dashboard / Home View] ::: ui
-    CheckAlerts{Check Alerts?} ::: decision
-    MenuSelect{Select Module} ::: decision
+    Start(["System Start"]) ::: startEnd
+    Dashboard["Dashboard / Home View"] ::: ui
+    CheckAlerts{"Check Alerts?"} ::: decision
+    MenuSelect{"Select Module"} ::: decision
     
-    GlobalSearch[Global Search] ::: process
-    MedDetail[View Medicine Details] ::: process
+    GlobalSearch["Global Search"] ::: process
+    MedDetail["View Medicine Details"] ::: process
 
-    ManageInv[Manage Inventory] ::: ui
-    InvAction{Select Action} ::: decision
-    AddMed[Add Medicine] ::: process
-    EditMed[Edit Medicine] ::: process
-    DelMed[Delete Medicine] ::: process
+    ManageInv["Manage Inventory"] ::: ui
+    InvAction{"Select Action"} ::: decision
+    AddMed["Add Medicine"] ::: process
+    EditMed["Edit Medicine"] ::: process
+    DelMed["Delete Medicine"] ::: process
     
-    ManageShelf[Manage Shelves] ::: ui
-    ShelfAction{Select Action} ::: decision
-    AddShelf[Add Shelf] ::: process
-    EditShelf[Edit Shelf] ::: process
-    DelShelf[Delete Shelf] ::: process
+    ManageShelf["Manage Shelves"] ::: ui
+    ShelfAction{"Select Action"} ::: decision
+    AddShelf["Add Shelf"] ::: process
+    EditShelf["Edit Shelf"] ::: process
+    DelShelf["Delete Shelf"] ::: process
     
-    ValidateMed{Validate Data<br>& Capacity} ::: decision
-    ValidateShelf{Validate Data<br>& Relations} ::: decision
+    ValidateMed{"Validate Data<br>& Capacity"} ::: decision
+    ValidateShelf{"Validate Data<br>& Relations"} ::: decision
     
-    JSONStore[(JSON Storage)] ::: storage
-    RefreshUI[Refresh App Views] ::: ui
+    JSONStore[("JSON Storage")] ::: storage
+    RefreshUI["Refresh App Views"] ::: ui
 
     %% Flow
     Start --> Dashboard
