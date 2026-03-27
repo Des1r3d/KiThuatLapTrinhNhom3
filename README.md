@@ -17,21 +17,21 @@
 -  **Ảnh thuốc** — lưu và hiển thị ảnh minh họa
 -  **ID tự động** — định dạng `{shelf_id}.{seq:03d}` (VD: `K-A1.001`)
 
-### ⚠️ Cảnh Báo Thông Minh
+### Cảnh Báo
 
 | Loại cảnh báo | Điều kiện | Mức độ |
 |------------|-----------|--------|
-| ❌ **Hết hạn** | `expiry_date <= today` | Cao |
-| ⏰ **Sắp hết hạn** | Còn ≤ 30 ngày | Trung bình |
-| 🚫 **Hết hàng** | `quantity == 0` | Cao |
-| 📉 **Tồn kho thấp** | `quantity ≤ 5` và `> 0` | Thấp |
+|  **Hết hạn** | `expiry_date <= today` | Cao |
+|  **Sắp hết hạn** | Còn ≤ 30 ngày | Trung bình |
+|  **Hết hàng** | `quantity == 0` | Cao |
+|  **Tồn kho thấp** | `quantity ≤ 5` và `> 0` | Thấp |
 
 ### Giao Diện
 
-- 🌞 **Light Mode** — Background: `#F4F6F8`, Surface: `#FFFFFF`
-- 🌙 **Dark Mode** — Background: `#1F2933`, Surface: `#273947`
-- 🔄 **Chuyển theme giữ nguyên trang** — không nhảy về Dashboard
-- ⌨️ **Phím tắt** tiện lợi
+-  **Light Mode** — Background: `#F4F6F8`, Surface: `#FFFFFF`
+-  **Dark Mode** — Background: `#1F2933`, Surface: `#273947`
+-  **Chuyển theme giữ nguyên trang** — không nhảy về Dashboard
+-  **Phím tắt** tiện lợi
 
 ### Cài Đặt & Chạy
 
