@@ -112,13 +112,13 @@ Dưới đây là các bảng đặc tả chi tiết cho các Use Case phân rã
 | **UC – Xem cảnh báo hệ thống** | |
 | --- | --- |
 | **Tên** | Xem cảnh báo hệ thống |
-| **Mô tả** | Tính năng Audit kho, rà soát hạn sử dụng (cận date/đã hết) và ngưỡng tồn kho thấp/cạn kiệt. |
+| **Mô tả** | Giám sát trạng thái tồn kho, thuốc cận date và dung lượng kệ hiển thị qua Dashboard quy tụ và các cột cảnh báo trực quan ở từng giao diện danh sách. |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Không có |
-| **Điều kiện tiên quyết** | Không có yêu cầu. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Thuật toán AlertSystem chạy nền đánh giá mọi loại thuốc.<br>Bước 2: Hiển thị giao diện báo động trên Notification list (khu Dashboard).<br>Bước 3: User click vô mục cảnh báo.<br>Bước 4: Pop-up danh sách các loại thuốc gặp trạng thái xấu.<br><br>**Luồng sự kiện phụ**<br>(1A): Hệ thống đánh giá không có vi phạm, để trạng thái im lặng "Hoạt động bình thường". |
-| **Điều kiện sau** | User nắm được thông tin lô hàng kém để có biện pháp xử lý. |
+| **Điều kiện tiên quyết** | Phần mềm khởi động với dữ liệu kho hiện hành. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chuyển sang màn hình Bảng điều khiển (Dashboard).<br>Bước 2: Hệ thống hiển thị 4 thẻ thống kê cảnh báo trên cùng: "Tổng tồn kho", "Tồn kho thấp", "Sắp hết hạn", "Hết hạn".<br>Bước 3: Màn hình vẽ 2 biểu đồ phân tích: "Top 10 loại thuốc nhiều nhất" (Chart cột) và "Trạng thái thuốc" (Chart Pie).<br>Bước 4: Người dùng đánh giá chi tiết vi phạm ở 2 bảng dữ liệu mini: Danh sách "Sắp hết hạn" và "Tồn kho thấp" nằm dưới cuối màn hình.<br>Bước 5: Sang giao diện "Quản lý danh mục" (Inventory), người dùng đọc trạng thái từng dòng thuốc cụ thể ở cột "Trạng thái" tương ứng. Sang mục "Quản lý Kệ", cột sức chứa cảnh báo tải trọng bằng số lượng thực tế/số lượng gộp.<br><br>**Luồng sự kiện phụ**<br>(4A): Hàng hóa ổn định, không có vi phạm, thông số các thẻ báo động trả về "0" và các danh sách bảng mini trống rỗng. |
+| **Điều kiện sau** | Người dùng nắm bắt tổng quan toàn diện, không bỏ sót tình trạng mặt hàng cần xử lý. |
 
 ### 10. Đặc tả UC: Tùy chỉnh giao diện
 | **UC – Tùy chỉnh giao diện** | |
