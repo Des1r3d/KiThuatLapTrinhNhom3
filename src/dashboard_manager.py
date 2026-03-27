@@ -73,10 +73,12 @@ class ExpiryItem:
     Thuộc tính:
         name: Tên thuốc
         expiry_date: Ngày hết hạn (định dạng chuỗi)
+        shelf_id: Vị trí kệ
         days_left: Số ngày còn lại
     """
     name: str
     expiry_date: str
+    shelf_id: str
     days_left: int
 
 
@@ -268,6 +270,7 @@ class DashboardManager:
             ExpiryItem(
                 name=m.name,
                 expiry_date=m.expiry_date.strftime("%Y-%m-%d"),
+                shelf_id=m.shelf_id,
                 days_left=m.days_until_expiry()
             )
             for m in expiring[:self.max_alert_items]

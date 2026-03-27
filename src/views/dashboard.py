@@ -258,13 +258,9 @@ class Dashboard(QWidget):
             date_item.setFlags(date_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.ui.tbl_expiry.setItem(row, 1, date_item)
 
-            days_item = QTableWidgetItem(str(item.days_left))
-            days_item.setFlags(days_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            days_item.setForeground(QColor(Theme.CHART_ORANGE))
-            days_font = days_item.font()
-            days_font.setBold(True)
-            days_item.setFont(days_font)
-            self.ui.tbl_expiry.setItem(row, 2, days_item)
+            shelf_item = QTableWidgetItem(item.shelf_id)
+            shelf_item.setFlags(shelf_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.ui.tbl_expiry.setItem(row, 2, shelf_item)
 
     def _render_stock_table(self, items: list):
         """Cập nhật bảng thuốc tồn kho thấp."""
