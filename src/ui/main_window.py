@@ -164,6 +164,9 @@ class MainWindow(QMainWindow):
         # Xây dựng UI đầy đủ (generated + views + tín hiệu)
         self._build_ui()
 
+        # Phím tắt — chỉ tạo MỘT LẦN (không nằm trong _build_ui)
+        self._setup_shortcuts()
+
         # Tải dữ liệu vào views
         self.refresh_all()
 
@@ -195,7 +198,6 @@ class MainWindow(QMainWindow):
         self._setup_logo()
         self._setup_views()
         self._connect_signals()
-        self._setup_shortcuts()
 
     # ── Khởi tạo UI (kết nối UI generated với logic xử lý) ──
 
@@ -258,8 +260,13 @@ class MainWindow(QMainWindow):
 
     def _setup_shortcuts(self):
         """Setup keyboard shortcuts."""
+        # Ctrl+K → Mở hộp thoại tìm kiếm
         search_shortcut = QShortcut(QKeySequence("Ctrl+K"), self)
         search_shortcut.activated.connect(self.show_search)
+
+        # Ctrl+D → Chuyển đổi Light/Dark mode
+        theme_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
+        theme_shortcut.activated.connect(self.toggle_theme)
 
     def _center_on_screen(self):
         """Center the main window on the primary screen."""
