@@ -65,7 +65,7 @@ Dưới đây là các bảng đặc tả chi tiết cho các Use Case phân rã
 | **Includes** | Không có |
 | **Extends** | Không có |
 | **Điều kiện tiên quyết** | Phần mềm mở đúng ở giao diện Quản lý Kệ (Shelf View). Nếu đây là lần chạy mới hoàn toàn, hệ thống tự động khởi tạo file dữ liệu kệ hàng trống (blank file). |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng nhấn "Thêm kệ".<br>Bước 2: Hệ thống gọi cửa sổ form điền thông số kệ (Zone/Khu vực, Column/Cột, Row/Hàng, Capacity/Sức chứa lớn nhất).<br>Bước 3: Người dùng ấn "Lưu".<br>Bước 4: Hệ thống ghi nhận và phân bổ mã định danh cho kệ đó.<br><br>**Luồng sự kiện phụ**<br>(4A): Format điền kệ trống hoặc chuỗi ký tự không đúng định dạng số, hệ thống bảo trì form chặn lại bắt điền lại. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng nhấn "Thêm kệ".<br>Bước 2: Hệ thống hiện form tạo khối. Người dùng nhập Dãy/Column, Hàng/Row và Sức chứa (Capacity). Ô Khu vực (Zone) bị khoá không được tương tác do hệ thống tự động tạo (auto-generate) dựa trên Dãy/Cột nhập vào.<br>Bước 3: Người dùng ấn "Lưu".<br>Bước 4: Hệ thống lưu kệ mới vào kho lưu trữ.<br><br>**Luồng sự kiện phụ**<br>(4A): Dữ liệu truyền vào sai định dạng số hoặc chuỗi cấm, ngăn chặn và báo lỗi yêu cầu chỉnh lại. |
 | **Điều kiện sau** | Cập nhật kho dữ liệu có kệ mới hiển thị ở UI và có thể sẵn sàng chứa thuốc thêm vào. |
 
 ### 6. Đặc tả UC: Sửa kệ hàng
@@ -77,7 +77,7 @@ Dưới đây là các bảng đặc tả chi tiết cho các Use Case phân rã
 | **Includes** | Không có |
 | **Extends** | Không có |
 | **Điều kiện tiên quyết** | Kệ đó đã được khai báo trên hệ thống. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chọn 1 kệ đang có và bấm "Sửa".<br>Bước 2: Hệ thống giữ lại thông số cũ và cho phép Edit.<br>Bước 3: Người dùng sửa trực tiếp và ấn "Lưu".<br>Bước 4: Hệ thống nạp dữ liệu đè lên tệp.<br><br>**Luồng sự kiện phụ**<br>(4A): Nếu sửa "Sức chứa tối đa (Capacity)" mới lại NHỎ HƠN tổng số lượng thuốc hiện đang để trên đó, hệ thống báo lỗi không hợp lệ bắt buộc phải xuất bớt thuốc đi mới cho chỉnh. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chọn 1 kệ đang có và bấm "Sửa".<br>Bước 2: Form giữ lại thông số cũ và cho phép Edit các ô Cột/Hàng/Sức chứa (Khu vực/Zone vẫn bị khoá tự đổi nếu Cột/Hàng thay đổi).<br>Bước 3: Người dùng sửa xong và bấm "Lưu".<br>Bước 4: Trình quản lý nạp dữ liệu đè lên kệ tương ứng ở tệp gốc.<br><br>**Luồng sự kiện phụ**<br>(4A): Nếu sửa "Sức chứa tối đa (Capacity)" mới lại NHỎ HƠN tổng số lượng thuốc hiện đang để trên đó, hệ thống báo lỗi không hợp lệ bắt buộc xuất bớt thuốc ra. |
 | **Điều kiện sau** | Dữ kiện vật lý về kệ được cập nhật trên bảng. |
 
 ### 7. Đặc tả UC: Xóa kệ hàng
