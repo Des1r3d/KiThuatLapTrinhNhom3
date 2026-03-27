@@ -57,39 +57,150 @@ python app.py
 run.bat
 ```
 
-## 📖 Hướng Dẫn Sử Dụng
+## Hướng Dẫn Sử Dụng
+
+### Điều Hướng Chính
+
+Ứng dụng có thanh sidebar cố định bên trái với ba trang chính:
+
+| Trang | Mô tả |
+|-------|-------|
+| Dashboard | Tổng quan kho với KPI và biểu đồ thống kê |
+| Danh sách thuốc | Bảng quản lý toàn bộ thuốc trong kho |
+| Quản lý kệ | Bảng quản lý các kệ và sức chứa |
+
+Nhấn vào tên trang trên sidebar để chuyển trang. Trang hiện tại sẽ được tô sáng.
+
+---
+
+### Dashboard
+
+Trang Dashboard hiển thị tổng quan kho thuốc theo thời gian thực:
+
+- **4 thẻ KPI**: Tổng thuốc, số thuốc đã hết hạn, số thuốc sắp hết hạn (trong vòng 30 ngày), số thuốc tồn kho thấp (so le 5 đơn vị).
+- **Biểu đồ tròn**: Phân loại trạng thái tất cả thuốc trong kho.
+- **Biểu đồ cột**: Top 10 thuốc theo số lượng tồn kho.
+- **Bảng cảnh báo**: Danh sách thuốc sắp hết hạn và thuốc tồn kho thấp cần chú ý.
+
+Dữ liệu Dashboard tự động cập nhật sau mỗi thao tác thêm, sửa, hoặc xóa thuốc.
+
+---
+
+### Quản Lý Thuốc (Danh Sách Thuốc)
+
+#### Xem Danh Sách
+
+Trang hiển thị bảng toàn bộ thuốc với các cột: Mã thuốc, Tên thuốc, Số lượng, Hạn sử dụng, Kệ, Giá, Trạng thái.
+
+Màu sắc dòng trong bảng phản chiếu trạng thái:
+- Màu đỏ: Hết hạn hoặc hết hàng
+- Màu cam: Sắp hết hạn (trong 30 ngày)
+- Màu vàng: Tồn kho thấp (so le 5 đơn vị, còn hàng)
+- Không tô màu: Bình thường
+
+Nhấn tiêu đề cột để sắp xếp. Nhãn phía trên bảng hiển thị tổng số mục (hoặc số mục sau lọc).
+
+#### Xem Chi Tiết Thuốc
+
+Double-click vào bất kỳ dòng nào trong bảng để mở cửa sổ chi tiết chỉ đọc của thuốc đó. Từ cửa sổ này có thể chuyển sang chỉnh sửa hoặc xóa.
+
+#### Thêm Thuốc Mới
+
+1. Nhấn nút **"Thêm thuốc mới"** phía trên bảng.
+2. Điền đầy đủ thông tin trong hộp thoại:
+   - Tên thuốc
+   - Số lượng
+   - Hạn sử dụng (chọn từ lịch)
+   - Giá (VND)
+   - Kệ thuốc (chọn từ danh sách kệ đã có)
+   - Ảnh minh họa (tuỳ chọn — nhấn "Chọn ảnh" để tải lên)
+3. Nhấn **"Thêm thuốc"** để xác nhận. Mã thuốc được tự động tạo theo định dạng `{shelf_id}.{seq:03d}` (ví dụ: `K-A1.001`).
+4. Hộp thoại thông báo thành công xuất hiện với mã thuốc vừa tạo.
+
+Lưu ý: Nếu kệ đã đầy, hệ thống hiện thông báo lỗi và không cho phép thêm thuốc vào kệ đó.
+
+#### Sửa Thuốc
+
+Có hai cách mở hộp thoại chỉnh sửa:
+
+- **Cách 1**: Double-click vào dòng thuốc, sau đó nhấn nút "Sửa" trong cửa sổ chi tiết.
+- **Cách 2**: Chuột phải vào dòng thuốc → chọn **"Chỉnh sửa thuốc"** trong menu ngữ cảnh.
+
+Trong hộp thoại chỉnh sửa, có thể thay đổi mọi trường kể cả kệ thuốc. Nếu đổi kệ, mã thuốc sẽ tự động cập nhật và ảnh đính kèm được chuyển theo.
+
+#### Xóa Thuốc
+
+- **Cách 1**: Double-click vào dòng thuốc, sau đó nhấn nút "Xóa" trong cửa sổ chi tiết.
+- **Cách 2**: Chuột phải vào dòng thuốc → chọn **"Xóa thuốc"** trong menu ngữ cảnh.
+
+Hộp thoại xác nhận sẽ xuất hiện trước khi xoá. Thao tác không thể hoàn tác.
+
+---
+
+### Quản Lý Kệ Thuốc
+
+#### Xem Danh Sách Kệ
+
+Bảng hiển thị tất cả kệ với các cột: Mã kệ, Dãy, Cột, Sức chứa, Đã dùng, Còn lại.
+
+Cột "Còn lại" được tô màu cam khi dưới 20% sức chứa và tô màu đỏ khi đã đầy.
+
+#### Thêm Kệ Mới
+
+1. Nhấn nút **"Thêm kệ"** phía trên bảng.
+2. Điền thông tin kệ: Mã kệ, Khu vực (zone), Dãy, Cột, Sức chứa tối đa.
+3. Nhấn **"Thêm kệ"** để xác nhận.
+
+#### Sửa Kệ
+
+- **Cách 1**: Double-click vào dòng kệ để mở hộp thoại chỉnh sửa.
+- **Cách 2**: Chuột phải vào dòng kệ → chọn **"Chỉnh sửa kệ"**.
+
+Có thể thay đổi thông tin vị trí và sức chứa. Lưu ý: giảm sức chứa xuống dưới số lượng đang chứa sẽ bị từ chối.
+
+#### Xóa Kệ
+
+Chuột phải vào dòng kệ → chọn **"Xóa kệ"**. Hộp thoại xác nhận sẽ xuất hiện.
+
+Lưu ý: Không thể xóa kệ đang chứa thuốc.
+
+---
+
+### Tìm Kiếm Thuốc
+
+1. Nhấn nút **"Tìm kiếm"** trên thanh tiêu đề hoặc nhấn `Ctrl+K`.
+2. Gõ tên thuốc vào ô tìm kiếm (hỗ trợ tìm kiếm mờ — không cần chính xác hoàn toàn, ngưỡng khớp 70%).
+3. Kết quả xuất hiện ngay lập tức bên dưới kèm mã thuốc, kệ, và phần trăm độ khớp.
+4. Nhấn vào kết quả để chuyển sang trang Danh sách thuốc và tự động mở chi tiết thuốc đó.
+5. Nhấn `Escape` hoặc nút "Đóng" để thoát hộp thoại tìm kiếm.
+
+---
+
+### Lọc Danh Sách Thuốc
+
+1. Trên trang Danh sách thuốc, nhấn nút **"Lọc"**.
+2. Trong hộp thoại lọc, có thể kết hợp các điều kiện:
+   - Kệ thuốc
+   - Khoảng giá (từ — đến)
+   - Trạng thái (Hết hạn, Sắp hết hạn, Hết hàng, Tồn kho thấp, Bình thường)
+3. Nhấn **"Áp dụng"** để lọc. Nhãn đếm phía trên bảng sẽ hiển thị số mục đang hiển thị trên tổng số.
+4. Nhấn nút **"Xoá lọc"** (xuất hiện khi bộ lọc đang hoạt động) để trở về danh sách đầy đủ.
+
+---
+
+### Chuyển Đổi Giao Diện (Light / Dark Mode)
+
+Nhấn nút chuyển theme ở góc trên phải của thanh tiêu đề hoặc nhấn `Ctrl+D` để chuyển qua lại giữa chế độ sáng và tối. Trang đang xem sẽ được giữ nguyên sau khi chuyển theme — không bị nhảy về Dashboard.
+
+---
 
 ### Phím Tắt
 
 | Phím Tắt | Chức Năng |
 |----------|-----------|
-| `Ctrl+K` | Mở tìm kiếm nhanh |
-| `Ctrl+D` | Chuyển đổi Light/Dark mode |
-
-### Thêm Thuốc Mới
-
-1. Nhấn nút **"➕ Thêm thuốc mới"** trên trang Inventory
-2. Điền các thông tin: Tên thuốc, Số lượng, Hạn sử dụng, Giá, Kệ thuốc
-3. Nhấn **"Thêm thuốc"**
-
-### Sửa/Xóa Thuốc
-
-- **Xem chi tiết**: Double-click vào dòng thuốc
-- **Sửa**: Chuột phải → "✏️ Sửa thuốc"
-- **Xóa**: Chuột phải → "🗑️ Xóa thuốc"
-
-### Tìm Kiếm
-
-1. Nhấn `Ctrl+K` hoặc nút **"🔍 Tìm kiếm"**
-2. Nhập tên thuốc (hỗ trợ fuzzy search, ngưỡng 70%)
-3. Chọn kết quả để xem chi tiết
-
-### Dashboard
-
-Nhấn **"📊 Dashboard"** trên sidebar để xem:
-- Tổng số thuốc, hết hạn, sắp hết hạn, tồn kho thấp (KPI)
-- Biểu đồ tròn phân loại thuốc
-- Top 10 thuốc theo tồn kho (biểu đồ cột)
+| `Ctrl+K` | Mở hộp thoại tìm kiếm nhanh |
+| `Ctrl+D` | Chuyển đổi giữa Light Mode và Dark Mode |
+| `Escape` | Đóng hộp thoại tìm kiếm |
 
 ## 📁 Cấu Trúc Dự Án
 
@@ -98,9 +209,7 @@ KiThuatLapTrinhNhom3/
 ├── app.py                      # 🚀 Điểm vào (QApplication setup)
 ├── requirements.txt            # Các phụ thuộc
 ├── run.bat                     # Script khởi chạy Windows
-├── run_tests.bat               # Script chạy test
-│
-├── src/                        # 📦 Mã nguồn
+├── src/                        # Mã nguồn
 │   ├── __init__.py             # Xuất package (Medicine, Shelf, v.v.)
 │   ├── models.py               # Model dữ liệu: Medicine, Shelf
 │   ├── storage.py              # StorageEngine: đọc/ghi JSON nguyên tử
@@ -110,19 +219,19 @@ KiThuatLapTrinhNhom3/
 │   ├── image_manager.py        # ImageManager: ảnh thuốc
 │   ├── dashboard_manager.py    # DashboardManager: xử lý dữ liệu dashboard
 │   │
-│   ├── views/                  # 📊 Các trang chính
+│   ├── views/                  # Các trang chính
 │   │   ├── dashboard.py        # Giao diện dashboard (KPI + biểu đồ)
 │   │   ├── inventory_view.py   # Bảng danh sách thuốc
 │   │   └── shelf_view.py       # Trang quản lý kệ
 │   │
-│   ├── dialogs/                # 💬 Các hộp thoại
+│   ├── dialogs/                # Các hộp thoại
 │   │   ├── medicine_dialog.py      # Thêm/Sửa thuốc
 │   │   ├── shelf_dialog.py         # Thêm/Sửa kệ
 │   │   ├── filter_dialog.py        # Lọc thuốc
 │   │   ├── medicine_detail_view.py # Xem chi tiết thuốc
 │   │   └── notification_dialogs.py # Thông báo thành công/lỗi/xác nhận
 │   │
-│   └── ui/                     # 🎨 Giao diện người dùng
+│   └── ui/                     # Giao diện người dùng
 │       ├── main_window.py       # MainWindow + SearchDialog (logic xử lý)
 │       ├── theme/               # Hệ thống chủ đề (7 module)
 │       │   ├── colors.py        # Bảng màu Light/Dark
@@ -133,7 +242,7 @@ KiThuatLapTrinhNhom3/
 │       │   ├── stylesheets.py   # Tạo stylesheet Qt
 │       │   └── badges.py        # Hàm trợ giúp huy hiệu/cảnh báo
 │       │
-│       └── generated/           # ⚠️ TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
+│       └── generated/           # TỰ ĐỘNG SINH — KHÔNG CHỈNH SỬA
 │           ├── main_window_ui.py / main_window_ui_dark.py
 │           ├── search.py / search_dark.py
 │           ├── them_thuoc.py / them_thuoc_dark.py
@@ -141,29 +250,11 @@ KiThuatLapTrinhNhom3/
 │           ├── loc_thuoc.py / loc_thuoc_dark.py
 │           └── ... (các dialog notification sáng + tối)
 │
-├── data/                       # 💾 Lưu trữ dữ liệu
+├── data/                       # Lưu trữ dữ liệu
 │   ├── medicines.json          # CSDL thuốc
 │   ├── shelves.json            # CSDL kệ
 │   ├── settings.json           # Cài đặt (theme, ngưỡng)
 │   └── images/                 # Ảnh thuốc
-│
-├── tests/                      # 🧪 Unit tests (~152 tests)
-│   ├── test_models.py
-│   ├── test_storage.py
-│   ├── test_inventory.py
-│   ├── test_alerts.py
-│   ├── test_search.py
-│   └── test_image_manager.py
-│
-├── docs/                       # 📚 Tài liệu
-│   ├── classflow.md
-│   ├── projectcharts.md
-│   ├── design_guideline.md
-│   └── classDiagram.drawio.png
-│
-├── design-ui/                  # 🎨 Tài sản thiết kế
-│   └── design-ui/Qt_designer/  # File .ui & Logo.png
-│
 └── Ui Qt/                      # File .ui gốc Qt Designer (cặp Sáng + Tối)
     ├── main_window.ui / main_window_dark.ui
     ├── them_thuoc.ui / them_thuoc_dark.ui
@@ -172,10 +263,6 @@ KiThuatLapTrinhNhom3/
     ├── search.ui / search_dark.ui
     └── ... (notification dialogs sáng + tối)
 ```
-
-> ⚠️ **Không chỉnh sửa** files trong `src/ui/generated/` — chúng được sinh tự động bởi `pyuic6`.
-> Sau khi sửa file `.ui`, chạy: `.venv/Scripts/pyuic6.exe "Ui Qt/<file>.ui" -o "src/ui/generated/<file>.py"`
-
 ## 🛠️ Công Nghệ
 
 | Thành phần | Công nghệ |
@@ -185,8 +272,7 @@ KiThuatLapTrinhNhom3/
 | Charts | Matplotlib ≥ 3.8.0 |
 | Fuzzy Search | TheFuzz ≥ 0.22.0 + python-Levenshtein |
 | UI Design | Qt Designer (.ui files) |
-| Data Storage | JSON files (atomic writes) |
-| Testing | pytest (~152 tests) |
+| Data Storage | JSON files |
 
 ## 📊 Kiến Trúc
 
@@ -200,33 +286,6 @@ KiThuatLapTrinhNhom3/
 | **Observer** | Dashboard + InventoryView lắng nghe thay đổi data |
 | **Dual UI** | Mỗi dialog có 2 generated files (sáng + tối), chọn tại runtime |
 
-## 🧪 Testing
-
-```bash
-pytest tests/ -v
-```
-
-| File Test | Phạm vi |
-|-----------|---------|
-| `test_models.py` | Dataclass Medicine & Shelf, kiểm tra, chuyển đổi dữ liệu |
-| `test_storage.py` | Ghi nguyên tử, sao lưu/phục hồi, xử lý file hỏng |
-| `test_inventory.py` | Thao tác CRUD, tạo ID, kiểm tra sức chứa |
-| `test_alerts.py` | Cảnh báo hết hạn/tồn kho, sắp xếp theo mức độ |
-| `test_search.py` | Khớp mờ, ngưỡng, gợi ý |
-| `test_image_manager.py` | CRUD ảnh, kiểm tra, đổi tên |
-
-**Tổng: ~152 tests**
-
-## 📝 Lưu Ý
-
-### Giới Hạn Phiên Bản Beta
-
-- ⚠️ Không có phân quyền người dùng
-- 💾 Lưu trữ local (JSON), không có cloud sync
-- 📈 Chưa tối ưu cho >10,000 bản ghi
-- ↩️ Không có chức năng Undo
-
-### Lưu Ý Kỹ Thuật
 
 - **Phân tách module UI:** `views/` và `dialogs/` nằm ở `src/views/` và `src/dialogs/` (import: `from src.views.xxx` / `from src.dialogs.xxx`), **không phải** `src.ui.views`
 - `src/ui/` chỉ chứa: `main_window.py`, `theme/`, `generated/`
@@ -244,17 +303,4 @@ Hệ thống tự động tạo backup khi lưu dữ liệu:
 
 ## 👥 Nhóm Phát Triển
 
-**Môn:** Kỹ Thuật Lập Trình — Nhóm 3
-
-## 📄 License
-
-MIT License — xem file [LICENSE](LICENSE) để biết thêm chi tiết.
-
-## 📞 Liên Hệ
-
-Báo lỗi hoặc đề xuất tính năng mới qua Issues trên repository.
-
----
-
-**Phiên bản:** 1.0.0 Beta  
-**Ngày cập nhật:** 27/03/2026
+Nhóm 3

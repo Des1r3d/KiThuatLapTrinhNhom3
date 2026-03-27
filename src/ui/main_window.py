@@ -204,8 +204,8 @@ class MainWindow(QMainWindow):
     def _setup_logo(self):
         """Load and set the logo image on the sidebar."""
         logo_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "design-ui", "design-ui", "Qt_designer", "Logo.png"
+            os.path.dirname(os.path.abspath(__file__)),
+            "Logo.png"
         )
         if os.path.exists(logo_path):
             pixmap = QPixmap(logo_path)
