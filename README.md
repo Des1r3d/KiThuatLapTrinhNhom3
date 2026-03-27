@@ -267,23 +267,8 @@ KiThuatLapTrinhNhom3/
 | UI Design | Qt Designer (.ui files) |
 | Data Storage | JSON files |
 
-##  Kiến Trúc
+## Ghi chú
 
-| Pattern | Mô tả |
-|---------|--------|
-| **MVC** | Models (`models.py`) — Views (`views/`, `dialogs/`) — Controller (`inventory_manager.py`, `dashboard_manager.py`) |
-| **Repository** | `StorageEngine` trừu tượng hóa file I/O |
-| **Immutable Update** | `update_medicine()` tạo object mới thay vì mutate |
-| **Atomic Write** | Ghi file qua temp → rename, có backup recovery |
-| **Signal/Slot** | Hệ thống sự kiện Qt cho giao tiếp UI |
-| **Observer** | Dashboard + InventoryView lắng nghe thay đổi data |
-| **Dual UI** | Mỗi dialog có 2 generated files (sáng + tối), chọn tại runtime |
-
-
-- **Phân tách module UI:** `views/` và `dialogs/` nằm ở `src/views/` và `src/dialogs/` (import: `from src.views.xxx` / `from src.dialogs.xxx`), **không phải** `src.ui.views`
-- `src/ui/` chỉ chứa: `main_window.py`, `theme/`, `generated/`
-- Logo nằm tại: `design-ui/design-ui/Qt_designer/Logo.png`
-- Sidebar background (`#1C2944`) giữ nguyên cho cả Light và Dark mode
 - Medicine ID tự động thay đổi khi chuyển kệ
 - `Shelf.capacity` lưu kiểu `str` — cần cast `int` khi tính toán
 - `StorageEngine` tự sao lưu trước khi ghi, tự phục hồi khi file bị hỏng
@@ -294,6 +279,6 @@ Hệ thống tự động tạo backup khi lưu dữ liệu:
 - `medicines.json.backup`
 - `shelves.json.backup`
 
-## 👥 Nhóm Phát Triển
+## Nhóm Phát Triển
 
 Nhóm 3
