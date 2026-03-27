@@ -2,7 +2,6 @@
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/)
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.6.0+-green.svg)](https://www.riverbankcomputing.com/software/pyqt/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Ứng dụng desktop **quản lý kho thuốc** (Pharmacy Inventory Management) xây dựng bằng **Python + PyQt6**, hỗ trợ CRUD thuốc & kệ, cảnh báo thông minh, tìm kiếm mờ, và giao diện Light/Dark mode.
 
