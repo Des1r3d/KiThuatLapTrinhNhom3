@@ -1,9 +1,9 @@
 """
-Data models for Pharmacy Management System.
+Model dữ liệu cho Hệ Thống Quản Lý Kho Thuốc.
 
-This module contains the core data classes:
-- Medicine: Represents a medicine item in inventory
-- Shelf: Represents a physical storage location
+Module này chứa các lớp dữ liệu chính:
+- Medicine: Đại diện một mục thuốc trong kho
+- Shelf: Đại diện một vị trí lưu trữ vật lý
 """
 from dataclasses import dataclass
 from datetime import date
@@ -13,16 +13,16 @@ from typing import Dict, Any
 @dataclass
 class Medicine:
     """
-    Represents a medicine item in the pharmacy inventory.
+    Đại diện một mục thuốc trong kho dược phẩm.
 
-    Attributes:
-        id: Unique identifier (auto-generated if empty)
-        name: Medicine name
-        quantity: Stock quantity (must be >= 0)
-        expiry_date: Expiration date
-        shelf_id: Reference to storage location
-        price: Unit price (must be >= 0)
-        image_path: Optional path to medicine image (relative to data/images/)
+    Thuộc tính:
+        id: Mã định danh duy nhất (tự sinh nếu rỗng)
+        name: Tên thuốc
+        quantity: Số lượng tồn kho (phải >= 0)
+        expiry_date: Ngày hết hạn
+        shelf_id: Tham chiếu tới vị trí lưu trữ
+        price: Đơn giá (phải >= 0)
+        image_path: Đường dẫn tùy chọn tới ảnh thuốc (tương đối với data/images/)
     """
     id: str
     name: str
@@ -33,37 +33,37 @@ class Medicine:
     image_path: str = ""
 
     def __post_init__(self):
-        """Validate medicine data after initialization."""
+        """Kiểm tra dữ liệu thuốc sau khi khởi tạo."""
         if self.quantity < 0:
-            raise ValueError("Quantity must be >= 0")
+            raise ValueError("Số lượng phải >= 0")
         if self.price < 0:
-            raise ValueError("Price must be >= 0")
+            raise ValueError("Giá phải >= 0")
 
     def is_expired(self) -> bool:
         """
-        Check if medicine is expired.
+        Kiểm tra thuốc đã hết hạn chưa.
 
-        Returns:
-            True if expiry_date <= today, False otherwise
+        Trả về:
+            True nếu expiry_date <= hôm nay, False nếu ngược lại
         """
         return self.expiry_date <= date.today()
 
     def days_until_expiry(self) -> int:
         """
-        Calculate days until expiry.
+        Tính số ngày còn lại đến hạn sử dụng.
 
-        Returns:
-            Number of days until expiry (negative if already expired)
+        Trả về:
+            Số ngày đến hạn (âm nếu đã hết hạn)
         """
         delta = self.expiry_date - date.today()
         return delta.days
 
     def to_dict(self) -> Dict[str, Any]:
         """
-        Serialize Medicine to dictionary for JSON storage.
+        Chuyển đổi Medicine thành dictionary để lưu JSON.
 
-        Returns:
-            Dictionary with all attributes, date converted to ISO string
+        Trả về:
+            Dictionary với tất cả thuộc tính, ngày chuyển thành chuỗi ISO
         """
         return {
             "id": self.id,
@@ -78,17 +78,17 @@ class Medicine:
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> 'Medicine':
         """
-        Deserialize Medicine from dictionary.
+        Giải tuần tự hóa Medicine từ dictionary.
 
-        Args:
-            data: Dictionary containing medicine data
+        Tham số:
+            data: Dictionary chứa dữ liệu thuốc
 
-        Returns:
-            Medicine object
+        Trả về:
+            Đối tượng Medicine
 
-        Raises:
-            KeyError: If required field is missing
-            ValueError: If date format is invalid or validation fails
+        Ngoại lệ:
+            KeyError: Nếu thiếu trường bắt buộc
+            ValueError: Nếu định dạng ngày không hợp lệ hoặc kiểm tra thất bại
         """
         return Medicine(
             id=data["id"],
@@ -104,14 +104,14 @@ class Medicine:
 @dataclass
 class Shelf:
     """
-    Represents a physical storage location in the pharmacy.
+    Đại diện vị trí lưu trữ vật lý trong nhà thuốc.
 
-    Attributes:
-        id: Shelf identifier, e.g. "K-A1" (format: {zone}-{column}{row})
-        zone: Zone/area code (Khu), e.g. "K"
-        column: Column letter (Cột), e.g. "A", "B"
-        row: Row number (Dãy), e.g. "1", "2"
-        capacity: Maximum capacity
+    Thuộc tính:
+        id: Mã kệ, VD: "K-A1" (định dạng: {khu}-{cột}{dãy})
+        zone: Mã khu/vùng (Khu), VD: "K"
+        column: Chữ cái cột (Cột), VD: "A", "B"
+        row: Số dãy (Dãy), VD: "1", "2"
+        capacity: Sức chứa tối đa
     """
     id: str
     zone: str
@@ -121,10 +121,10 @@ class Shelf:
 
     def to_dict(self) -> Dict[str, Any]:
         """
-        Serialize Shelf to dictionary for JSON storage.
+        Chuyển đổi Shelf thành dictionary để lưu JSON.
 
-        Returns:
-            Dictionary with all attributes
+        Trả về:
+            Dictionary với tất cả thuộc tính
         """
         return {
             "id": self.id,
@@ -137,16 +137,16 @@ class Shelf:
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> 'Shelf':
         """
-        Deserialize Shelf from dictionary.
+        Giải tuần tự hóa Shelf từ dictionary.
 
-        Args:
-            data: Dictionary containing shelf data
+        Tham số:
+            data: Dictionary chứa dữ liệu kệ
 
-        Returns:
-            Shelf object
+        Trả về:
+            Đối tượng Shelf
 
-        Raises:
-            KeyError: If required field is missing
+        Ngoại lệ:
+            KeyError: Nếu thiếu trường bắt buộc
         """
         return Shelf(
             id=data["id"],

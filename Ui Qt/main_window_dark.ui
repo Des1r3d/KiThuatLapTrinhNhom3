@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>1400</width><height>850</height></rect>
+  </property>
+  <property name="minimumSize">
+   <size><width>1280</width><height>720</height></size>
+  </property>
+  <property name="windowTitle">
+   <string>KTLT_Nhom3_QuanLyKhoThuoc</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QMainWindow, QStackedWidget, QWidget#page_inventory, QWidget#page_shelf {
+        background-color: #1F2933;
+    }
+    QLabel {
+        color: #E4E7EB;
+    }
+    QPushButton#btn_toggle_theme, QPushButton#btn_search, QPushButton#btn_filter {
+        background-color: #1E3A5F;
+        border: 1px solid #3E4C59;
+        border-radius: 6px;
+        padding: 6px 16px;
+        color: #E4E7EB;
+        font-weight: 600;
+    }
+    QPushButton#btn_add_medicine, QPushButton#pushButton {
+        background-color: #2563EB;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 16px;
+        font-weight: 600;
+    }
+    QPushButton#btn_add_medicine:hover, QPushButton#pushButton:hover {
+        background-color: #3B82F6;
+    }
+    QPushButton {
+        background-color: #2563EB;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        min-height: 32px;
+    }
+    QPushButton:hover {
+        background-color: #3B82F6;
+    }
+    QPushButton:pressed {
+        background-color: #1D4ED8;
+    }
+    QPushButton:disabled {
+        background-color: #273947;
+        color: #9AA5B1;
+    }
+    QWidget#sidebar_container {
+        background-color: #1C2944;
+        border: none;
+    }
+    QWidget#sidebar_container QLabel {
+        color: #FFFFFF;
+        background-color: transparent;
+    }
+    QFrame#chart_row_container QFrame, QFrame#frame_expiring, QFrame#frame_low_stock, QWidget#frame_bar_chart, QWidget#frame_pie_chart {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+    }
+    QTableWidget {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        gridline-color: #3E4C59;
+        color: #E4E7EB;
+        alternate-background-color: #2D3F4F;
+    }
+    QTableWidget::item:selected {
+        background-color: #1D4ED8;
+        color: #FFFFFF;
+    }
+    QTableWidget::item:hover:!selected {
+        background-color: #1E3A5F;
+    }
+    QHeaderView::section {
+        background-color: #273947;
+        color: #9AA5B1;
+        font-weight: bold;
+        border: none;
+        border-bottom: 1px solid #3E4C59;
+        padding: 8px;
+    }
+    QListWidget {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        color: #E4E7EB;
+        padding: 4px;
+        outline: none;
+    }
+    QListWidget::item {
+        padding: 12px;
+        border-bottom: 1px solid #1F2933;
+    }
+    QListWidget::item:hover {
+        background-color: #1E3A5F;
+        border-radius: 6px;
+    }
+    QListWidget::item:selected {
+        background-color: #3E4C59;
+        color: #E4E7EB;
+        border-radius: 6px;
+    }
+    QScrollArea {
+        background-color: transparent;
+        border: none;
+    }
+    QScrollArea > QWidget > QWidget {
+        background-color: transparent;
+    }
+    QMessageBox {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 12px;
+    }
+    QMessageBox QLabel {
+        color: #E4E7EB;
+        font-size: 14px;
+        padding: 8px 4px;
+    }
+    QMessageBox QPushButton {
+        min-width: 90px;
+        min-height: 34px;
+        padding: 8px 20px;
+        border-radius: 8px;
+    }
+    QCalendarWidget {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+    }
+    QCalendarWidget QAbstractItemView {
+        background-color: #273947;
+        color: #E4E7EB;
+        selection-background-color: #2563EB;
+        selection-color: #FFFFFF;
+        alternate-background-color: #2D3F4F;
+    }
+    QCalendarWidget QWidget#qt_calendar_navigationbar {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    QCalendarWidget QToolButton {
+        background-color: transparent;
+        color: #FFFFFF;
+        font-weight: bold;
+        padding: 4px 8px;
+    }
+    QCalendarWidget QToolButton:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+    }
+    QMenu {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        padding: 4px;
+    }
+    QMenu::item {
+        padding: 8px 24px;
+        border-radius: 4px;
+        color: #E4E7EB;
+    }
+    QMenu::item:selected {
+        background-color: #2563EB;
+        color: #FFFFFF;
+    }
+    QLineEdit, QSpinBox, QDoubleSpinBox, QDateEdit, QComboBox {
+        background-color: #1E3A5F;
+        color: #E4E7EB;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 14px;
+        min-height: 28px;
+    }
+    QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+    QDateEdit:focus, QComboBox:focus {
+        border-color: #2563EB;
+        border-width: 2px;
+    }
+    QComboBox::drop-down {
+        border: none;
+        padding-right: 8px;
+    }
+    QComboBox QAbstractItemView {
+        background-color: #273947;
+        color: #E4E7EB;
+        border: 1px solid #3E4C59;
+        selection-background-color: #2563EB;
+        selection-color: #FFFFFF;
+    }
+    QDialog {
+        background-color: #273947;
+    }
+    QGroupBox {
+        background-color: #273947;
+        border: 1px solid #3E4C59;
+        border-radius: 8px;
+        margin-top: 16px;
+        padding: 16px;
+        padding-top: 24px;
+        font-weight: 600;
+    }
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        subcontrol-position: top left;
+        padding: 0 8px;
+        color: #E4E7EB;
+    }
+    QScrollBar:vertical {
+        background-color: transparent;
+        width: 8px;
+        border-radius: 4px;
+        margin: 2px;
+    }
+    QScrollBar::handle:vertical {
+        background-color: #3E4C59;
+        border-radius: 4px;
+        min-height: 24px;
+    }
+    QScrollBar::handle:vertical:hover {
+        background-color: #9AA5B1;
+    }
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+        height: 0px;
+    }
+    QScrollBar:horizontal {
+        background-color: transparent;
+        height: 8px;
+        border-radius: 4px;
+        margin: 2px;
+    }
+    QScrollBar::handle:horizontal {
+        background-color: #3E4C59;
+        border-radius: 4px;
+        min-width: 24px;
+    }
+    QScrollBar::handle:horizontal:hover {
+        background-color: #9AA5B1;
+    }
+    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+        width: 0px;
+    }
+    QPushButton[danger="true"] {
+        background-color: #EF4444;
+    }
+    QPushButton[danger="true"]:hover {
+        background-color: #DC2626;
+    }
+    QPushButton[danger="true"]:pressed {
+        background-color: #B91C1C;
+    }
+   </string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="main_layout">
+    <property name="spacing"><number>0</number></property>
+    <property name="leftMargin"><number>0</number></property>
+    <property name="topMargin"><number>0</number></property>
+    <property name="rightMargin"><number>0</number></property>
+    <property name="bottomMargin"><number>0</number></property>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- ██  SIDEBAR                           -->
+    <!-- ══════════════════════════════════════ -->
+    <item>
+     <widget class="QWidget" name="sidebar_container" native="true">
+      <property name="minimumSize">
+       <size><width>240</width><height>0</height></size>
+      </property>
+      <property name="maximumSize">
+       <size><width>240</width><height>16777215</height></size>
+      </property>
+      <layout class="QVBoxLayout" name="sidebar_layout">
+       <property name="spacing"><number>0</number></property>
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+
+       <!-- Logo -->
+       <item>
+        <widget class="QLabel" name="logo_label">
+         <property name="styleSheet">
+          <string notr="true">background-color: transparent;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Dashboard -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_dashboard">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Dashboard</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Danh sách thuốc -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_inventory">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Danh sách thuốc</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Quản lý kệ -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_shelf">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Quản lý kệ</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Report -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_report">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Report</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Nav: Setting -->
+       <item>
+        <widget class="QPushButton" name="btn_nav_setting">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font><pointsize>16</pointsize></font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Setting</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Spacer (stretch) -->
+       <item>
+        <spacer name="sidebar_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size><width>20</width><height>40</height></size>
+         </property>
+        </spacer>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- ██  MAIN CONTENT CONTAINER            -->
+    <!-- ══════════════════════════════════════ -->
+    <item>
+     <widget class="QWidget" name="main_container" native="true">
+      <layout class="QVBoxLayout" name="content_layout">
+       <property name="leftMargin"><number>8</number></property>
+       <property name="topMargin"><number>8</number></property>
+       <property name="rightMargin"><number>8</number></property>
+       <property name="bottomMargin"><number>8</number></property>
+
+       <!-- ── Header ── -->
+       <item>
+        <widget class="QWidget" name="header_container" native="true">
+         <property name="maximumSize">
+          <size><width>16777215</width><height>50</height></size>
+         </property>
+         <layout class="QHBoxLayout" name="header_layout">
+          <property name="leftMargin"><number>8</number></property>
+          <property name="topMargin"><number>8</number></property>
+          <property name="rightMargin"><number>8</number></property>
+          <property name="bottomMargin"><number>8</number></property>
+
+          <!-- Page Title -->
+          <item>
+           <widget class="QLabel" name="page_title">
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Dashboard</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Header Spacer -->
+          <item>
+           <spacer name="header_spacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size><width>40</width><height>20</height></size>
+            </property>
+           </spacer>
+          </item>
+
+          <!-- Search Button -->
+          <item>
+           <widget class="QPushButton" name="btn_search">
+            <property name="minimumSize">
+             <size><width>200</width><height>0</height></size>
+            </property>
+            <property name="maximumSize">
+             <size><width>200</width><height>16777215</height></size>
+            </property>
+            <property name="text">
+             <string>🔍 Tìm kiếm (Ctrl+K)</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Theme Toggle Button -->
+          <item>
+           <widget class="QPushButton" name="btn_toggle_theme">
+            <property name="font">
+             <font><pointsize>14</pointsize></font>
+            </property>
+            <property name="text">
+             <string>☀️ Light</string>
+            </property>
+           </widget>
+          </item>
+
+         </layout>
+        </widget>
+       </item>
+
+       <!-- ── Stacked Widget (Pages) ── -->
+       <item>
+        <widget class="QStackedWidget" name="stacked_main_content">
+
+         <!-- Page: Inventory Wrapper -->
+         <widget class="QWidget" name="page_inventory">
+          <layout class="QVBoxLayout" name="inv_layout">
+           <property name="leftMargin"><number>8</number></property>
+           <property name="topMargin"><number>8</number></property>
+           <property name="rightMargin"><number>8</number></property>
+           <property name="bottomMargin"><number>8</number></property>
+          </layout>
+         </widget>
+
+         <!-- Page: Shelf Wrapper -->
+         <widget class="QWidget" name="page_shelf">
+          <layout class="QVBoxLayout" name="shelf_layout">
+           <property name="leftMargin"><number>8</number></property>
+           <property name="topMargin"><number>8</number></property>
+           <property name="rightMargin"><number>8</number></property>
+           <property name="bottomMargin"><number>8</number></property>
+          </layout>
+         </widget>
+
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

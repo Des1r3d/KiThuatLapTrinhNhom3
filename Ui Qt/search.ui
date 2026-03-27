@@ -35,6 +35,14 @@
       <property name="rightMargin"><number>20</number></property>
       <item><widget class="QLabel" name="lbl_icon"><property name="text"><string>🔍</string></property></widget></item>
       <item><widget class="QLineEdit" name="txt_search"><property name="placeholderText"><string>Tìm kiếm thuốc...</string></property></widget></item>
+      <item>
+       <widget class="QPushButton" name="btn_close">
+        <property name="text"><string>Đóng</string></property>
+        <property name="minimumSize"><size><width>60</width><height>30</height></size></property>
+        <property name="maximumSize"><size><width>60</width><height>30</height></size></property>
+        <property name="styleSheet"><string notr="true">QPushButton { background-color: #F1F5F9; color: #2F3E46; border: 1px solid #E0E6ED; border-radius: 6px; font-size: 12px; } QPushButton:hover { border-color: #2563EB; color: #2563EB; }</string></property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
