@@ -461,3 +461,99 @@ flowchart LR
 -   **Actor (Quản lý kho / User):** Người dùng hệ thống thực hiện các thao tác quản lý và tra cứu.
 -   **Phần mềm quản lý kho thuốc y tế (System):** Ranh giới hệ thống, nhóm các chức năng (oval) ở bên trong.
 -   **Các Use Case (Các oval màu cam):** Đại diện cho 10 tính năng cốt lõi đã được phân rã thao tác CRUD riêng biệt của giao diện người dùng.
+
+---
+
+## 8. Business Flow Diagram
+
+This flowchart illustrates the core business operations within the Pharmacy Management System from a user's perspective, covering dashboard monitoring, inventory management, and shelf organization.
+
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef startEnd fill:#2ecc71,stroke:#27ae60,stroke-width:2px,color:#fff;
+    classDef decision fill:#f39c12,stroke:#d35400,stroke-width:2px,color:#fff;
+    classDef process fill:#3498db,stroke:#2980b9,stroke-width:2px,color:#fff;
+    classDef storage fill:#9b59b6,stroke:#8e44ad,stroke-width:2px,color:#fff;
+    classDef ui fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff;
+
+    %% Nodes
+    Start([System Start]) ::: startEnd
+    Dashboard[Dashboard / Home View] ::: ui
+    CheckAlerts{Check Alerts?} ::: decision
+    MenuSelect{Select Module} ::: decision
+    
+    GlobalSearch[Global Search] ::: process
+    MedDetail[View Medicine Details] ::: process
+
+    ManageInv[Manage Inventory] ::: ui
+    InvAction{Select Action} ::: decision
+    AddMed[Add Medicine] ::: process
+    EditMed[Edit Medicine] ::: process
+    DelMed[Delete Medicine] ::: process
+    
+    ManageShelf[Manage Shelves] ::: ui
+    ShelfAction{Select Action} ::: decision
+    AddShelf[Add Shelf] ::: process
+    EditShelf[Edit Shelf] ::: process
+    DelShelf[Delete Shelf] ::: process
+    
+    ValidateMed{Validate Data<br>& Capacity} ::: decision
+    ValidateShelf{Validate Data<br>& Relations} ::: decision
+    
+    JSONStore[(JSON Storage)] ::: storage
+    RefreshUI[Refresh App Views] ::: ui
+
+    %% Flow
+    Start --> Dashboard
+    
+    Dashboard -->|Ctrl+K| GlobalSearch
+    GlobalSearch -->|Select Item| MedDetail
+    MedDetail -->|Edit/Delete| ManageInv
+    
+    Dashboard --> CheckAlerts
+    CheckAlerts -->|Warnings Active| ManageInv
+    CheckAlerts -->|All Clear| MenuSelect
+    
+    MenuSelect -->|Inventory Tab| ManageInv
+    MenuSelect -->|Shelf Tab| ManageShelf
+    
+    %% Inventory Actions
+    ManageInv --> InvAction
+    InvAction -->|Add| AddMed
+    InvAction -->|Edit| EditMed
+    InvAction -->|Delete| DelMed
+    
+    AddMed --> ValidateMed
+    EditMed --> ValidateMed
+    ValidateMed -->|Invalid| AddMed
+    ValidateMed -->|Valid| JSONStore
+    DelMed --> JSONStore
+    
+    %% Shelf Actions
+    ManageShelf --> ShelfAction
+    ShelfAction -->|Add| AddShelf
+    ShelfAction -->|Edit| EditShelf
+    ShelfAction -->|Delete| DelShelf
+    
+    AddShelf --> ValidateShelf
+    EditShelf --> ValidateShelf
+    ValidateShelf -->|Invalid| AddShelf
+    ValidateShelf -->|Valid| JSONStore
+    
+    %% DelShelf routing
+    DelShelf --> ValidateShelf
+    ValidateShelf -->|Has Medicines| DelShelf
+    
+    %% Storage & UI Update
+    JSONStore --> RefreshUI
+    RefreshUI --> Dashboard
+```
+
+### Explanation:
+- **System Start & Dashboard:** The user begins at the Dashboard, which continuously provides an overview of operations and system alerts (e.g., expiring medicines, low stock).
+- **Global Search:** Accessible from anywhere using `Ctrl+K`, allowing quick navigation to medicine detail views, which can dynamically redirect to the inventory management section for further actions.
+- **Decision Nodes (Alerts & Modules):** Users interact directly with active warnings or navigate to specific modules (Inventory or Shelves) to perform daily tasks.
+- **CRUD Operations:** Both Inventory and Shelf modules support full Add, Edit, and Delete actions. 
+- **Validation:** Before any data modification, the system strictly validates input, ensuring correct data types, sufficient shelf capacity (for medicines), and that a shelf is completely empty before allowing deletion.
+- **JSON Storage & Refresh:** Once validations pass, atomic write operations save modifications securely into the local JSON files. Finally, the UI sends a broadcast signal to refresh all views, reflecting the updated data seamlessly.
