@@ -439,6 +439,135 @@ Kết quả: [("Paracetamol 500mg", 85)]
 
 ### Mục đích
 Xử lý toàn bộ logic nghiệp vụ cho trang Dashboard. Tách biệt hoàn toàn khỏi tầng view.
+Cung cấp dữ liệu đã xử lý sẵn cho UI render.
+
+### Phụ thuộc
+- `AlertSystem` — Tính toán thống kê cảnh báo (hết hạn, sắp hết hạn, tồn kho thấp)
+- `Medicine` — Model dữ liệu
+
+### Dataclasses
+
+#### `DashboardStats`
+Thống kê tổng quan cho 4 KPI cards.
+- `total: int` — Tổng số thuốc
+- `expired: int` — Số thuốc đã hết hạn
+- `expiring: int` — Số thuốc sắp hết hạn (trong 30 ngày)
+- `low_stock: int` — Số thuốc tồn kho thấp (bao gồm hết hàng)
+
+#### `PieChartData`
+Dữ liệu cho biểu đồ tròn phân bố hạn sử dụng.
+- `sizes: List[int]` — Số lượng mỗi phần
+- `labels: List[str]` — Nhãn tương ứng
+- `colors: List[str]` — Mã màu tương ứng
+- `has_data: bool` — True nếu có dữ liệu
+
+#### `BarChartData`
+Dữ liệu cho biểu đồ cột top thuốc.
+- `names: List[str]` — Tên thuốc (cắt ngắn nếu > 15 ký tự)
+- `quantities: List[int]` — Số lượng tương ứng
+- `has_data: bool` — True nếu có dữ liệu
+
+#### `ExpiryItem`
+Mục thuốc sắp hết hạn cho bảng cảnh báo `tbl_expiry`.
+- `name: str` — Tên thuốc
+- `expiry_date: str` — Ngày hết hạn (format "%Y-%m-%d")
+- `shelf_id: str` — Vị trí kệ (hiển thị ở cột "Vị trí kệ")
+- `days_left: int` — Số ngày còn lại
+
+#### `LowStockItem`
+Mục thuốc tồn kho thấp cho bảng cảnh báo `tbl_stock`.
+- `name: str` — Tên thuốc
+- `shelf_id: str` — Vị trí kệ
+- `quantity: int` — Số lượng hiện tại
+
+### Luồng phương thức
+
+#### `get_statistics(medicines) → DashboardStats`
+```
+BẮT ĐẦU
+  ↓
+Gọi AlertSystem.get_alert_summary(medicines)
+  ↓
+Trả về DashboardStats(total, expired, expiring, low_stock + out_of_stock)
+  ↓
+KẾT THÚC
+```
+
+#### `get_pie_chart_data(medicines, chart_colors) → PieChartData`
+```
+BẮT ĐẦU
+  ↓
+Nếu không có medicines → Trả về PieChartData(has_data=False)
+  ↓
+Đếm: expired, expiring (≤ 30 ngày), normal
+  ↓
+Lọc bỏ các phần có giá trị 0
+  ↓
+Trả về PieChartData(sizes, labels, colors)
+  ↓
+KẾT THÚC
+```
+
+#### `get_bar_chart_data(medicines) → BarChartData`
+```
+BẮT ĐẦU
+  ↓
+Sắp xếp thuốc theo quantity giảm dần
+  ↓
+Lấy top 10 (max_bar_items)
+  ↓
+Cắt ngắn tên > 15 ký tự → thêm "..."
+  ↓
+Trả về BarChartData(names, quantities)
+  ↓
+KẾT THÚC
+```
+
+#### `get_expiring_medicines(medicines) → List[ExpiryItem]`
+```
+BẮT ĐẦU
+  ↓
+Lọc thuốc: chưa hết hạn AND days_until_expiry ≤ 30
+  ↓
+Sắp xếp theo days_until_expiry (ít nhất trước)
+  ↓
+Lấy tối đa 5 mục (max_alert_items)
+  ↓
+Tạo ExpiryItem(name, expiry_date, shelf_id, days_left)
+  ↓
+KẾT THÚC
+```
+
+#### `get_low_stock_medicines(medicines) → List[LowStockItem]`
+```
+BẮT ĐẦU
+  ↓
+Lọc thuốc: quantity ≤ 5 (low_stock_threshold)
+  ↓
+Sắp xếp theo quantity tăng dần
+  ↓
+Lấy tối đa 5 mục (max_alert_items)
+  ↓
+Tạo LowStockItem(name, shelf_id, quantity)
+  ↓
+KẾT THÚC
+```
+
+### Bảng cảnh báo Dashboard
+
+#### Bảng `tbl_expiry` (Thuốc sắp hết hạn)
+| Cột | Header | Dữ liệu từ ExpiryItem |
+|-----|--------|----------------------|
+| 0 | Tên thuốc | `name` |
+| 1 | HSD | `expiry_date` |
+| 2 | Vị trí kệ | `shelf_id` |
+
+#### Bảng `tbl_stock` (Tồn kho thấp)
+| Cột | Header | Dữ liệu từ LowStockItem |
+|-----|--------|--------------------------|
+| 0 | Tên thuốc | `name` |
+| 1 | Vị trí kệ | `shelf_id` |
+| 2 | Số lượng | `quantity` |
 
 ### 6.1 Luồng MainWindow
 

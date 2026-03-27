@@ -2,7 +2,7 @@
 
 Tài liệu này trình bày các sơ đồ kiến trúc và sơ đồ luồng chính cho Hệ thống Quản lý Nhà thuốc, cung cấp một cái nhìn tổng quan trực quan về cấu trúc và chức năng của nó. Các sơ đồ này được tạo bằng cú pháp Mermaid, có thể được hiển thị bởi nhiều trình xem Markdown và công cụ tài liệu.
 
-**Ngày cập nhật:** 26/03/2026
+**Ngày cập nhật:** 27/03/2026
 
 ---
 
@@ -24,10 +24,15 @@ graph TD
     MainWin --> SearchDlg["Global Search (Ctrl+K)"]
     MainWin --> Dialogs["Dialogs<br>(Medicine/Shelf/Filter/Notify)"]
 
+    Dashboard --> DashMgr["DashboardManager<br>(dashboard_manager.py)"]
+    DashMgr --> AlertSys[Expiry Alert System]
+    DashMgr --> Models
+
     Logic --> InvMgr[Inventory Manager]
     Logic --> SearchEng[Search Engine]
-    Logic --> AlertSys[Expiry Alert System]
+    Logic --> AlertSys
     Logic --> ImgMgr[Image Manager]
+    Logic --> DashMgr
 
     Data --> JSON_Store[JSON Storage Engine]
     Data --> Models["Data Models<br>(Medicine, Shelf)"]
@@ -46,7 +51,8 @@ graph TD
 -   **Main Application (`app.py`):** Đóng vai trò khởi tạo (bootstrap) hệ thống, tạo `QApplication` và `MainWindow`.
 -   **MainWindow (`main_window.py`):** Hub trung tâm điều khiển tất cả views, dialogs, theme, search. Chỉ chứa business logic — layout được define trong generated UI files.
 -   **UI Layer (PyQt6):** Xử lý tương tác người dùng và hiển thị thông tin. Gồm Dashboard, Inventory View, Shelf View, Search Dialog, và các Notification Dialogs.
--   **Business Logic Layer:** Chứa các quy tắc nghiệp vụ cốt lõi: Inventory Manager, Search Engine, Alert System, và Image Manager.
+-   **DashboardManager (`dashboard_manager.py`):** Bộ xử lý dữ liệu trung tâm cho Dashboard. Tách biệt logic nghiệp vụ khỏi tầng view, cung cấp: thống kê KPI (`DashboardStats`), dữ liệu biểu đồ tròn (`PieChartData`) và cột (`BarChartData`), danh sách thuốc sắp hết hạn (`ExpiryItem` — gồm tên, HSD, vị trí kệ), và danh sách tồn kho thấp (`LowStockItem` — gồm tên, vị trí kệ, số lượng). Sử dụng `AlertSystem` để tính toán.
+-   **Business Logic Layer:** Chứa các quy tắc nghiệp vụ cốt lõi: Inventory Manager, Search Engine, Alert System, Image Manager, và DashboardManager.
 -   **Data Access Layer:** Chịu trách nhiệm lưu trữ và truy cập dữ liệu: JSON Storage Engine (atomic writes) và Data Models (Medicine, Shelf).
 -   **Theme System:** Chọn giữa Light/Dark generated UI files tại runtime, giữ nguyên page index khi chuyển theme.
 
