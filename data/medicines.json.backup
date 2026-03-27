@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "id": "K-G1.001",
+    "name": "Diclofenac 50mg",
+    "quantity": 150,
+    "expiry_date": "2028-01-01",
+    "shelf_id": "K-G1",
+    "price": 30000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-G1.002",
+    "name": "Cefuroxime 500mg",
+    "quantity": 90,
+    "expiry_date": "2027-11-15",
+    "shelf_id": "K-G1",
+    "price": 75000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-G2.001",
+    "name": "Atorvastatin 20mg",
+    "quantity": 200,
+    "expiry_date": "2028-05-20",
+    "shelf_id": "K-G2",
+    "price": 55000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-G2.002",
+    "name": "Calcium D3",
+    "quantity": 10,
+    "expiry_date": "2026-04-20",
+    "shelf_id": "K-G2",
+    "price": 28000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-H1.001",
+    "name": "Magnesium B6",
+    "quantity": 4,
+    "expiry_date": "2026-03-29",
+    "shelf_id": "K-H1",
+    "price": 26000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-H2.001",
+    "name": "Fluconazole 150mg",
+    "quantity": 18,
+    "expiry_date": "2026-03-22",
+    "shelf_id": "K-H2",
+    "price": 50000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-H2.002",
+    "name": "Ketoconazole 200mg",
+    "quantity": 30,
+    "expiry_date": "2026-02-20",
+    "shelf_id": "K-H2",
+    "price": 47000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-I1.001",
+    "name": "Ranitidine 150mg",
+    "quantity": 2,
+    "expiry_date": "2026-05-05",
+    "shelf_id": "K-I1",
+    "price": 21000.0,
+    "image_path": ""
+  },
+  {
+    "id": "K-I1.002",
+    "name": "Domperidone 10mg",
+    "quantity": 0,
+    "expiry_date": "2026-03-01",
+    "shelf_id": "K-I1",
+    "price": 19000.0,
+    "image_path": ""
+  }
+]
