@@ -1,4 +1,4 @@
-# 💊 PHARMA.SYS — Hệ Thống Quản Lý Kho Thuốc
+#  PHARMA.SYS — Hệ Thống Quản Lý Kho Thuốc
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/)
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.6.0+-green.svg)](https://www.riverbankcomputing.com/software/pyqt/)
@@ -6,16 +6,16 @@
 
 Ứng dụng desktop **quản lý kho thuốc** (Pharmacy Inventory Management) xây dựng bằng **Python + PyQt6**, hỗ trợ CRUD thuốc & kệ, cảnh báo thông minh, tìm kiếm mờ, và giao diện Light/Dark mode.
 
-## ✨ Tính Năng Chính
+## Tính Năng Chính
 
-### 📋 Quản Lý Kho
+### Quản Lý Kho
 
-- ➕ **Thêm/Sửa/Xóa thuốc** với validation đầy đủ
-- 🔍 **Tìm kiếm mờ** (fuzzy search) bằng TheFuzz
-- 📊 **Dashboard** với biểu đồ thống kê Matplotlib
-- 🗂️ **Quản lý kệ thuốc** với kiểm tra sức chứa
-- 🖼️ **Ảnh thuốc** — lưu và hiển thị ảnh minh họa
-- 🔢 **ID tự động** — định dạng `{shelf_id}.{seq:03d}` (VD: `K-A1.001`)
+- **Thêm/Sửa/Xóa thuốc** với validation đầy đủ
+- **Tìm kiếm mờ** (fuzzy search) bằng TheFuzz
+-  **Dashboard** với biểu đồ thống kê Matplotlib
+-  **Quản lý kệ thuốc** với kiểm tra sức chứa
+-  **Ảnh thuốc** — lưu và hiển thị ảnh minh họa
+-  **ID tự động** — định dạng `{shelf_id}.{seq:03d}` (VD: `K-A1.001`)
 
 ### ⚠️ Cảnh Báo Thông Minh
 
@@ -26,19 +26,12 @@
 | 🚫 **Hết hàng** | `quantity == 0` | Cao |
 | 📉 **Tồn kho thấp** | `quantity ≤ 5` và `> 0` | Thấp |
 
-### 🎨 Giao Diện
+### Giao Diện
 
 - 🌞 **Light Mode** — Background: `#F4F6F8`, Surface: `#FFFFFF`
 - 🌙 **Dark Mode** — Background: `#1F2933`, Surface: `#273947`
 - 🔄 **Chuyển theme giữ nguyên trang** — không nhảy về Dashboard
 - ⌨️ **Phím tắt** tiện lợi
-
-## 🚀 Cài Đặt
-
-### Yêu Cầu Hệ Thống
-
-- Python 3.13 hoặc cao hơn
-- Windows 10/11, macOS, hoặc Linux
 
 ### Cài Đặt & Chạy
 
@@ -202,7 +195,7 @@ Nhấn nút chuyển theme ở góc trên phải của thanh tiêu đề hoặc 
 | `Ctrl+D` | Chuyển đổi giữa Light Mode và Dark Mode |
 | `Escape` | Đóng hộp thoại tìm kiếm |
 
-## 📁 Cấu Trúc Dự Án
+## Cấu Trúc Dự Án
 
 ```
 KiThuatLapTrinhNhom3/
@@ -263,7 +256,7 @@ KiThuatLapTrinhNhom3/
     ├── search.ui / search_dark.ui
     └── ... (notification dialogs sáng + tối)
 ```
-## 🛠️ Công Nghệ
+##  Công Nghệ
 
 | Thành phần | Công nghệ |
 |------------|-----------|
@@ -274,7 +267,7 @@ KiThuatLapTrinhNhom3/
 | UI Design | Qt Designer (.ui files) |
 | Data Storage | JSON files |
 
-## 📊 Kiến Trúc
+##  Kiến Trúc
 
 | Pattern | Mô tả |
 |---------|--------|
