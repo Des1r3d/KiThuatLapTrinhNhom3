@@ -430,11 +430,16 @@ flowchart LR
 
     subgraph System["Phần mềm quản lý kho thuốc y tế"]
         direction TB
-        UC1(["Quản lý danh mục Thuốc<br>(Bao gồm Thêm, Sửa, Xóa, Xem chi tiết)"])
-        UC2(["Quản lý Kệ hàng"])
-        UC3(["Tìm kiếm thuốc<br>(Global Search)"])
-        UC4(["Xem cảnh báo hệ thống<br>(Thuốc hết hạn, Sắp hết hạn, Hết hàng...)"])
-        UC5(["Tùy chỉnh giao diện<br>(Đổi Theme Sáng/Tối)"])
+        UC1(["Thêm thuốc"])
+        UC2(["Sửa thông tin thuốc"])
+        UC3(["Xóa thuốc"])
+        UC4(["Xem chi tiết thuốc"])
+        UC5(["Thêm kệ hàng"])
+        UC6(["Sửa thông tin kệ hàng"])
+        UC7(["Xóa kệ hàng"])
+        UC8(["Tìm kiếm thuốc<br>(Global Search)"])
+        UC9(["Xem cảnh báo hệ thống<br>(Sắp hết hạn, Hết hàng...)"])
+        UC10(["Tùy chỉnh giao diện<br>(Theme Sáng/Tối)"])
     end
 
     User --> UC1
@@ -442,12 +447,17 @@ flowchart LR
     User --> UC3
     User --> UC4
     User --> UC5
+    User --> UC6
+    User --> UC7
+    User --> UC8
+    User --> UC9
+    User --> UC10
 
     classDef usecase fill:#f9a826,stroke:#e67e22,stroke-width:2px,color:#fff;
-    class UC1,UC2,UC3,UC4,UC5 usecase;
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10 usecase;
 ```
 
 ### Giải thích:
 -   **Actor (Quản lý kho / User):** Người dùng hệ thống thực hiện các thao tác quản lý và tra cứu.
 -   **Phần mềm quản lý kho thuốc y tế (System):** Ranh giới hệ thống, nhóm các chức năng (oval) ở bên trong.
--   **Các Use Case (Các oval màu cam):** Đại diện cho 5 tính năng cốt lõi của giao diện người dùng.
+-   **Các Use Case (Các oval màu cam):** Đại diện cho 10 tính năng cốt lõi đã được phân rã thao tác CRUD riêng biệt của giao diện người dùng.

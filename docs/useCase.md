@@ -1,68 +1,133 @@
 # Đặc tả Use Case: Phần mềm quản lý kho thuốc y tế
 
-Dưới đây là các bảng đặc tả chi tiết cho 5 Use Case chính của phần mềm quản lý kho thuốc y tế, dựa trên sơ đồ chức năng.
+Dưới đây là các bảng đặc tả chi tiết cho các Use Case phân rã của phần mềm quản lý kho thuốc y tế, dựa theo sơ đồ chức năng.
 
-## 1. Đặc tả UC: Quản lý danh mục Thuốc
+## Nhóm chức năng Quản lý danh mục Thuốc
 
-| **UC – Quản lý danh mục Thuốc** | |
+### 1. Đặc tả UC: Thêm thuốc
+| **UC – Thêm thuốc** | |
 | --- | --- |
-| **Tên** | Quản lý danh mục Thuốc |
-| **Mô tả** | Cho phép người dùng thêm mới, chỉnh sửa, xóa và xem chi tiết thông tin thuốc trong kho quản lý. |
+| **Tên** | Thêm thuốc mới |
+| **Mô tả** | Chức năng cho phép người dùng khai báo thông tin của một loại thuốc mới vào hệ thống quản lý. |
+| **Actors** | User (Quản lý kho/Dược sĩ) |
+| **Includes** | Không có |
+| **Extends** | Không có |
+| **Điều kiện tiên quyết** | Ứng dụng đã khởi động ưu tiên tính năng tự tạo file dữ liệu lưu trữ thuốc trống (blank file) nếu chạy lần đầu. Yêu cầu cần có sẵn dữ liệu kệ hàng khả dụng để định vị chỗ chứa trước. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chuyển sang màn hình Inventory và bấm "Thêm thuốc".<br>Bước 2: Hệ thống hiển thị form điền thông tin thuốc (Tên, số lượng, giá, HSD, kệ đích...).<br>Bước 3: Người dùng điền đầy đủ thông tin hợp lệ và bấm "Lưu".<br>Bước 4: Hệ thống xác thực sức chứa của kệ, nếu hợp lệ thì ghi nhận dữ liệu xuống tệp.<br><br>**Luồng sự kiện phụ**<br>(4A): Nếu dữ liệu không hợp lệ (để trống, sai định dạng) hoặc vị trí kệ đích đã đầy, hệ thống xuất thông báo lỗi không cho phép lưu tiếp. |
+| **Điều kiện sau** | Dữ liệu thuốc mới được lưu và danh sách tự động tải lại hiện sản phẩm mới thêm. |
+
+### 2. Đặc tả UC: Sửa thông tin thuốc
+| **UC – Sửa thông tin thuốc** | |
+| --- | --- |
+| **Tên** | Sửa thông tin thuốc |
+| **Mô tả** | Cập nhật lại các thông tin sai sót hoặc biến động (chỉnh sửa số lượng, đổi kệ, sửa giá). |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Tìm kiếm thuốc |
-| **Điều kiện tiên quyết** | Ứng dụng đã được khởi động, có sẵn file lưu trữ thông tin thuốc hợp lệ. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chọn chức năng Quản lý danh mục thuốc.<br>Bước 2: Hệ thống tải danh sách toàn bộ các loại tự động.<br>Bước 3: Người dùng nhấn các nút thao tác tương ứng (Thêm, Sửa, Xóa, Xem chi tiết).<br>Bước 4: Hệ thống mở popup hoặc form nhập thông tin, biểu đồ dữ liệu tương ứng.<br>Bước 5: Người dùng bấm Lưu (hoặc Xác nhận xóa). Hệ thống ghi dữ liệu vào hệ thống.<br><br>**Luồng sự kiện phụ**<br>(5A) Thay vì lưu thành công, nếu thông tin bị bỏ trống hoặc sai định dạng (v.d: số lượng âm), hệ thống chặn lại và bắt buộc chỉnh sửa lại form điền. |
-| **Điều kiện sau** | Dữ liệu thuốc được ghi nhận hoàn tất ở kho lưu trữ. Hệ thống tự động tải lại màn hình hiển thị danh mục mới nhất. |
+| **Điều kiện tiên quyết** | Thuốc cần chỉnh sửa phải tồn tại sẵn trong phần mềm. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chọn 1 loại thuốc trong bảng danh sách (có thể qua tìm kiếm) và bấm "Sửa".<br>Bước 2: Hệ thống load form chứa sẵn các thông tin cũ của loại thuốc đó.<br>Bước 3: Người dùng thao tác chỉnh sửa thông tin cần thay đổi và bấm "Lưu".<br>Bước 4: Hệ thống kiểm tra hợp lệ và tiến hành cập nhật vào file lưu trữ.<br><br>**Luồng sự kiện phụ**<br>(4A): Dữ liệu sau chỉnh sửa không qua được vòng xác thực (ví dụ kệ đích không đủ chỗ trống), hệ thống báo lỗi không thành công. |
+| **Điều kiện sau** | Nội dung thông tin được lưu ghi đè thành công và giao diện được refresh lại ngay lập tức. |
 
-## 2. Đặc tả UC: Quản lý Kệ hàng
-
-| **UC – Quản lý Kệ hàng** | |
+### 3. Đặc tả UC: Xóa thuốc
+| **UC – Xóa thuốc** | |
 | --- | --- |
-| **Tên** | Quản lý Kệ hàng |
-| **Mô tả** | Quản trị khu vực sắp xếp: tạo mới chức năng, quản lý và theo dõi sức chứa của các kệ để thuốc. |
+| **Tên** | Xóa thuốc khỏi kho |
+| **Mô tả** | Xóa hoàn toàn bản ghi của một loại thuốc không còn kinh doanh hoặc hết mã ra khỏi kho lưu trữ. |
+| **Actors** | User (Quản lý kho/Dược sĩ) |
+| **Includes** | Không có |
+| **Extends** | Tìm kiếm thuốc |
+| **Điều kiện tiên quyết** | Xác thực sản phẩm thuốc đang nằm trong hệ thống. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng tìm và chọn loại thuốc cần loại bỏ, sau đó bấm "Xóa".<br>Bước 2: Hệ thống bật cửa sổ Popup cảnh báo xác nhận có chắc chắn muốn xóa không.<br>Bước 3: Người dùng bấm "Đồng ý".<br>Bước 4: Hệ thống xử lý giải phóng không gian trên kệ và gỡ bỏ dữ liệu trong file lưu trữ.<br><br>**Luồng sự kiện phụ**<br>(3A): Người dùng ấn "Hủy" hoặc đóng pop-up, hệ thống trở về trạng thái cũ không đổi. |
+| **Điều kiện sau** | Thuốc bị gỡ dữ liệu vĩnh viễn và không còn xuất hiện trên màn hình quản lý. Sức chứa kệ hàng được cập lại phần không gian trống. |
+
+### 4. Đặc tả UC: Xem chi tiết thuốc
+| **UC – Xem chi tiết thuốc** | |
+| --- | --- |
+| **Tên** | Xem chi tiết thuốc |
+| **Mô tả** | Liệt kê màn hình tóm tắt thông tin đầy đủ nhất về thuốc, mã số định danh, cảnh báo hết hạn đối với mặt hàng đó. |
+| **Actors** | User (Quản lý kho/Dược sĩ) |
+| **Includes** | Không có |
+| **Extends** | Tìm kiếm thuốc |
+| **Điều kiện tiên quyết** | Hệ thống đang hiển thị giao diện danh sách hàng hoặc thanh Search. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng double-click hoặc ấn "Xem chi tiết" vào mục một loại thuốc nhất định.<br>Bước 2: Hệ thống tải UI "Medicine Detail" thống kê toàn bộ quy cách, vị trí kệ và ảnh (nếu có).<br>Bước 3: Người dùng xem và có thể đóng cửa sổ lại.<br><br>**Luồng sự kiện phụ**<br>Không có. |
+| **Điều kiện sau** | Không làm biến đổi dữ liệu, hệ thống vẫn duy trì ở trạng thái đọc. |
+
+---
+
+## Nhóm chức năng Quản lý Kệ hàng
+
+### 5. Đặc tả UC: Thêm kệ hàng
+| **UC – Thêm kệ hàng** | |
+| --- | --- |
+| **Tên** | Thêm kệ hàng mới |
+| **Mô tả** | Thiết lập không gian lưu trữ vật lý mới cho hệ thống nhận diện. |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Không có |
-| **Điều kiện tiên quyết** | Ứng dụng hoạt động bình thường, ở chức năng xem kệ hiện tại (Shelf View). |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chuyển qua tab quản lý Kệ hàng.<br>Bước 2: Hệ thống hiện danh sách kệ kèm theo thống kê sức chứa khả dụng.<br>Bước 3: Người dùng chọn Thêm Kệ hoặc Sửa/Xóa.<br>Bước 4: Người dùng nhập các thông số định nghĩa cho mã kệ (Khu vực, Cột, Hàng, Sức chứa lượng thuốc).<br>Bước 5: Người dùng yêu cầu lưu, hệ thống xác nhận thiết lập kệ.<br><br>**Luồng sự kiện phụ**<br>(5A): Khi nhập lượng thuốc mới lên kệ, nếu không đủ sức chứa do kệ vượt quá hạn định (Capacity), phần mềm hiện thông báo yêu cầu chuyển kệ. |
-| **Điều kiện sau** | Dữ liệu kệ hàng được lưu và thông tin dung lượng vị trí kho được cập nhật lên giao diện chính. |
+| **Điều kiện tiên quyết** | Phần mềm mở đúng ở giao diện Quản lý Kệ (Shelf View). Nếu đây là lần chạy mới hoàn toàn, hệ thống tự động khởi tạo file dữ liệu kệ hàng trống (blank file). |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng nhấn "Thêm kệ".<br>Bước 2: Hệ thống gọi cửa sổ form điền thông số kệ (Zone/Khu vực, Column/Cột, Row/Hàng, Capacity/Sức chứa lớn nhất).<br>Bước 3: Người dùng ấn "Lưu".<br>Bước 4: Hệ thống ghi nhận và phân bổ mã định danh cho kệ đó.<br><br>**Luồng sự kiện phụ**<br>(4A): Format điền kệ trống hoặc chuỗi ký tự không đúng định dạng số, hệ thống bảo trì form chặn lại bắt điền lại. |
+| **Điều kiện sau** | Cập nhật kho dữ liệu có kệ mới hiển thị ở UI và có thể sẵn sàng chứa thuốc thêm vào. |
 
-## 3. Đặc tả UC: Tìm kiếm thuốc
+### 6. Đặc tả UC: Sửa kệ hàng
+| **UC – Sửa kệ hàng** | |
+| --- | --- |
+| **Tên** | Sửa thông tin kệ hàng |
+| **Mô tả** | Nhằm thay đổi sức chứa của kệ hoặc đổi tên vị trí cột/hàng của kệ khi cơ sở kho được trùng tu. |
+| **Actors** | User (Quản lý kho/Dược sĩ) |
+| **Includes** | Không có |
+| **Extends** | Không có |
+| **Điều kiện tiên quyết** | Kệ đó đã được khai báo trên hệ thống. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng chọn 1 kệ đang có và bấm "Sửa".<br>Bước 2: Hệ thống giữ lại thông số cũ và cho phép Edit.<br>Bước 3: Người dùng sửa trực tiếp và ấn "Lưu".<br>Bước 4: Hệ thống nạp dữ liệu đè lên tệp.<br><br>**Luồng sự kiện phụ**<br>(4A): Nếu sửa "Sức chứa tối đa (Capacity)" mới lại NHỎ HƠN tổng số lượng thuốc hiện đang để trên đó, hệ thống báo lỗi không hợp lệ bắt buộc phải xuất bớt thuốc đi mới cho chỉnh. |
+| **Điều kiện sau** | Dữ kiện vật lý về kệ được cập nhật trên bảng. |
 
+### 7. Đặc tả UC: Xóa kệ hàng
+| **UC – Xóa kệ hàng** | |
+| --- | --- |
+| **Tên** | Xóa kệ hàng |
+| **Mô tả** | Hủy bỏ thông tin của kệ hàng khỏi kho khi kệ bị dỡ bỏ. |
+| **Actors** | User (Quản lý kho/Dược sĩ) |
+| **Includes** | Không có |
+| **Extends** | Không có |
+| **Điều kiện tiên quyết** | Kệ hàng tồn tại trên hệ thống. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Nhấn chọn và "Xóa kệ".<br>Bước 2: Popup cảnh báo sự mất mát.<br>Bước 3: Người dùng xác nhận rủi ro.<br>Bước 4: Server tiếp nhận lệnh xóa từ UI để diệt đối tượng kệ trong data list.<br><br>**Luồng sự kiện phụ**<br>(4A): Hệ thống chặn luồng xóa nểu phát hiện trên Kệ đang CÒN CHỨA THUỐC. Cảnh báo hiển thị người dùng phải chuyển các thuốc sang kệ khác trước khi tiến hành xóa kệ. |
+| **Điều kiện sau** | Danh sách kệ trống chỗ dòng liên hệ vừa xóa. |
+
+---
+
+## Các chức năng khác
+
+### 8. Đặc tả UC: Tìm kiếm thuốc
 | **UC – Tìm kiếm thuốc** | |
 | --- | --- |
 | **Tên** | Tìm kiếm thuốc (Global Search) |
-| **Mô tả** | Chức năng tìm nhanh thuốc giúp người dùng dễ dàng truy ra loại thuốc mình muốn từ mọi màn hình ứng dụng thông qua từ khóa (hỗ trợ tìm mờ). |
+| **Mô tả** | Công cụ tra cứu sản phẩm dựa theo keyword nhanh chóng mọi lúc mọi nơi bằng Fuzzy logic. |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Không có |
-| **Điều kiện tiên quyết** | Đã có sẵn dữ liệu và hệ thống đã Index thông tin. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Người dùng nhấp vào thanh tìm kiếm trên cùng hoặc gọi tắt bằng phím (Ctrl+K).<br>Bước 2: Người dùng gõ tên sản phẩm thuốc.<br>Bước 3: Ở thời gian thực, hệ thống kích hoạt module Fuzzy Search, lọc tên sát tự động tạo danh sách gợi ý đổ xuống.<br>Bước 4: Người dùng tham chiếu dòng kết quả, click thẳng vào và hệ thống tự điều hướng qua Xem chi tiết loại thuốc đó.<br><br>**Luồng sự kiện phụ**<br>(3A): Từ khóa gõ bị sai lệch lớn không có kết quả hợp lệ, hiển thị cảnh báo "Khôn tìm thấy". |
-| **Điều kiện sau** | Người dùng xem được chính xác chi tiết dữ liệu về loại hàng/thuốc theo mình mong muốn. |
+| **Điều kiện tiên quyết** | Kho thuốc sở hữu ít nhất 1 mặt hàng. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Ấn Ctrl+K / click vào Search box.<br>Bước 2: Nhập từ khoá.<br>Bước 3: Module search tự lo việc lọc thông minh (Fuzzy) và show chuỗi kết quả trùng khớp ngay lập tức.<br>Bước 4: Người dùng chọn vào đúng món mình tìm, hệ thống auto chuyển về màn hình "Xem chi tiết thuốc".<br><br>**Luồng sự kiện phụ**<br>(3A): Trả về bảng trắng ghi chữ "Không có kết quả". |
+| **Điều kiện sau** | Hệ thống chuyển view đến màn thông tin cụ thể món hàng. |
 
-## 4. Đặc tả UC: Xem cảnh báo hệ thống
-
+### 9. Đặc tả UC: Xem cảnh báo hệ thống
 | **UC – Xem cảnh báo hệ thống** | |
 | --- | --- |
 | **Tên** | Xem cảnh báo hệ thống |
-| **Mô tả** | Chẩn đoán các báo cáo rủi ro hàng ngày, cung cấp list các thuốc tình trạng đặc biệt (Sắp/đã hết hạn hoặc trạng thái cạn hàng). |
+| **Mô tả** | Tính năng Audit kho, rà soát hạn sử dụng (cận date/đã hết) và ngưỡng tồn kho thấp/cạn kiệt. |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Không có |
-| **Điều kiện tiên quyết** | Thuốc đã được đăng ký thời gian hạn sử dụng và số lượng tồn vào kho lưu trữ. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Hệ thống tự động đọc tập tin dữ liệu và nhận định hạn mức (Threshold) rủi ro được cài đặt.<br>Bước 2: Nhóm các cảnh báo vi phạm, ưu tiên màu cho Dashboard / Notification bar.<br>Bước 3: Người dùng xem biểu tượng hay mục báo cáo.<br>Bước 4: Hệ thống pop-up chi tiết danh sách mặt hàng, ngày còn lại cũng như lô sắp hết.<br><br>**Luồng sự kiện phụ**<br>(1A): Ở bước 1 & 2 nếu tất cả nằm ở độ an toàn: hệ thống tắt hoặc ghi chú "Trạng thái hiển hành bình ổn". |
-| **Điều kiện sau** | Cung cấp thông tin kịp thời để người quản lý biết để luân chuyển hoặc đặt hàng kho chuẩn. |
+| **Điều kiện tiên quyết** | Không có yêu cầu. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Thuật toán AlertSystem chạy nền đánh giá mọi loại thuốc.<br>Bước 2: Hiển thị giao diện báo động trên Notification list (khu Dashboard).<br>Bước 3: User click vô mục cảnh báo.<br>Bước 4: Pop-up danh sách các loại thuốc gặp trạng thái xấu.<br><br>**Luồng sự kiện phụ**<br>(1A): Hệ thống đánh giá không có vi phạm, để trạng thái im lặng "Hoạt động bình thường". |
+| **Điều kiện sau** | User nắm được thông tin lô hàng kém để có biện pháp xử lý. |
 
-## 5. Đặc tả UC: Tùy chỉnh giao diện
-
+### 10. Đặc tả UC: Tùy chỉnh giao diện
 | **UC – Tùy chỉnh giao diện** | |
 | --- | --- |
-| **Tên** | Tùy chỉnh giao diện (Theme Sáng/Tối) |
-| **Mô tả** | Thao tác đổi mode giao diện cho việc kiểm tra trải nghiệm sáng/tối dễ chịu theo ca làm ca đêm/ngày. |
+| **Tên** | Tùy chỉnh giao diện (Đổi Theme Sáng/Tối) |
+| **Mô tả** | Đổi màu toàn bộ cửa sổ sang giao diện màu xám tối và ngược lại bảo vệ mắt cho các khoảng ca trực. |
 | **Actors** | User (Quản lý kho/Dược sĩ) |
 | **Includes** | Không có |
 | **Extends** | Không có |
-| **Điều kiện tiên quyết** | Phần mềm hoạt động ở giao diện đồ hoạ. |
-| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Từ màn hình chính người dùng bấm công tắc Đổi theme Sáng (Light) / Tối (Dark).<br>Bước 2: Hệ thống sao lưu chỉ mục trang đang dừng tại thời điểm đó.<br>Bước 3: Trình điều hướng chạy tệp file giao diện Dark hoặc Light đã Compile lên màn hình.<br>Bước 4: Reload giao diện toàn phần giữ lại ngay giao diện vừa click (Tức là trạng thái màn tiếp theo vẫn nằm ở Tab đấy).<br><br>**Luồng sự kiện phụ**<br>Không có. |
-| **Điều kiện sau** | Toàn bộ các mảng màu đều hoàn thiện cập nhật thay đổi theo chủ đề yêu thích mà các chức năng vận trơn tru. |
+| **Điều kiện tiên quyết** | Main window đang hiển thị bình thường. |
+| **Luồng sự kiện** | **Luồng sự kiện chính**<br>Bước 1: Quản trị viên click vào Toggle Mode (Sáng/Tối).<br>Bước 2: Nhớ lại bộ chỉ mục của View hiện hành đang mở.<br>Bước 3: Call hàm thay đổi theme StyleSheet (Tối hoặc Sáng) cho toàn cục Widget.<br>Bước 4: Layout nháy lên Reload mà vẫn duy trì ở vị trí nội dung làm việc ban nãy.<br><br>**Luồng sự kiện phụ**<br>Không có. |
+| **Điều kiện sau** | Mọi thành phần khung cửa có tông màu mới, trải nghiệm dùng phần mềm ổn định. |
