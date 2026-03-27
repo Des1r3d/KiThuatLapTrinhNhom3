@@ -411,3 +411,37 @@ graph LR
 -   **Signal/Slot Pattern:** Views (InventoryView, ShelfView) chỉ **phát signals** — không chứa business logic. MainWindow **lắng nghe** signals và xử lý logic.
 -   **Unidirectional Flow:** Signals đi từ Views → MainWindow → Dialogs. Sau khi dialog hoàn thành, MainWindow gọi `refresh_all()` để cập nhật tất cả views.
 -   **MedicineDetailView:** Cũng có thể phát `edit_requested` và `delete_requested` — cho phép chỉnh sửa/xóa trực tiếp từ màn hình chi tiết thuốc.
+
+---
+
+## 7. Sơ đồ Use Case
+
+Sơ đồ này biểu diễn các chức năng chính của Phần mềm quản lý kho thuốc y tế dưới góc nhìn của người sử dụng.
+
+```mermaid
+flowchart LR
+    User(("👤<br>Quản lý kho<br>(User)"))
+
+    subgraph System["Phần mềm quản lý kho thuốc y tế"]
+        direction TB
+        UC1(["Quản lý danh mục Thuốc<br>(Bao gồm Thêm, Sửa, Xóa, Xem chi tiết)"])
+        UC2(["Quản lý Kệ hàng"])
+        UC3(["Tìm kiếm thuốc<br>(Global Search)"])
+        UC4(["Xem cảnh báo hệ thống<br>(Thuốc hết hạn, Sắp hết hạn, Hết hàng...)"])
+        UC5(["Tùy chỉnh giao diện<br>(Đổi Theme Sáng/Tối)"])
+    end
+
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+
+    classDef usecase fill:#f9a826,stroke:#e67e22,stroke-width:2px,color:#fff;
+    class UC1,UC2,UC3,UC4,UC5 usecase;
+```
+
+### Giải thích:
+-   **Actor (Quản lý kho / User):** Người dùng hệ thống thực hiện các thao tác quản lý và tra cứu.
+-   **Phần mềm quản lý kho thuốc y tế (System):** Ranh giới hệ thống, nhóm các chức năng (oval) ở bên trong.
+-   **Các Use Case (Các oval màu cam):** Đại diện cho 5 tính năng cốt lõi của giao diện người dùng.
